@@ -1,7 +1,11 @@
-# 参与开发
+# Contributing
 
-先阅读doc/PROTOCOL.md、doc/ARCHITECTURE.md和doc/ACQUISITION.md。协议更改请附固定源码链接或脱敏抓包，标明设备/固件、CRC、ACK与字段、实际纸面反馈；不得把模拟值写成实测。保持576点/完整行分包和单设备共享锁。
+[English](CONTRIBUTING.md) · [简体中文](doc/CONTRIBUTING.zh-CN.md)
 
-新增耗纸入口接入侧栏唯一全局开关；默认不连接、不打印，不自动重发失败任务。修改HTTP路由时同步doc/API.md、doc/openapi.json与Clients。涉及UI请实际查看界面，涉及硬件请记录验证边界。
+Read the [protocol](doc/PROTOCOL.md), [architecture](doc/ARCHITECTURE.md), and [acquisition record](doc/ACQUISITION.md) first. Protocol changes should include pinned source links or redacted captures, model/firmware, CRC and ACK/data distinctions, and physical observations. Do not present emulator constants as device measurements. Preserve576-column whole-row packing and the shared device lock.
 
-构建/测试输出放外部开发目录；不要提交缓存、令牌、原始个人设备标识、会话日志或下载的其他仓库。贡献与改编遵循LICENSE的CC BY-NC-SA4.0条款，保留ELT Group署名与NOTICE；发布到其他电脑时配置正式签名/公证。
+Connect every paper-using feature to the sidebar's single global switch. Default to no automatic connection/printing and no automatic replay of failed jobs. Keep API routes, [API documentation](doc/API.md), [OpenAPI](doc/openapi.json), and clients synchronized. Keep actual Chinese wire enum values unchanged when translating documentation.
+
+Validate UI changes in the app and record hardware validation scope. Keep build/test output, credentials, raw device identifiers, sessions, and third-party checkouts outside the published source. English pages use default filenames; Chinese translations live under `doc/*.zh-CN.md`, with reciprocal language links.
+
+Contributions/adaptations follow CC BY-NC-SA 4.0: retain ELT Group attribution, [LICENSE](LICENSE), and [NOTICE](NOTICE). Distribution to other Macs may require Developer ID signing and notarization.

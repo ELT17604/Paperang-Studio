@@ -1,50 +1,43 @@
-# P2 充电状态和LED调查
+# P2 charging and LED research
 
-日期：2026-11-04。
+[Documentation](README.md) · [简体中文](CHARGING-AND-LED.zh-CN.md)
 
-## 本机实际电量
+Recorded 2026-11-04. These are historical samples, not current battery readings.
 
-| 快照 | 电量响应11载荷 | 解释 | 状态0D |
+## Battery observations
+
+| Sample | Response11 payload | Battery estimate | Status0D |
 |---|---|---|---|
-| 先前低电测试 | 0D | 13% | 08 00 |
-| 当前插线只读查询 | 3A | 58% | 00 00 |
-| 随后第二次只读复查 | 41 | 65% | 00 00 |
+| Earlier low-battery test |0D |13% |08 00 |
+| Cable-connected read-only session |3A |58% |00 00 |
+| Subsequent recheck |41 |65% |00 00 |
 
-后两次原始证据：`../evidence/charging-current-query.log`、`../evidence/charging-recheck.log`。CRC有效；单字节百分比解释同时来自P1 BLE源码、本机字段格式与持续上升读数。
+CRC-valid single-byte readings agree with the community battery interpretation. The rise supports that the power source and cable replenished the battery during this interval. It is not a USB-current measurement, a charging-IC flag, or proof of cable performance at every moment. The last sample in this particular investigation was65%; later GUI samples are described in [acquisition](ACQUISITION.md).
 
-**判断：至少这段时间设备电量估计明显上升，支持电源和线材确实在给它补电。** 这不是USB电流测量，也不是充电IC状态位，不能据此证明任意时刻的充电电流或线材额定性能。当前最新值65%，是查询快照。
+The user observed continuous white blinking across cable-connected → unplugged → reconnected states, after waiting. That observation was not synchronized with protocol captures, so no protocol-level plug-state behavior was established.
 
-用户观察：白色持续闪烁；“充电→拔线→再充电”并等待后，闪烁频率没有明显变化。该插拔过程只记录了用户观察，没有同步采集协议对照，因此不声称通过协议证实其插拔响应。
+## Charging field
 
-## 是否有独立“正在充电”字段
+No independent charging field has been confirmed:
 
-目前未发现本机可确认的字段：
+- GET_BAT_STATUS10→11 returned only one percentage byte.
+- Voltage0E and temperature12 returned ACK only on this unit.
+- Enumerated GATT did not expose standard Battery Service180F or an identified power-state field; module Device Information contained manufacturer/model/hardware/firmware strings.
+- Bit0x08 existed at 13% and disappeared at 58/65%. This is compatible with a low-battery hypothesis, but charging, time, and load changed together. It is not calibrated as either low-battery or charging.
 
-- 传统GET_BAT_STATUS10→11只返回一个电量字节，没有附带充电bool。
-- GET_VOLTAGE0E、GET_TEMP12在本机只返回ACK，不能作为电压/温度值或充电证据。
-- 本机枚举的GATT没有标准Battery Service180F或已识别的Battery Power State字段；模块Device Information仅含厂商、型号、硬件、固件字符串。
-- `0x0008`先前在13%时存在，58%和65%时消失；这**与低电提示的假设相容**，但充电、时间、打印负载等同时变化，仍不是独立标定。它不是已经确认的“充电中”位。
+The app/API therefore reports charging as unknown rather than converting cable presence, blinking, rising battery, or bit3 into `charging:true`. Keep battery samples and their timestamps separately.
 
-App应显示“充电状态：未知/未取得独立字段”，而不是把外接电源、白灯闪烁、电量升高或bit3直接映射为实时charging=true。电量可单独实时显示，并保留采样时间。
+## LED control
 
-## LED是否可控制
+The examined traditional00–31, P2 USB, P1 legacy/A5, and C2 materials supplied no reliable P2 set-LED command.17 is a Bluetooth-status event candidate;14 is factory-mode setting. Neither was tested as LED control. This is absence of verified support, not proof that hidden firmware commands cannot exist.
 
-在本轮检查的传统00–31命令枚举、P2 USB实现、P1传统/A5实现和C2协议文档中，未找到可靠的P2“设置LED常亮/闪烁/关闭”接口。已有17是蓝牙状态上报，14是工厂模式设置，均无证据表明是用户可用LED控制，未试写。
+## Source/model distinctions
 
-这只能得出“**当前已知协议不具备已验证的LED控制**”，不能证明固件绝对没有隐藏命令。验证隐藏灯控需先取得新的源码/抓包证据；不应对未知命令号或工厂模式枚举做写入穷举。
+- [Manufacturer FAQ](https://www.paperang.com/en/pc/custom-service): general green/white normal and red fault descriptions, without this P2's exact persistent white-blink rhythm.
+- [C1 quick-start](https://fcc.report/FCC-ID/2apwoc1/4416695.pdf): slow-green charging/steady-green meanings belong to C1, not directly to this P2.
+- F2S/A4N7 blink descriptions concern larger printers and do not establish a P2 update state.
+- [P2 FCC entry](https://fccid.io/document/3910340): metadata was identified, but manual body text was not read in that investigation; a cookie-blocked device.report page was not treated as evidence.
 
-## 文档与型号边界
+Next useful work is one read-only, time-labeled plugged/unplugged/replugged capture of status, battery, and unsolicited events. If no field changes, retain unknown. Compare only model-appropriate LED documentation or official-app captures before proposing writes. No reset, factory-mode change, or firmware operation was performed to alter the light.
 
-- [Paperang厂商FAQ](https://www.paperang.com/en/pc/custom-service)仅概括绿/白灯正常、红灯异常（缺纸、过热、开盖、低电）；没有给出这台P2持续白闪的精确节奏说明。
-- [厂商提交的C1 quick-start](https://fcc.report/FCC-ID/2apwoc1/4416695.pdf)包含慢绿充电、常绿待机/充满等定义，**型号是C1，不直接用于判定本P2**。
-- 网上F2S/A4N7白灯节奏对应更大幅面打印机，不适用于P2。不能据其“一秒闪”等描述断言本机在固件更新。
-- [FCC的P2手册条目](https://fccid.io/document/3910340)确认文档身份，但本轮只获取元数据，未读到手册正文；另一device.report页面被Cookie检查挡住，不作为已读到灯光说明的证据。
-- 协议源码依据见 [RESEARCH.md](RESEARCH.md) 及版本固定的仓库快照；当前没有独立电流检测硬件读数。
-
-## 下一步最有价值的验证
-
-若还希望研究充电标志，可以在同一个只读连接中同步标注“插线/拔线/再插线”，分别采集状态、电量、设备事件；这与已经完成的盖纸对照方法相同。若协议完全无变化，就保留未知。白灯方面，应先比对关机充电/开机待机等可见行为与适配本批次的手册，再考虑抓取官方App是否存在特定控制指令。
-
-本轮没有重启、复位、工厂模式写入或固件操作；没有为了改灯而破坏已有打印路径。
-
-> 归档说明：本文中的原始日志、图像、raw和实验脚本路径是历史档案相对位置，现位于项目外`PaperangStudio-Development/Legacy/PaperangP2/Research/`及相邻`evidence/`。当前App能力以[协议规范](PROTOCOL.md)及[用户指南](USER-GUIDE.md)为准。
+Raw charging logs are external historical files under `PaperangStudio-Development/Legacy/PaperangP2/evidence/`, including `charging-current-query.log` and `charging-recheck.log`. See [research](RESEARCH.md) for provenance.

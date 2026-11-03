@@ -1,22 +1,28 @@
-# 变更记录
+# Changelog
+
+[English](CHANGELOG.md) · [简体中文](doc/CHANGELOG.zh-CN.md)
+
+## Unreleased
+
+- English README and default documentation, with Chinese translations and reciprocal links under `doc/`.
+- Updated build/startup instructions and removed the known-limitations section from the project landing pages.
 
 ## 0.2.1 — 2026-11-04
 
-- 侧栏唯一全局耗纸开关、左下角版权与版本；文件→关于含英文声明及联系邮箱。
-- CC BY-NC-SA4.0非商业署名许可和完整NOTICE。
-
-- 默认筛选Paperang候选，保留展示全部蓝牙设备开关。
-- 工程日志最新在前，导出顺序保持正序。
-- 真实controlling PTY、交互zsh、控制键和分批纸带打印；隐私输入与输出上限。
-- 本机HTTP v1 API、Bearer/Origin校验、离线渲染、任务/送纸与示例客户端。
-- 模块化Swift库、OpenAPI、完整协议与获取过程文档。
-- ESP32模拟器扩展命令研究目录，区别模拟数据与真实P2能力。
-- 新Logo与ICNS/ICO；干净源码项目和独立开发档案。
+- Single global paper-use switch in the sidebar; footer version/copyright and File → About with English project statements and contact email.
+- CC BY-NC-SA 4.0 license and attribution NOTICE.
+- Paperang candidate filtering with Show all Bluetooth devices.
+- Newest-first engineering logs with chronological export.
+- Real controlling PTY, interactive zsh/control keys, batched paper output, private input, and output guards.
+- Local HTTP v1 API with Bearer/Origin checks, offline rendering, jobs/feed, and client examples.
+- Reusable Swift libraries, OpenAPI, protocol reference, and acquisition records.
+- ESP32 extended-command research distinguished from real hardware results.
+- Original logo, ICNS/ICO assets, clean source layout, and external development archive.
 
 ## 0.2
 
-原生用户工作台、图片渲染预览、参数预设与打印任务；用户确认图片方向/内容完整、150行送纸合适。
+Native print workspace, image preview/rendering, presets, and tasks. The user physically confirmed image direction/completeness and 150-line final feed.
 
 ## 0.1
 
-传统P2 BLE握手、只读字段、原始图像与送纸实物验证，工程协议工具。
+Verified legacy P2 BLE handshake, read-only fields, raw raster printing, feed, and engineering tools.

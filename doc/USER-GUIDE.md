@@ -1,79 +1,58 @@
-# Paperang Studio 使用说明
+# User guide
 
-## 第一次使用
+[Documentation](README.md) · [简体中文](USER-GUIDE.zh-CN.md)
 
-打开 `Dist/Paperang Lab.app`。应用显示为Paperang Studio，保留原有bundle标识以复用蓝牙权限。默认只生成本地预览，不自动扫描、连接或打印。
+## First connection
 
-进入“打印机” → 扫描附近设备 → 选择Paperang_P2连接。握手后会核对型号并读取电量、盖纸和当前浓度。只支持已验证的P2传统协议；不能因其他型号也有FF00服务就当作兼容。
+Build with `./scripts/build.sh`, then open the sibling `PaperangStudio-Development/Release/Paperang Studio.app`. The app displays as Paperang Studio and retains the `local.paperang.lab` bundle identifier. It starts with local previews and does not automatically scan, connect, or print.
 
-## 打印工作台
+Open **Printer** (`打印机`) → **Scan nearby devices** (`扫描附近设备`) → connect to `Paperang_P2`. After the handshake, the app checks the model and reads battery, media status, and density. The default list shows Paperang-family names; **Show all Bluetooth devices** (`展示全部蓝牙设备`) also reveals renamed or unrelated devices. Candidate matching is a discovery aid, not device authentication.
 
-左边编辑参数，右边显示**最终发送的1位黑白图像**。文字与图片共用渲染管线。预览下方显示像素尺寸、字节数和黑点比例，可导出PNG或原始位图数据。
+## Print workspace
 
-### 内容与排版
+The left pane edits settings; the right pane shows the **final one-bit raster sent to the printer**. Preview details include dimensions, byte count, and black-pixel coverage. Export PNG or raw raster bytes from the preview.
 
-- **文字**：中文/英文、手动换行、自动折行，字体、字号8–96、粗体、行间距、左/中/右对齐。
-- **图片**：PNG、JPEG、HEIC、TIFF、BMP、GIF首帧；处理照片方向，透明区域合成白底。最大文件64MB、4000万源像素；解码预览最长边最多4096。
-- **图片适配**：适配宽度、保持像素（超宽仍缩到内容区）、裁切填满（可指定目标高度）；旋转0/90/180/270度。
-- **尺寸**：左右/上下边距与内容区宽度。固定输出576点，左右边距×2+内容宽度不能超过576；无效参数会暂停预览/打印，显示明确原因。
-- **高度**：当前单批最多1400像素，这是本软件护栏，不是打印机固件极限。过长内容需缩放或拆批。
+| Control | Behavior |
+|---|---|
+| Text | Chinese/English, explicit newlines, wrapping, system fonts, size 8–96, bold, line spacing, and alignment |
+| Image | PNG, JPEG, HEIC, TIFF, BMP, and the first GIF frame; orientation handling and white compositing for transparency |
+| Fit | Fit width, preserve pixels (oversized input still fits the content area), or crop to fill a chosen height |
+| Rotation | 0°, 90°, 180°, or 270° |
+| Geometry | Fixed 576-dot output; `contentWidth + 2 × marginX ≤ 576` |
+| Monochrome | Threshold, Floyd–Steinberg, or ordered dithering; brightness, contrast, gamma, and inversion |
 
-### 黑白处理
+GUI image import allows up to 64 MB and 40 million source pixels; decoded previews have a maximum edge of 4096 pixels. Text is limited to 10,000 characters and one rendered batch to 1400 rows. Invalid geometry blocks preview/printing with an explanation. These are application limits, not measured firmware limits.
 
-阈值适合文字/线稿；Floyd–Steinberg和有序抖动适合照片灰度。可调阈值、亮度、对比度、Gamma和反相；所有调整均先显示在最终预览中。灰度通过黑白点模拟，打印头仍是单色。
+## Printing and feed
 
-### 打印与送纸
+Enable **Global paper use** (`全局允许耗纸`) once in the sidebar. It controls the workspace, paper terminal, API, and feed actions for the current app run. Turning it off pauses automatic terminal printing and stops an active print job; buffered printer data cannot be recalled.
 
-- 浓度0–100，默认100；每次打印前写入并回读确认。
-- 份数1–20；打印前送纸和打印后送纸均为0–2000行。
-- 默认批后送纸150行，是这台机器上用户实物确认的合适值。
-- “每份后都送纸”关闭时，只在整批最后送一次；开启时每份后送纸。
-- “仅送纸”使用当前“打印后送纸”行数。
-- 勾选“全局允许耗纸”后才启用打印/送纸。打印前重新读取盖子和缺纸状态；发送中收到异常状态则停止后续分包。
-- 发送期间锁定参数，使用点击打印时的位图和参数快照。显示份数/分包进度；“停止并断开”取消后续发送，无法撤回设备已收下的数据。
-- “已发送”表示数据和送纸指令完成，不保证机械已打印完。请核对纸面；失败任务不会自动重试，避免重复出纸。
+- Density: 0–100, default 100; written and read back before each print.
+- Copies: 1–20. Feed before/after: 0–2000 device lines.
+- Default final feed: 150 lines, physically confirmed as convenient on the tested unit.
+- With feed after every copy disabled, the final feed occurs once after the whole batch.
+- **Feed only** uses the current feed-after value.
 
-## 预设与记录
+The app checks fresh cover/paper status before printing and stops subsequent packets on a media fault. Each job uses a snapshot of its raster and settings. Progress shows copies and packets. **Stop and disconnect** cancels future sends, not data already accepted by the device. “Sent” is a transport result; check the paper. Failed jobs are not retried automatically.
 
-快捷预设提供默认、照片、标签、线稿。预设只改变本地参数，不立即修改打印机。可保存/导入完整JSON，包括排版、图像、浓度、份数、送纸和工程传输参数；导入时会校验版本与范围。
+## Presets and history
 
-示例预设集中在本工程 `Configurations/`。图片路径/文字内容不进入参数预设，避免导入时意外打印不同内容。
+Default, photo, label, and line-art presets change local parameters without immediately writing the printer. Import/export JSON includes layout, image conversion, density, copies, feed, and transport settings; versions and ranges are validated. Examples are in `Configurations/`. Text and image paths are not embedded in presets.
 
-“打印记录”保留当前会话最近30批：内容标题、尺寸/份数/浓度/送纸摘要、时间及发送状态。应用退出后不会自动恢复待打印任务。
+History keeps the current session's latest 30 jobs, including title, settings summary, time, and send status. Pending jobs are not restored or replayed at startup.
 
-## 工程界面
+## Engineering tools
 
-左侧开启“显示工程界面”，即可进入：
+Enable **Show engineering tools** (`显示工程界面`) in the sidebar.
 
-1. **设备字段**：全部已知GET、解释值、原始载荷、采样时间、GATT服务及特征读取。
-2. **协议目录**：每个已知命令的编号、类别、验证等级和说明。
-3. **原始指令**：GET白名单，载荷固定01；工程写入需单独解锁并逐次确认。对已知SET校验长度/范围；工厂模式、间隙、纸张类型的含义/持久性尚未完成验证。固件更新、未知命令及压缩位图不接受盲发。
-4. **传输参数**：图像载荷72–1008（72整倍数）、BLE分段20–180（实际不超过设备值）、写入/帧间隔、超时与完成等待。改小图像载荷可能导致序号数量超限，软件会拒绝。
-5. **会话日志**：完整协议帧、实际BLE分段、原始通知、CRC及错误，可过滤并导出JSON。导出同时包含打印设置、设备字段和任务记录。
+1. **Device fields:** known GET commands, interpreted values, raw bytes, sampling times, and GATT properties.
+2. **Protocol catalog:** command numbers, categories, evidence levels, and descriptions.
+3. **Raw commands:** allowlisted GETs use payload `01`. Engineering writes require separate unlock and per-write confirmation; payloads are validated. Firmware, unknown commands, and compressed data are not accepted for blind sends.
+4. **Transport settings:** raster payload 72–1008 bytes in whole rows, BLE chunks 20–180 bytes within the device limit, pauses, timeouts, and finish waits. Excessive packet counts are rejected.
+5. **Logs:** newest first, with frames, BLE chunks, notifications, CRC results, and errors. JSON export remains chronological and includes settings, readings, and jobs.
 
-### 重要边界
+The tested P2 uses 576 dots/72 bytes per row and nominal 300 DPI. Cover-open is `0x0010`; paper-absent is `0x0001` only when closed. Charging flags, LED control, compression, and factory-mode semantics remain research topics documented in the [protocol reference](PROTOCOL.md).
 
-- 576点/72字节一行已实物验证；640点过宽试验没有得到更宽可用输出。300 DPI是固定硬件规格。
-- 本机状态0010表示开盖，合盖时0001表示缺纸；开盖时不单独判纸。其他位保留原值。
-- 独立实时充电标志、LED控制、压缩打印和固件更新仍未确认。
-- 工厂模式写入不是日常图片打印的前置条件，不应为探索新功能随意更改。
-- 工程原始发送仅是封包/确认工具，ACK不验证设置的物理效果，也不会自动恢复持久参数。
+## Build and additional features
 
-## 源码与构建
-
-`./scripts/build.sh` 会在项目内构建、运行协议与图像检查、打包并验证临时签名。需要macOS14+及本机Swift工具链，无Python或网络运行依赖。
-
-- `Sources/ProtocolCore`：CRC、帧重组、命令目录、P2状态解释。
-- `Sources/PrintCore`：可编码参数、图片解码、排版、黑白处理和位图输出。
-- `Sources/PaperangLab`：SwiftUI界面、CoreBluetooth、打印流程、预设与会话导出。
-- `Sources/ProtocolChecks`：协议和图片管线检查；不访问蓝牙、不耗纸。
-
-验证范围与外部记录位置见 [架构与构建](ARCHITECTURE.md)。
-
-## 0.2.1新增功能
-
-所有耗纸统一由左侧“全局允许耗纸”控制，开启一次即在本次App运行中生效；默认关闭。终端、API和工作台无需重复开启。关闭时暂停自动纸带输出，并停止正在发送的任务，已缓存数据不可撤回。
-
-设备列表默认仅系列候选，勾选“展示全部蓝牙设备”查看所有扫描结果；改名设备可在全部列表中寻找。工程日志最新在前，导出仍按时间正序。
-
-[纸带终端](TERMINAL.md)、[本地API](API.md)有独立操作指南；两者默认关闭。
+The build script packages and ad-hoc signs the app, with all outputs outside the source directory. Validation programs and historical evidence are also external; they are not run by the current build script. See [architecture](ARCHITECTURE.md), [paper terminal](TERMINAL.md), and [HTTP API](API.md).

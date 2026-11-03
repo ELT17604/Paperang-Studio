@@ -1,65 +1,67 @@
-# 协议获取步骤与实物验证记录
+# Protocol acquisition and verification record
 
-整理日期2026-11-04。依据本机日志、原生发送记录及用户逐步纸面反馈，非官方协议说明。原始完整资料移到同级`PaperangStudio-Development/Legacy/PaperangP2/`；发布项目保留脱敏后的结论、步骤、字段和来源，不将个人设备标识或测试图片混入源码。
+[Documentation](README.md) · [简体中文](ACQUISITION.zh-CN.md)
 
-## 1. 确认环境与失败路径
+Compiled on 2026-11-04 from local captures, native send records, and the user's physical observations. Full historical artifacts remain outside the published source at sibling `PaperangStudio-Development/Legacy/PaperangP2/`. This record omits personal device identifiers.
 
-用户macOS、已连接P2。先检查Python/CLI的真实依赖和命令入口；在隔离虚拟环境尝试paperang-cli。记录到paperang-cli0.2.1依赖paperang-p2-lib1.2.1时缺少_ble模块；换0.4.0rc3可导入，但CLI仍走不适合本机的A5路径。程序退出0而没有纸面输出，不能算成功。
+## 1. Environment and failed approaches
 
-经典串口/dev/cu.Paperang_P2曾能打开并收到错误响应，未稳定完成查询。随后检查GATT服务/通知和传统社区源码，停止沿用A5。未重置系统蓝牙或升级固件。
+The original task used macOS with a connected P2. Python/CLI entry points and dependencies were inspected in an isolated environment. `paperang-cli0.2.1` with `paperang-p2-lib1.2.1` lacked `_ble`; version0.4.0rc3 imported but the CLI still selected an unsuitable A5 path. Exit status zero without paper output did not establish success.
 
-## 2. 从GATT到传统握手
+The classic serial endpoint `/dev/cu.Paperang_P2` opened and once returned an error, but did not provide stable queries. Investigation moved to GATT and community legacy implementations, without a Bluetooth reset or firmware upgrade.
 
-扫描识别Paperang_P2；读取服务/特征，找到FF00、FF02写、FF01数据、FF03流控。打开FF01/FF03通知；初始seed35769521，发送注册key0向量`0218000400219576351cdf442103`；验证返回CRC后改seed0。
+## 2. GATT and handshake
 
-先单独查询版本/型号/序列号/电量/状态，区分同号ACK与独立数据响应。记录08的MAC数据实际来自0B而非09；电压/温度只有ACK，国家字段有空数据。模块GATT字段不可误标为整机固件。
+Discovery identified Paperang_P2, FF00 service, FF02 writes, FF01 data, and FF03 credits. Subscribe to both notifications, send key-zero registration `0218000400219576351cdf442103` with initial CRC seed35769521, validate the response, then use seed0.
 
-## 3. 最小耗纸闭环
+Version/model/serial/battery/status were queried separately. ACKs were distinguished from data responses. MAC query08 unexpectedly returned0B, voltage/temperature returned only ACKs, and country returned an empty data payload. Bluetooth-module GATT strings were kept separate from printer firmware.
 
-主机将“Hello Paperang P2!”转为576列1位位图，1008字节完整行分包、递增index、BLE180字节额度背压。发送浓度/图像/送纸。用户最初没看见文字，之后明确确认纸上出现Hello Paperang P2；由此建立真实可用路径，不能只依赖通知或ACK。
+## 3. First physical print and feed
 
-先送120行，用户反馈不足，再送120。随后多次校准，用户最终确认**每批末尾150行最合适**，替代早期240建议。以后所有测试按用户要求浓度100，过期纸卷。
+“Hello Paperang P2!” was rendered as a 576-column one-bit raster, split into1008-byte whole-row frames with increasing indexes, then180-byte BLE chunks under credit control. The user initially saw no text, then explicitly confirmed the printed greeting. That physical observation established the working path.
 
-## 4. 盖子/纸张四步只读对照
+Feed120 lines was too short; a second120-line feed followed. Later calibration established **150 lines once after a batch** as the user's preferred setting, replacing240. Subsequent tests used density100 on expired paper, as requested.
 
-先让GUI断开、关闭手机App，确保单连接；只读GET_STATUS0C/01，保留自动通知与CRC。逐步提示用户：合盖有纸→开盖保留纸→合盖无纸→恢复有纸，稳定尾部读到08→19→09→08。由差分确认开盖bit4、合盖缺纸bit0；开盖时bit0同时为1，不能独立判缺纸。背景bit3未独立标定。
+## 4. Cover/paper differential
 
-新来源发现GET_DEV_NAME30/01→31，实测ASCII P2。此GET进入白名单；未继续对所有命令号盲扫。
+After disconnecting GUI/phone clients, a single read-only session sent GET_STATUS0C/01 and retained validated frames/notifications. The user changed closed/loaded → open with roll → closed/empty → restored/closed. Stable samples were08→19→09→08, establishing cover bit4 and closed-cover paper-absent bit0. Bit0 also sets while open, so paper cannot independently be classified then. Background bit3 was not calibrated.
 
-## 5. 宽度与图像实验
+A source-defined short-name query30/01→31 returned ASCII P2 and entered the read-only allowlist. No command-number sweep followed.
 
-固定576×220标尺，x=0和575边框、48点刻度，原尺寸/无额外缩放打印。用户确认四边完整、两侧细线可见且有纸边余量。随后A/C标准576与B逻辑640过宽数据流对照，用户反馈A/C正常，B无可用更宽边界、没有明显换行。只得出576为可用标准、640未扩展成功，不能捏造固件裁切机制。
+## 5. Width tests
 
-标尺生成脚本、PNG/raw、过宽流及发送日志完整保存在外部档案Research/evidence。没有测毫米宽度、最长连续图像、固件缓存极限。
+A576×220 marker with x=0/575 borders and48-dot ticks was printed without scaling or extra margins. The user confirmed all four borders and edge lines, with paper margin remaining. Then A/C576-dot controls surrounded a640-dot logical stream B. A/C were complete; B produced no usable wider borders and no clearly observed wrap.
 
-## 6. 电量与LED
+Keep576 as the supported canvas. Do not claim a known640-column crop/wrap mechanism. Source scripts, PNG/raw patterns, and send logs remain in the external Research/evidence archive. Millimeter width, firmware longest image, and buffer depth were not measured.
 
-低电13%时状态08；充电后读58%、再65%，状态00，支持这段期间电量上升。用户观察白色持续闪烁，拔插线未明显改变频率。没有同步完成插线/拔线协议采样，不把0x08标成充电中。后来GUI读到82/100也只是新的电量快照。
+## 6. Battery and LED
 
-## 7. 原生工作台与17帧校验
+Battery13% coincided with status08; later charging samples58% and65% had status00. That supports rising estimated charge during the interval, not a direct charging-current or Boolean measurement. The user observed continued white blinking across cable unplug/replug; no synchronized protocol sampling established an insertion response. Later GUI82/100 values are additional snapshots only.
 
-SwiftUI/CoreBluetooth独立实现，渲染预览和发送共用同一raw。实际图片发送17个图像分包，离线重放时与Renderer逐字节一致；用户确认方向正确、完整、150行方便撕取。扩展到参数、预设、图像旋转/裁切/抖动、任务记录、盖纸校验、原始协议日志。
+## 7. Native workspace and raster replay
 
-## 8. 本轮工程整理与扩展研究
+The independent SwiftUI/CoreBluetooth implementation uses the same final raw raster for preview and sending. A 17-frame native image job matched offline rendering byte-for-byte. The user confirmed orientation, completeness, and 150-line tear-off feed. Features then expanded to settings, presets, image transforms/dithering, job history, media checks, and raw logs.
 
-增加设备候选筛选、逆序日志、真实PTY、HTTP API及客户端。PTY验证isatty、窗口尺寸、UTF-8和Ctrl-C；HTTP验证读取/渲染/授权与错误处理，详见[构建文档](ARCHITECTURE.md)。所有耗纸统一侧栏全局开关。
+## 8. Engineering extension
 
-参考ESP32模拟器新增39/40/42/7F/81研究目录，发现其硬编码应答、缺break、CRC未校验等限制，不把模拟器结果当真机实测。再次核对HACS/P2库/P1 Connect，区分SPP与BLE、倒计数与递增index、A5与传统协议。固定commit保存在[source-revisions.json](source-revisions.json)。
+The next update added candidate filtering, newest-first logs, real PTY, local HTTP API, clients, and a single global paper switch. External checks cover actual controlling-terminal behavior and HTTP rendering/authentication. See [architecture](ARCHITECTURE.md) for recorded scope.
 
-## 复现查询顺序
+ESP32 source added39/40/42/7F/81 research clues but also exposed hardcoded fields, fallthrough, and missing incoming CRC validation. HACS/P2-library/P1-Connect comparisons preserve SPP/BLE, countdown/increasing-index, and A5/legacy distinctions. Revisions are in [source-revisions.json](source-revisions.json).
 
-1. 保持纸卷、盖子正常，GUI断开其他连接；只在用户选择后连接。
-2. 订阅FF01/FF03，完成上述握手。
-3. 串行发送04/01、06/01、10/01、0C/01、30/01，按长度/CRC解析响应；分别记录ACK、数据、超时。
-4. 盖纸差分只读，不在无纸/开盖情况下打印。
-5. 文字/标尺打印使用固定576列、浓度100、批末150送纸，取得用户纸面确认才标成实物通过。
-6. 完整通知、请求、参数、采样时间与用户动作分开保留；地址/序列号只在本地保管，分享前脱敏。
+## Reproduction sequence
 
-## 外部档案地图
+1. Use one selected P2 connection, disconnect competing clients, and keep the cover/paper normal.
+2. Subscribe FF01/FF03 and perform the verified handshake.
+3. Serialize04/01,06/01,10/01,0C/01,30/01; validate length/CRC and separately record ACK, data, and timeout.
+4. Perform media-state comparisons read-only, without printing while open/empty.
+5. Print standard576-column text/markers at density100 with 150-line final feed; obtain a physical observation before claiming success.
+6. Record requests, notifications, settings, times, and user actions separately. Keep identifiers local or redact before sharing.
 
-`Legacy/PaperangP2/evidence/`：GATT、查询、充电、送纸、标尺/过宽原始日志。
-`Legacy/PaperangP2/Research/`：下载源码、固定版本、状态四阶段JSONL/摘要、配置、生成实验图脚本。
-`Legacy/PaperangP2/Native/Reports/`：原生会话、发送raw、17帧校验、早期构建与验证。
-`Validation/`：本轮协议/图像/HTTP/PTY检查源码与产物。
+## Archive map
 
-这些是本地开发档案，不是干净发布项目的依赖。没有原始文件时应把对应结论理解为已记录的历史观察，不能声称刚刚重新测量。
+- `Legacy/PaperangP2/evidence/`: GATT, queries, battery, feed, marker/overwidth logs.
+- `Legacy/PaperangP2/Research/`: upstream snapshots, stage JSONL/summaries, profiles, and pattern generators.
+- `Legacy/PaperangP2/Native/Reports/`: historical native sessions, raw sends,17-frame comparisons, and build records.
+- `Validation/`: current external checks and their outputs.
+
+These are local historical artifacts, not build dependencies. A documented past observation is not a newly repeated measurement.

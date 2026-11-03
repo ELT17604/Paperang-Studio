@@ -1,25 +1,29 @@
-# 实体纸带终端
+# Physical paper terminal
 
-“纸带终端”建立真实macOS controlling PTY（`/dev/ttys…`），通过随App打包的`PaperangPTYHost`在新会话中启动`/bin/zsh`。这不是每次新建一个进程执行命令；cd、环境变量、前后台任务和交互式输入保留在同一个shell中。默认`zsh -f -i`不加载用户.zshrc；可在启动前选择加载。shell命令按当前用户权限执行。
+[Documentation](README.md) · [简体中文](TERMINAL.zh-CN.md)
 
-## 操作
+The terminal creates a real macOS controlling PTY (`/dev/ttys…`). The bundled `PaperangPTYHost` starts `/bin/zsh` in a new session. Commands, `cd`, environment variables, jobs, and interactive answers share one shell. The default is `zsh -f -i`, without the user's `.zshrc`; loading the profile is optional before startup. Commands run with the current user's permissions.
 
-1. 选择工作目录、终端列20–200/行5–100，点击启动。
-2. 输入命令，回车发送到PTY；程序提出问题时继续在输入栏作答。Ctrl-C、Ctrl-D、Ctrl-Z、Tab、上下箭头发送真实控制字节。
-3. 连接P2，在**左侧侧栏开启一次全局允许耗纸**。
-4. 开启“自动打印终端输出”，或点击“立即打印缓冲”。默认空闲3秒后分批提交，浓度固定100、Menlo12、左对齐。字号8–18可调。
-5. 连续纸带默认每批额外送纸0行，减少断开的纸段；完成后在工作台送150行撕取。也可将终端每批送纸设0–300行。
+## Operation
 
-软件不自动开启shell或自动打印。关闭全局耗纸会关闭自动打印；发送中的任务会停止并断开，但已进入打印机缓存的内容无法收回。停止shell保留尚未打印的缓冲；开始新shell前必须处理旧缓冲/在途任务，避免悄悄丢失输出。
+1. Select a working directory and terminal size: 20–200 columns and 5–100 rows.
+2. Start the terminal. Enter commands or answers and press Return. Ctrl-C, Ctrl-D, Ctrl-Z, Tab, and arrow controls send real terminal bytes.
+3. Connect the P2 and enable the sidebar's global paper switch.
+4. Enable automatic output printing or print the buffer manually. The default idle delay is 3 seconds; text uses Menlo 12, left alignment, density 100. Font size is adjustable from 8–18.
+5. Continuous batches default to zero extra feed. At the end, feed 150 lines from the workspace for tearing off the strip. Per-batch terminal feed is adjustable from 0–300 lines.
 
-## 屏幕和纸面语义
+Neither the shell nor automatic printing starts automatically. Stopping the shell preserves pending output. Before starting another shell, handle the previous buffer and in-flight print job. Turning off global paper use disables automatic printing and stops an active print send; already buffered printer data remains irreversible.
 
-TERM=dumb，支持行输出、UTF-8分段、退格、回车覆盖、制表符和有限ANSI控制的清理；颜色/OSC内容不打印。不是VT100全屏模拟器，vim/top等反复重绘程序不适合纸带。纸上内容不可擦除，已打印提示符后的编辑可能在后续纸段再次出现。长行上限512字符，屏幕留最近1500行、显示最近64000字符。
+## Screen and paper behavior
 
-终端输出在内存缓冲，以每次最多1200字符提交到现有渲染器/打印任务。任务失败会把文本放回缓冲并关闭自动打印，需核对纸面后手动处理，不自动重发。待输出超过12000字符暂停自动打印；单次PTY累计输出达1MB停止shell。单次输入8192字节、底层写队列64KiB。输出不是无限持久日志；需要时点击导出文本。
+`TERM=dumb` is intentional. The text normalizer handles split UTF-8, newlines, carriage-return overwrite, backspace, tabs, and limited ANSI controls; color and OSC content are omitted. This is a line/paper terminal, not a full-screen VT100 emulator for `vim` or `top`. Printed text cannot be erased, and editing an already printed prompt may produce repeated content in later batches.
 
-“隐私输入：暂停记录”会使用安全输入框、丢弃此期间PTY输出、清空待打印缓冲并关闭自动打印。结束后不会补打印隐藏内容；已经打印或导出的内容不会消失。应用工程日志只记录PTY路径/PID/退出，不记录所输入的命令文本。
+Lines are capped at 512 characters, the transcript at 1500 lines, and the visible screen at its last 64,000 characters. Each print submission takes at most 1200 characters. Failed output is returned to the pending buffer and automatic printing pauses; inspect the paper before deciding what to retry.
 
-## 验证与边界
+Automatic printing pauses above 12,000 pending characters. A PTY session stops after 1 MB of total output. Each input is capped at 8192 bytes and the underlying write queue at 64 KiB. Export a transcript explicitly when needed; this is not a persistent unlimited log.
 
-独立验证程序检查真实isatty、/dev/ttys路径、stty 24×72、UTF-8、前台sleep被Ctrl-C中断及shell随后可继续执行；这与简单管道进程不同。P2原始位图路径曾由用户确认实物输出；新终端纸带本轮是否获得新增纸面确认，以[架构文档](ARCHITECTURE.md)的验证范围为准。App不是系统登录终端、不是网络SSH服务，也未提供远程执行API。
+**Private input** uses a secure field, drops PTY output while active, clears pending output, and disables automatic printing. Hidden output is not replayed afterward. Existing paper or exported files are unaffected. General engineering logs record PTY path, PID, and exit events, not command text.
+
+## Validation
+
+The external checks exercised `isatty`, a real `/dev/ttys` path, `stty 24 72`, UTF-8, interruption of a foreground `sleep` by Ctrl-C, and subsequent shell recovery. The printer raster path has earlier physical confirmation; this does not constitute a new physical TTY print test. See [validation scope](ARCHITECTURE.md). No remote shell or TTY-input HTTP endpoint is provided.

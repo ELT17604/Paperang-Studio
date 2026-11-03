@@ -1,138 +1,144 @@
-# Paperang P2 传统协议规范
+# Paperang P2 legacy protocol reference
 
-状态：2026-11-04。适用对象是本机实测的传统 `02…03` P2。A5/5A协议、C2及其他固件不可直接套用。本文汇总全部已掌握信息，未知项保留未知；详细实验过程见[获取步骤](ACQUISITION.md)和[研究对照](RESEARCH.md)。
+[Documentation](README.md) · [简体中文](PROTOCOL.zh-CN.md)
 
-## 传输层
+Recorded on 2026-11-04 for the physically tested legacy `02…03` P2. Other firmware, A5/5A devices, and C2 models need separate verification. [Acquisition](ACQUISITION.md) describes how these observations were obtained; [research](RESEARCH.md) distinguishes hardware results from source-only clues.
 
-macOS CoreBluetooth中心角色，扫描广播名Paperang_P2，用户选择后连接，不按固定本机UUID寻找。默认列表按名称匹配系列，允许展示全部。
+## BLE transport
 
-| GATT UUID（均为0000xxxx-0000-1000-8000-00805f9b34fb） | 用途 |
+Use a CoreBluetooth central, discover `Paperang_P2`, and connect after user selection. Do not hardcode a UUID from another Mac.
+
+| UUID, expanded as `0000xxxx-0000-1000-8000-00805f9b34fb` | Purpose |
 |---|---|
-| FF00 | 本机工作服务 |
-| FF02 | 主机写入，按设备属性选择无响应写入与CoreBluetooth背压 |
-| FF01 | 设备数据通知，流式拼帧 |
-| FF03 | BLE发送额度/尺寸通知，不是业务协议ACK |
+| FF00 | Working service on the tested unit |
+| FF02 | Host writes, respecting characteristic properties and CoreBluetooth backpressure |
+| FF01 | Device data notifications; parse as a byte stream |
+| FF03 | Transport credits and size, not a business-protocol ACK |
 
-启用FF01和FF03通知后握手。FF03 `01 NN`增加NN额度；`02 LL HH`通知u16LE包尺寸。本机曾通知额度2、尺寸182字节；App保守分段180，同时限制在`maximumWriteValueLength`内。写入消耗额度，额度耗尽等待，超时停止；CoreBluetooth背压与自定义额度均须满足。每BLE分段默认间隔30ms，图像帧间80ms，超时6秒。这些是稳定性配置，不是固件常量。
+Subscribe to FF01 and FF03 before handshaking. FF03 `01 NN` adds NN write credits; `02 LL HH` reports a u16LE packet size. An observed initial allocation was 2 credits and 182 bytes. The app conservatively uses 180-byte BLE chunks, additionally bounded by `maximumWriteValueLength`.
 
-另发现ISSC/NUS风格、FEE7、FF80等服务；没有向它们试写。经典蓝牙SPP可作为研究线索，现有App使用已成功的BLE路径，详见[ESP32对照](ESP32-EMULATOR.md)。
+Each BLE write consumes credit. Wait for both credits and CoreBluetooth readiness; stop on timeout. Defaults are 30 ms between BLE writes, 80 ms between raster frames, and a 6-second timeout. These are software stability settings, not firmware constants. Other discovered services included ISSC/NUS-style services, FEE7, and FF80; they were not written. Classic SPP is a separate transport, discussed in the [emulator analysis](ESP32-EMULATOR.md).
 
-## 帧格式
+## Frame and CRC
 
 ```
 02 | command:u8 | index:u8 | payloadLength:u16LE | payload | crc32:u32LE | 03
 ```
 
-外壳10字节，载荷上限1023。CRC仅覆盖payload；采用zlib兼容反射CRC32，反射多项式EDB88320，初末异或FFFFFFFF。Swift `Wire.crc(data,seed:)`等价于`zlib.crc32(data,seed)`。接收通知可包含半帧或多帧，按长度重组并验证结束字节/CRC；不可按一次通知当作一帧。
+The envelope is 10 bytes and payload at most 1023. CRC covers **payload only**. It is zlib-compatible reflected CRC32, reflected polynomial `EDB88320`, initial/final XOR `FFFFFFFF`. `Wire.crc(data,seed:)` matches `zlib.crc32(data,seed)`. Notifications can split or combine frames: use length, terminator, and CRC rather than notification boundaries.
 
-### 已确认会话握手
+### Confirmed handshake
 
-连接初始seed `0x35769521`。注册会话key0的载荷为 `21 95 76 35`（与初始种子异或后的编码）。完整发送：
+The initial seed is `0x35769521`. Register session key zero using payload `21 95 76 35` and the complete frame:
 
 ```
 02 18 00 04 00 21 95 76 35 1C DF 44 21 03
 ```
 
-本机确认：`02 18 00 01 00 00 8D EF 02 D2 03`。此后主机发送/本机返回使用seed0。不要把模拟器未经验证的位移表达式当作通用换key算法；当前App只注册已验证key0。
+Observed confirmation:
 
-### ACK与数据
+```
+02 18 00 01 00 00 8D EF 02 D2 03
+```
 
-常见成功ACK是**与请求相同命令号**、载荷单字节00；查询字段使用独立响应命令。查询载荷01。GET_VOLTAGE、GET_TEMP曾只有ACK，没有测量数据；不能解释为0V/0°C。实际完成与ACK分开：ACK不证明打印头已走完或纸面完整。
+After registration, sends and responses use seed zero. The app only uses this verified key-zero sequence; an emulator's unverified shift expression is not a general key-negotiation specification.
 
-本机MAC查询08实际使用0B响应，与序列号0A→0B冲突。请求串行化，按在途GET匹配，不能仅凭响应0B判断字段类型。字段日志同时保留原始十六进制和解释。
+### ACK versus data
 
-## 图像、浓度和送纸
+A common success ACK repeats the request command with a one-byte `00` payload. Queries use payload `01`; field data normally uses a different response command. Voltage and temperature queries on this unit returned ACK only, which does not mean 0 V or 0°C. An ACK also does not establish mechanical print completion.
 
-- 固定576点、72字节/行，上→下、字节内MSB-first，1黑0白。
-- RGB/透明图先合成白底、排版与缩放，然后阈值/Floyd–Steinberg/有序抖动；字号和颜色转换属于主机渲染。硬件仅打印单色位图。
-- 命令00承载原始位图；按完整行分包，最大 `floor(1023/72)*72=1008`字节，即14行。8位index从0递增。协议帧再切成BLE分段，二者不可混为一层。
-- 浓度19、单字节0–100；GET 1C→1D回读。当前默认/测试100，先前75。此设置可能被设备保留。
-- 送纸1A、u16LE行数。150行为`96 00`，本机用户确认批末150行合适；不要每个图像分包都送150行。120行不足，240行过长是早期试验结果。
-- 576列端点边框完整已由实物确认。640点逻辑图未获得可用的更宽输出；不据此推定固件准确裁切/续行机制。标称300 DPI对应理论宽48.768mm，尚未尺量。
-- 当前渲染高度限制1400、图像内存/字符限制和最多256个图像帧是软件护栏，不是已测出的固件极限。
+MAC query `08` actually returned data under `0B`, overlapping serial-number query `0A→0B`. Serialize requests and associate data with the in-flight query; do not identify the field by response command alone. Preserve raw bytes alongside interpretations.
 
-## 纸仓与电量
+## Raster, density, and feed
 
-| 条件（用户切换、只读查询） | SENT_STATUS载荷 |
+- Fixed **576 dots**, **72 bytes/row**, top-to-bottom, MSB-first within each byte, 1=black and 0=white.
+- Composite transparency onto white, lay out/scale on the host, then threshold or dither. Fonts and grayscale processing are host-side; the head prints monochrome raster data.
+- Command `00` sends raw raster. Split into whole rows: `floor(1023/72) × 72 = 1008` bytes, 14 rows/frame. The verified BLE path increments the 8-bit index from zero. Split each protocol frame again into BLE chunks; these are separate layers.
+- Set density with `19`, one byte 0–100; read `1C→1D`. Default/test density is 100; an earlier value was 75. The setting may persist in the device.
+- Feed with `1A` and a u16LE line count. 150 lines is `96 00`, confirmed convenient after a batch on this unit. Do not add final feed after every image packet. Earlier 120/240-line experiments were superseded by 150.
+- The 576-column outer edges were physically visible. A 640-dot logical input did not produce usable wider output; the exact cropping/stream interpretation remains unknown. Nominal 300 DPI gives a theoretical width of 48.768 mm, not a ruler measurement.
+- Render height 1400, text 10,000 characters, and at most 256 image frames are application guards, not measured firmware limits.
+
+## Cover, paper, and battery
+
+| User-confirmed physical state | SENT_STATUS payload |
 |---|---|
-| 合盖有纸 | 08 00 |
-| 开盖保留纸卷 | 19 00 |
-| 合盖无纸 | 09 00 |
-| 恢复有纸 | 08 00 |
+| Closed, paper loaded | `08 00` |
+| Open, roll left inside | `19 00` |
+| Closed, empty | `09 00` |
+| Paper restored, closed | `08 00` |
 
-`status & 0x10`表示开盖；仅在合盖时，`status & 1`表示缺纸。开盖时纸状态未知。其余位不标定。0x08在低电期出现、后来消失，与低电假设相容，但不能当作已确认充电标志。
+`status & 0x10` means cover open. **Only while closed**, `status & 1` means paper absent. Paper presence is unknown while open. Other bits remain uncalibrated. Bit `0x08` disappeared as the battery estimate rose, but is not an independently established low-battery or charging flag.
 
-GET_BAT_STATUS10→11为单字节电量估计百分比；历史13→58→65，后续GUI会话曾82/100，都是采样快照。没有确认独立charging bool、标准Battery Service或LED控制。详见[充电调查](CHARGING-AND-LED.md)。
+Battery `10→11` is a one-byte estimated percentage. Historical readings were 13→58→65, with later GUI samples of 82/100. There is no confirmed charging Boolean, standard Battery Service, or LED-control command. See [charging research](CHARGING-AND-LED.md).
 
-## 已获取设备字段
+## Recorded device fields
 
-| 字段 | 请求→数据响应 | 本机历史载荷/解释 |
+| Field | Request → data response | Historical payload / interpretation |
 |---|---|---|
-| 打印机固件 | 04→05 | 09 00 01，版本字节序语义未确认 |
-| 型号 | 06→07 | ASCII Paperang_P2 |
-| MAC | 08→0B | 12个ASCII十六进制字符，设备标识已从发布资料中隐去 |
-| 序列号 | 0A→0B | ASCII序列号，原始值仅在本地档案 |
-| 状态 | 0C→0D | u16LE，映射见上 |
-| 电压 | 0E→0F | 本机仅ACK |
-| 电量 | 10→11 | u8百分比 |
-| 温度 | 12→13 | 本机仅ACK |
-| 工厂状态 | 15→16 | FF，语义未知 |
-| 浓度 | 1C→1D | 4B=75，后64=100 |
-| 自动关机时间 | 1F→20 | 08 07=1800秒；SET跨重启保留未测 |
-| 主板版本 | 23→24 | ASCII V1.00.01，含尾空格 |
-| 硬件信息 | 25→26 | 00 00 00，语义未知 |
-| 最大间隙 | 28→29 | 70=112，单位未知 |
-| 纸类型 | 2A→2B | 00，跨项目命名有差异 |
-| 国家 | 2D→2E | 空载荷，和仅ACK不同 |
-| 短设备名 | 30→31 | ASCII P2 |
-| GATT 2A29 / 2A24 | read | ISSC / BT5050，蓝牙模块信息 |
-| GATT 2A27 / 2A26 | read | 5050_SPP / 2030030，不是打印机固件 |
-| GATT FEC9 | read | 空字节 |
+| Printer firmware | 04→05 | `09 00 01`; version ordering unknown |
+| Model | 06→07 | ASCII `Paperang_P2` |
+| MAC | 08→0B | 12 ASCII hexadecimal characters; identifier retained locally only |
+| Serial | 0A→0B | ASCII; original retained in local archive |
+| Status | 0C→0D | u16LE, mapping above |
+| Voltage | 0E→0F | ACK only on this unit |
+| Battery | 10→11 | u8 percentage |
+| Temperature | 12→13 | ACK only on this unit |
+| Factory status | 15→16 | `FF`, unknown meaning |
+| Density | 1C→1D | `4B`=75, later `64`=100 |
+| Auto power-down | 1F→20 | `08 07`=1800 seconds; persistence across restart untested |
+| Board | 23→24 | ASCII `V1.00.01` with trailing space |
+| Hardware | 25→26 | `00 00 00`, unknown meaning |
+| Maximum gap | 28→29 | `70`=112, unknown units |
+| Paper type | 2A→2B | `00`; naming differs across projects |
+| Country | 2D→2E | Empty data payload, distinct from ACK-only |
+| Short name | 30→31 | ASCII `P2` |
+| GATT 2A29 / 2A24 | read | `ISSC` / `BT5050`, Bluetooth-module identity |
+| GATT 2A27 / 2A26 | read | `5050_SPP` / `2030030`, not printer firmware |
+| GATT FEC9 | read | Empty bytes |
 
-## 命令目录
+## Command catalog
 
-下表由当前Swift命令目录整理。请求/响应编号统一为十六进制。数据响应不是可任意发送的GET。查询白名单只包括已知传统GET；研究扩展不会自动发送。
+All numbers below are hexadecimal. Data responses and unsolicited events are not automatically host commands. The app allowlists established GETs; source-only write definitions are not proof of verified device behavior.
 
-| 请求 | 名称 | 类别 | 证据 | 说明 |
-|---|---|---|---|---|
-| 00 | 打印位图 | 耗纸 | 实物验证 | 576点 / 72字节每行；1黑0白；1008字节图像分帧，序号递增。 |
-| 01 | 压缩位图 | 耗纸 | 源码记载 | 压缩格式未确认，暂不发送。 |
-| 02 | 固件数据 | 高风险 | 源码记载 | 禁用写入。 |
-| 03 | USB固件更新 | 高风险 | 源码记载 | 禁用写入。 |
-| 04 | 固件版本 | 查询 | 已读数据 | 响应05；本机09 00 01，字节顺序含义待确认。 |
-| 06 | 型号 | 查询 | 已读数据 | 响应07；Paperang_P2。 |
-| 08 | 蓝牙MAC | 查询 | 已读数据 | 源码期望09；本机实际返回0B，ASCII 12位ASCII地址（本地档案）。 |
-| 0A | 序列号 | 查询 | 已读数据 | 响应0B；与MAC响应冲突，按在途请求关联。 |
-| 0C | 状态位 | 查询 | 已读数据 | 本机对照：0010开盖；合盖时0001缺纸；0008基线位含义待确认。 |
-| 0E | 电压 | 查询 | 仅ACK | 未取得测量值，不能将ACK的00解读为0伏。 |
-| 10 | 电量 | 查询 | 已读数据 | 响应11；单字节整数，当时为13。 |
-| 12 | 温度 | 查询 | 仅ACK | 未取得测量数据。 |
-| 14 | 工厂模式设置 | 高风险 | 源码记载 | 工程写入需单独解锁并确认；mode取值/退出语义未验证。 |
-| 15 | 工厂状态查询 | 查询 | 已读数据 | 本机响应16，载荷FF；具体含义未知，未切换工厂模式。 |
-| 18 | CRC会话握手 | 连接 | 实测验证 | 初始seed35769521；payload21957635注册key0，后续CRC seed0。 |
-| 19 | 打印浓度 | 设置 | 源码记载 | 0–100；先前读数75，原生会话最新100；GUI显式应用后才写入。 |
-| 1A | 送纸 | 耗纸 | 实物验证 | u16LE行数；用户实物确认：批次结束150行最合适。 |
-| 1B | 设备自检页 | 耗纸 | 源码记载 | 可能大量耗纸，当前不发送。 |
-| 1C | 当前浓度 | 查询 | 已读数据 | 响应1D；历史4B=75，最新64=100。 |
-| 1E | 自动关机设置 | 设置 | 源码记载 | u16LE秒；工程原始指令可发送，可能持久保存。 |
-| 1F | 自动关机时间 | 查询 | 已读数据 | 响应20；0807=1800秒。 |
-| 21 | 送至打印头 | 耗纸 | 源码记载 | 语义未实测，当前使用已验证1A送纸。 |
-| 22 | 打印默认参数 | 耗纸 | 源码记载 | 不自动执行。 |
-| 23 | 主板版本 | 查询 | 已读数据 | 响应24；V1.00.01。 |
-| 25 | 硬件信息 | 查询 | 已读数据 | 响应26；原始000000，含义未知。 |
-| 27 | 最大间隙设置 | 设置 | 源码记载 | 单位待确认；工程原始指令可发送，未验证。 |
-| 28 | 最大间隙 | 查询 | 已读数据 | 响应29；70=112，单位未知。 |
-| 2A | 纸张类型 | 查询 | 已读数据 | 响应2B；00。 |
-| 2C | 纸张类型设置 | 设置 | 源码记载 | 工程原始指令可发送；不同项目对纸类型值解释有差异。 |
-| 2D | 国家字段 | 查询 | 空数据 | 响应2E；空载荷。 |
-| 2F | 断开蓝牙指令 | 连接 | 源码记载 | 使用CoreBluetooth断开即可。 |
-| 39 | 扩展39（仅定义） | 研究 | 模拟器源码 | ESP32项目仅定义57，未实现处理分支；禁止据此推断功能。 |
-| 40 | 扩展40→41 | 研究 | 模拟器源码 | 模拟器响应单字节00，但源指针可疑；本机P2未验证，不自动发送。 |
-| 42 | 模块标识候选42→43 | 研究 | 模拟器源码 | 模拟器固定返回BK3432，不是本机读数；与2A纸类型区分。 |
-| 7F | 扩展版本候选7F→80 | 研究 | 模拟器源码 | 模拟器固定返回v3.38.19及零填充；真实字段含义待抓包。 |
-| 81 | 扩展硬件候选81→82 | 研究 | 模拟器源码 | 模拟器固定返回HME230_P2及零填充；非P2支持证明。 |
-| 30 | 设备短名称 | 查询 | 已读数据 | P1项目扩展命令；本机30→31返回ASCII P2。 |
+| Request | Function / response | Evidence and behavior |
+|---|---|---|
+| 00 | Raw raster | Physical output verified; 576 dots, complete rows |
+| 01 | Compressed raster | Enumeration only; encoder/format unconfirmed, not sent |
+| 02 / 03 | Firmware transfer / USB update | Writes disabled |
+| 04 | Firmware →05 | Data read |
+| 06 | Model →07 | Data read |
+| 08 | MAC →0B on this unit | Source expected09; in-flight association required |
+| 0A | Serial →0B | Data read |
+| 0C | Status →0D | Physical differential calibration |
+| 0E | Voltage →0F | ACK only |
+| 10 | Battery →11 | Data read |
+| 12 | Temperature →13 | ACK only |
+| 14 | Set factory mode | Source definition; mode values, exit, and persistence unknown |
+| 15 | Factory status →16 | Read `FF`; meaning unknown |
+| 17 | Bluetooth status event | Source enumeration; not a verified LED command |
+| 18 | CRC registration | Verified handshake above |
+| 19 | Set density | u8 0–100; density100 physically used |
+| 1A | Feed | u16LE lines; physically verified |
+| 1B | Self-test page | Source definition; not automatically executed |
+| 1C | Density →1D | Data read |
+| 1E | Set auto power-down | u16LE seconds; persistence unknown |
+| 1F | Auto power-down →20 | Read1800 seconds |
+| 21 | Feed to head | u16LE in source; difference from1A not physically confirmed |
+| 22 | Print default parameters | Source definition; not automatically executed |
+| 23 | Board version →24 | Data read |
+| 25 | Hardware info →26 | Raw data read; meaning unknown |
+| 27 | Set maximum gap | Source definition; units unknown |
+| 28 | Maximum gap →29 | Read112; units unknown |
+| 2A | Paper type →2B | Read00; naming conflicts |
+| 2C | Set paper type | Source definition; values/persistence not calibrated |
+| 2D | Country →2E | Empty data |
+| 2F | Disconnect Bluetooth | Source definition; app uses CoreBluetooth disconnect |
+| 30 | Short name →31 | P2 response physically queried |
+| 39 | Extended definition only | Emulator has no handler; research only |
+| 40 | Extended40→41 | Emulator's one-byte response implementation is questionable |
+| 42 | Extended42→43 | Emulator hardcodes `BK3432`; not this P2's reading |
+| 7F | Extended7F→80 | Emulator hardcodes `v3.38.19` with padding |
+| 81 | Extended81→82 | Emulator hardcodes `HME230_P2` with padding |
 
-## 未取得的能力
-
-压缩位图编码、工厂模式合法枚举/退出/持久性、升级流程、LED控制、实时充电位、固件长图上限仍未确认。扩展39/40/42/7F/81来源于模拟器，不能从其ACK/固定返回断言P2支持。禁止对未知写命令做自动穷举。
+Compression, factory-mode enums/exit/persistence, firmware updates, LED control, real-time charging, and firmware long-image limits remain unconfirmed. Extended39/40/42/7F/81 are research clues, not automatically probed device capabilities. See [source revisions](source-revisions.json) and [emulator analysis](ESP32-EMULATOR.md).

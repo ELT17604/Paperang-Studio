@@ -1,133 +1,152 @@
-# 本机 HTTP API v1
+# Local HTTP API v1
 
-API由App内置Network.framework服务提供。基础地址 `http://127.0.0.1:8176`，默认关闭、仅回环监听。应用工作台、TTY、API共用连接与打印互斥锁；API不会另外抢占打印机。
+[Documentation](README.md) · [简体中文](API.zh-CN.md) · [OpenAPI 3.0.3](openapi.json)
 
-## 启动与身份验证
+The app hosts a Network.framework HTTP service at `http://127.0.0.1:8176`. It is disabled by default and binds only to loopback. GUI, API, and terminal operations share the same printer connection and busy lock.
 
-App → 本地API → 设置端口（1024–65535）、令牌和网页Origin → 启动。令牌32–256个非空白可打印ASCII字符，默认随机生成、不写入仓库或普通日志；重启App后重新生成。运行时不能修改端口/令牌/Origin，需停止后修改。
+## Startup and authentication
 
-每个实际请求必须携带：
+Open **Local API** (`本地 API`), configure the port (1024–65535), token, and allowed web origins, then start. Tokens must contain 32–256 printable, non-whitespace ASCII characters. The default token is random, not written to the repository or general logs, and regenerated on app restart. Stop the service before changing the port, token, or origins.
 
+All actual requests require:
+
+```http
+Authorization: Bearer <local-token>
 ```
-Authorization: Bearer <本机令牌>
-Content-Type: application/json
-```
 
-GET不要求Content-Type，POST必须是JSON对象，即使没有参数也发送 `{}`。Host只允许 `127.0.0.1:端口` 或 `localhost:端口`。网页额外需要Origin精确匹配；默认允许`http://localhost:3000`及`http://127.0.0.1:3000`，不支持通配符、null来源。OPTIONS预检只在Origin白名单内免令牌；返回允许Authorization/Content-Type及私有网络请求头。浏览器可能另外限制HTTPS→本机HTTP，必须遵循浏览器的本地网络访问政策。
+POST additionally requires `Content-Type: application/json` and a JSON object, including `{}` for parameterless operations. Host must be `127.0.0.1:port` or `localhost:port`. Browser Origin must exactly match the allowlist; defaults are `http://localhost:3000` and `http://127.0.0.1:3000`. Wildcards and `null` are not accepted.
 
-不要把令牌写入公开网页代码、URL或远程服务。此API供同一台电脑的软件使用，不是公网代理。未提供shell、TTY输入、任意文件读取或原始未知协议写入接口。
+OPTIONS preflight is token-free only for an allowed Origin. CORS permits Authorization/Content-Type and advertises private-network access. Browser local-network and HTTPS-to-HTTP policies may impose additional requirements. Do not embed tokens in public source, URLs, or remote services. There is no shell execution, TTY input, arbitrary file read, or unknown raw-command endpoint.
 
-命令行可显式启用（正常GUI会话）：
+Explicit command-line startup:
 
 ```sh
 '/path/Paperang Studio.app/Contents/MacOS/PaperangLab' \
   --api --api-port 8176 --api-token-file /absolute/private-token-file
 ```
 
-令牌文件UTF-8、尾部换行会去除，建议权限0600。加 `--api-offline` 可无GUI运行纯离线渲染服务，不初始化蓝牙；扫描/连接不可用，耗纸仍禁用。退出该命令即停止服务。端口冲突时启动失败，不改系统配置。
+The token file is UTF-8, with surrounding whitespace trimmed; use private file permissions such as 0600. Add `--api-offline` for a headless rendering service without Bluetooth initialization. Scanning/connecting and paper use remain unavailable in offline mode. Exiting stops the service; a port conflict fails startup without changing system settings.
 
-## 接口清单
+## Endpoints
 
-| 方法/路径 | 请求 | 返回/语义 |
+| Method and path | Input | Result |
 |---|---|---|
-| GET `/v1/status` | 无 | 当前连接、busy、printer、state、lastError、progress、jobStatus、charging、readings、printingEnabled、apiVersion |
-| GET `/v1/devices` | `?all=true`可选 | `{scanning,devices:[{id,name,rssi,paperangCandidate}]}`；默认仅系列候选，列表来自最近扫描 |
-| POST `/v1/scan` | `{}` | 202 `{accepted,scanning}`；扫描约10秒，不自动连接；随后GET devices |
-| POST `/v1/connect` | `{"id":"扫描返回UUID"}` | 202请求已提交；轮询status直到connected=true。UUID由本机CoreBluetooth分配，不是MAC |
-| POST `/v1/disconnect` | `{}` | `{connected:false}`；打印中409，先取消任务 |
-| POST `/v1/query` | `{"command":12}` | `{command,payloadHex,hasData,status}`；仅白名单GET，十进制整数命令；只有ACK时hasData=false、payloadHex=null |
-| GET `/v1/protocol` | 无 | 型号、576点/72字节、300DPI、150送纸与commands目录（名称、证据、说明、响应）。研究目录不代表可调用 |
-| GET `/v1/settings` | 无 | `{defaults:PrintSettings,note}`；每次渲染/打印从确定的默认值合并settings，不继承当前GUI编辑值 |
-| POST `/v1/render` | RenderInput | 离线渲染；`{width,height,bytes,previewPngBase64}`，includeRaw=true另含rawBase64；不耗纸、不要求蓝牙 |
-| POST `/v1/jobs` | RenderInput + allowPaper/title | 202 `{id,state:"accepted",note}`；启动打印，轮询任务结果；忙时409，不排队自动重打 |
-| GET `/v1/jobs` | 无 | `{jobs:[Job]}`；最新在前，最近30个会话任务，App重启清空 |
-| GET `/v1/jobs/{id}` | 无 | 单个Job |
-| POST `/v1/jobs/{id}/cancel` | `{}` | 仅当前发送中任务；停止并断开，设备已缓存数据无法撤回；返回cancelled并非纸面撤销 |
-| POST `/v1/feed` | `{"lines":150,"allowPaper":true}` | lines整数0–2000；`{acknowledged:true,lines,physicalCompletion:"unknown"}`，等待媒体检查和ACK |
-| GET `/v1/logs` | `?limit=100`，1–500 | `{order:"newest_first",logs:[{timestamp,type,text}]}`；可能包含本机设备信息 |
-| GET `/v1/openapi` | 无 | 完整OpenAPI3.0.3；也见[离线文件](openapi.json) |
+| GET `/v1/status` | None | `apiVersion`, `connected`, `busy`, `printer`, `state`, `lastError`, `progress`, `jobStatus`, `charging`, `readings`, `printingEnabled` |
+| GET `/v1/devices` | Optional `?all=true` | `{scanning, devices:[{id,name,rssi,paperangCandidate}]}`; latest scan, candidates by default |
+| POST `/v1/scan` | `{}` | 202 `{accepted,scanning}`; about 10 seconds, no automatic connection; poll devices |
+| POST `/v1/connect` | `{"id":"discovered UUID"}` | 202 accepted; poll status until `connected:true`. The UUID is local to CoreBluetooth, not a MAC |
+| POST `/v1/disconnect` | `{}` | `{connected:false}`; 409 during a print, cancel first |
+| POST `/v1/query` | `{"command":12}` | `{command,payloadHex,hasData,status}`; allowlisted read-only GET, decimal integer command |
+| GET `/v1/protocol` | None | Model, width 576, 72 bytes/row, nominal DPI 300, default feed 150, command evidence catalog |
+| GET `/v1/settings` | None | `{defaults:PrintSettings,note}`; request settings merge over defaults, not current GUI edits |
+| POST `/v1/render` | RenderInput | Offline `{width,height,bytes,previewPngBase64}`; `includeRaw:true` adds `rawBase64` |
+| POST `/v1/jobs` | RenderInput plus `allowPaper`/`title` | 202 `{id,state:"accepted",note}`; poll the job; 409 when busy, no automatic queue/retry |
+| GET `/v1/jobs` | None | `{jobs:[Job]}`, newest first, latest 30 session jobs |
+| GET `/v1/jobs/{id}` | None | One Job |
+| POST `/v1/jobs/{id}/cancel` | `{}` | Only the active sending job; stops/disconnects, cannot recall printer-buffered data |
+| POST `/v1/feed` | `{"lines":150,"allowPaper":true}` | Integer 0–2000; `{acknowledged:true,lines,physicalCompletion:"unknown"}` after media check and ACK |
+| GET `/v1/logs` | Optional `?limit=100`, clamped 1–500 | `{order:"newest_first",logs:[{timestamp,type,text}]}`; may include local device information |
+| GET `/v1/openapi` | None | Bundled OpenAPI document |
 
-### 状态与任务
+### Readings and jobs
 
-`readings`元素：`{command,name,value,rawHex,sampledAt}`。这些是最近采样，不保证实时；需要新值时POST query。充电字段固定`"unknown"`，不会根据电量上升推断实时正在充电。
+A reading is `{command,name,value,rawHex,sampledAt}`. Values are cached samples with ISO8601 times; POST query for a new sample. An ACK without field data gives `hasData:false` and `payloadHex:null`. `charging` is `"unknown"`; a rising battery estimate is not treated as a real-time charging flag. Research catalog entries are not automatically callable.
 
-Job：`{id,title,detail,state,createdAt}`，时间ISO8601。state目前保留GUI中文值：`发送中`、`已发送，待核对纸面`、`未完成`、`已停止`。`progress`是全局活动任务进度。202仅接受；“已发送”也只是数据及ACK流程结束，调用方应让用户确认纸面。没有固件机械完成事件或持久任务队列。失败后不自动重试，避免重复耗纸。
+Job fields: `{id,title,detail,state,createdAt}`. The wire values of `state` currently match the Chinese GUI:
 
-### RenderInput
+| Wire value | Meaning |
+|---|---|
+| `发送中` | Sending |
+| `已发送，待核对纸面` | Sent; check physical output |
+| `未完成` | Incomplete |
+| `已停止` | Stopped |
 
-必须且只能提供 `text`（字符串）或 `imageBase64`（PNG/JPEG等ImageIO可解码图片的原始文件Base64，不带data:前缀）。可选 `settings` 部分对象、`includeRaw`真正布尔值；jobs另接受 `title`（截取120字符）、`allowPaper:true`。
+HTTP 202 means accepted, not mechanically complete. “Sent” means the data/ACK sequence finished. Progress belongs to the current global job. Jobs are not durable across app restarts, and failures are not automatically replayed.
 
-图片不接收路径或远程URL；请求正文上限2MiB，因此Base64解码后的实用图片上限约1.5MiB，另有限制源图4000万像素及解码缩略图4096。文本上限10000字符、输出高度1400像素；不是固件上限。图像PNG/raw均对应同一份576列最终位图。
+### RenderInput and paper permission
 
-### 耗纸授权
+Provide exactly one of `text` (string) or `imageBase64` (the Base64-encoded image file, without a data-URL prefix). Optional fields are partial `settings` and a real Boolean `includeRaw`. Jobs also accept a `title` truncated to 120 characters and `allowPaper:true`.
 
-POST jobs/feed需要同时满足：App侧栏“全局允许耗纸”、请求JSON中的真正布尔值`allowPaper:true`。数值1或字符串true无效。全局开关默认关闭；命令行启用API不会启用打印。打印前读纸/盖、设置浓度并回读；GUI/API/TTY共享busy锁。
+Images are decoded with ImageIO; paths and remote URLs are not accepted. The 2 MiB JSON-body cap gives a practical image payload of roughly 1.5 MiB before Base64 encoding. Source images are additionally limited to 40 million pixels and decoded previews to a 4096-pixel edge. Text allows 10,000 characters; final output height is at most 1400 rows. These are software limits. PNG and raw output describe the same 576-column raster.
 
-## 全部settings字段
+Both jobs and feed require the sidebar's **global paper switch** and an actual JSON Boolean `allowPaper:true`; numeric `1` and string `"true"` do not count. Starting the API does not enable printing. Before printing, the app checks fresh cover/paper state, sets density, and reads it back.
 
-几何单位为最终输出点/像素，传输间隔为毫秒，等待为秒，feed为设备行。下表是v1可覆盖字段；未列字段报400。完整机器约束见OpenAPI Settings。
+## All settings
 
-| 字段 | 默认 | 范围/说明 |
+Geometry uses output dots/pixels, pauses use milliseconds, waits use seconds, and feed uses device lines. Unknown fields produce 400. Preserve the enum strings below exactly; English documentation does not translate the API's wire values.
+
+| Field | Default | Range / values |
 |---|---|---|
-| version | 1 | 仅1 |
-| fontName / fontSize / bold | PingFang SC / 30 / false | 系统字体名称；8–96，主机文字渲染 |
-| lineSpacing / alignment | 4 / 居中 | 0–40；居左/居中/居右 |
+| version | 1 | Only 1 |
+| fontName / fontSize / bold | PingFang SC / 30 / false | Installed font name; size 8–96 |
+| lineSpacing / alignment | 4 / `居中` | 0–40; `居左`, `居中`, `居右` (left, center, right) |
 | marginX / marginY | 12 / 12 | 0–120 / 0–200 |
-| contentWidth | 552 | 48–576，且contentWidth+2×marginX≤576 |
-| imageFit | 适配宽度 | 适配宽度/保持像素/裁切填满 |
-| cropHeight / rotation | 400 / 0 | 24–1400；0/90/180/270 |
-| conversion | 阈值 | 阈值/Floyd–Steinberg/有序抖动 |
+| contentWidth | 552 | 48–576 and `contentWidth + 2 × marginX ≤ 576` |
+| imageFit | `适配宽度` | `适配宽度`, `保持像素`, `裁切填满` (fit width, preserve pixels, crop to fill) |
+| cropHeight / rotation | 400 / 0 | 24–1400; 0/90/180/270 |
+| conversion | `阈值` | `阈值`, `Floyd–Steinberg`, `有序抖动` (threshold, error diffusion, ordered) |
 | threshold / brightness | 128 / 0 | 0–255 / -100–100 |
-| contrast / gamma | 1 / 1 | 各0.2–3 |
-| invert | false | 黑白反相 |
-| density / copies | 100 / 1 | 整数0–100 / 1–20 |
-| feedBefore / feedAfter | 0 / 150 | 整数0–2000；每批前后送纸 |
-| feedBetweenCopies | false | 每份之间额外送纸 |
-| packetBytes | 1008 | 72–1008且为72整数倍 |
-| bleChunk | 180 | 整数20–180，另受CoreBluetooth最大长度限制 |
-| writePauseMS / framePauseMS | 30 / 80 | 整数5–200 / 0–1000 |
-| timeoutSeconds / finishWaitSeconds | 6 / 2 | 整数3–30 / 1–15 |
+| contrast / gamma | 1 / 1 | Each 0.2–3 |
+| invert | false | Boolean |
+| density / copies | 100 / 1 | Integers 0–100 / 1–20 |
+| feedBefore / feedAfter | 0 / 150 | Integers 0–2000 |
+| feedBetweenCopies | false | Feed between copies |
+| packetBytes | 1008 | 72–1008, multiple of 72 |
+| bleChunk | 180 | Integer 20–180, also limited by CoreBluetooth |
+| writePauseMS / framePauseMS | 30 / 80 | Integers 5–200 / 0–1000 |
+| timeoutSeconds / finishWaitSeconds | 6 / 2 | Integers 3–30 / 1–15 |
 
-## 错误及连接约束
+## Errors and HTTP limits
 
-错误JSON：`{"error":{"code":"paper_disabled","message":"..."}}`。400格式/渲染/参数/协议操作失败；403令牌、Host、Origin或耗纸开关；404路由/任务不存在；409设备未就绪、busy或离线；415 POST类型错误；429请求过快；503服务未就绪。JSON的message供用户阅读，调用方主要依据HTTP状态及code处理；不应无限重试。
+Errors use `{"error":{"code":"paper_disabled","message":"..."}}`. Handle HTTP status and `code`; messages are user-facing and may be Chinese.
 
-HTTP/1.1，仅GET/POST/OPTIONS；最多8连接、每连接12秒、每秒20个已认证请求；头部16KiB、正文2MiB。不支持chunked、流水线或持久连接；重复头部拒绝。响应no-store。合理轮询0.5–1秒即可。
+| Status | Meaning |
+|---|---|
+| 400 | Invalid HTTP/JSON/settings/rendering input or failed protocol operation |
+| 403 | Rejected token, Host, Origin, or paper permission |
+| 404 | Unknown route/job |
+| 409 | Busy, not ready, offline, or invalid connection state |
+| 415 | POST Content-Type mismatch |
+| 429 | Rate limit |
+| 503 | Service not ready |
 
-## 示例
+HTTP/1.1 supports GET/POST/OPTIONS, at most 8 connections, 12 seconds per connection, and 20 authenticated requests/second. Headers are limited to 16 KiB, bodies to 2 MiB. Chunked transfer, pipelining, persistent connections, and duplicate headers are rejected. Responses use `no-store`. Polling every 0.5–1 second is sufficient; do not retry failures indefinitely.
 
-先在GUI复制令牌，并存入仅本机使用的环境变量`PAPERANG_TOKEN`。
+## Examples
+
+Copy the token in the GUI and store it in the local `PAPERANG_TOKEN` environment variable.
 
 ```sh
 curl --noproxy '*' -H "Authorization: Bearer $PAPERANG_TOKEN" \
   http://127.0.0.1:8176/v1/status
 curl --noproxy '*' -H "Authorization: Bearer $PAPERANG_TOKEN" \
-  -H 'Content-Type: application/json' -d '{"text":"你好 P2","settings":{"fontSize":30},"includeRaw":true}' \
+  -H 'Content-Type: application/json' \
+  -d '{"text":"Hello P2","settings":{"fontSize":30},"includeRaw":true}' \
   http://127.0.0.1:8176/v1/render
 ```
 
-Python（将Clients加入模块路径）：
+Python (make `Clients/` available on the module path):
 
 ```python
 import os
 from paperang_client import PaperangClient
 p = PaperangClient(os.environ['PAPERANG_TOKEN'])
 preview = p.render('Hello Paperang P2!', {'density': 100, 'feedAfter': 150})
-# 在App中完成连接和侧栏全局耗纸授权后，显式提交：
+# Connect and enable the global paper switch before explicitly printing.
 job = p.print_text('Hello Paperang P2!', allow_paper=True)
 print(p.wait(job['id']))
 ```
 
-网页/Node（网页Origin需在App白名单）：
+Browser/Node (a browser origin must be allowlisted):
 
 ```js
 import {PaperangClient} from './Clients/paperang-client.js';
 const p = new PaperangClient(tokenEnteredLocallyByUser);
 const preview = await p.render('Hello P2', {fontSize: 24});
 imageElement.src = `data:image/png;base64,${preview.previewPngBase64}`;
-// 由用户点击打印后执行，另需App全局授权：
+// Submit after a user print action; the global switch must also be on.
 const job = await p.printText('Hello P2', {allowPaper: true});
 console.log(await p.job(job.id));
 ```
 
-客户端是薄封装；其他端点可用其request方法。Python绕过系统HTTP代理访问回环，JavaScript调用浏览器/Node的fetch。API版本固定/v1；新增能力以兼容字段扩展，破坏性变更另开版本。
+Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v1` path is the API contract version, separate from app version 0.2.1 and OpenAPI format version 3.0.3.

@@ -1,13 +1,27 @@
-# 文档目录
+# Documentation
 
-从 [项目首页](../README.md) 开始。
+[Project home](../README.md) · [简体中文](INDEX.zh-CN.md)
 
-- 使用：[用户指南](USER-GUIDE.md)、[纸带终端](TERMINAL.md)
-- 集成：[HTTP API](API.md)、[OpenAPI 3.0](openapi.json)、[Swift API](SWIFT-API.md)
-- 协议：[完整协议规范](PROTOCOL.md)、[设备配置](p2-profile.json)
-- 研究：[获取步骤与验证](ACQUISITION.md)、[跨型号研究](RESEARCH.md)、[ESP32补充](ESP32-EMULATOR.md)、[充电与LED](CHARGING-AND-LED.md)
-- 开发：[架构与构建](ARCHITECTURE.md)、[来源](SOURCES.md)、[固定版本](source-revisions.json)
+All default documentation pages are in English. Each guide links to its Chinese counterpart. The application UI and some API enum values remain Chinese; localization of documentation does not change those values.
 
-文档记录的是2026-11-04本轮项目状态。电量等动态字段是采样快照；研究文档中的历史值不应当作当前值。实测、源码线索、推断与未知分别标记。原始个人设备地址/序列号及完整日志保存在项目外的本地开发档案。
+| Topic | English | 简体中文 |
+|---|---|---|
+| Project overview | [README](../README.md) | [项目介绍](README.zh-CN.md) |
+| User guide | [User guide](USER-GUIDE.md) | [使用说明](USER-GUIDE.zh-CN.md) |
+| Paper terminal | [Terminal](TERMINAL.md) | [实体纸带终端](TERMINAL.zh-CN.md) |
+| Local HTTP API | [API](API.md) | [API 文档](API.zh-CN.md) |
+| Swift libraries | [Swift APIs](SWIFT-API.md) | [Swift 模块 API](SWIFT-API.zh-CN.md) |
+| Protocol | [Reference](PROTOCOL.md) | [协议规范](PROTOCOL.zh-CN.md) |
+| Acquisition | [Acquisition record](ACQUISITION.md) | [获取步骤](ACQUISITION.zh-CN.md) |
+| Research | [Protocol research](RESEARCH.md) | [研究对照](RESEARCH.zh-CN.md) |
+| ESP32 emulator | [Analysis](ESP32-EMULATOR.md) | [模拟器分析](ESP32-EMULATOR.zh-CN.md) |
+| Charging and LED | [Research](CHARGING-AND-LED.md) | [充电与 LED](CHARGING-AND-LED.zh-CN.md) |
+| Related projects | [Comparison](RELATED-PROJECTS.md) | [相关项目](RELATED-PROJECTS.zh-CN.md) |
+| Development | [Architecture and build](ARCHITECTURE.md) | [架构与构建](ARCHITECTURE.zh-CN.md) |
+| References | [Sources](SOURCES.md) | [来源与致谢](SOURCES.zh-CN.md) |
+| Contributing | [Contributing](../CONTRIBUTING.md) | [参与开发](CONTRIBUTING.zh-CN.md) |
+| Changes | [Changelog](../CHANGELOG.md) | [变更记录](CHANGELOG.zh-CN.md) |
 
-[三个相关项目的可借鉴内容与限制](RELATED-PROJECTS.md)
+Shared machine-readable references: [OpenAPI 3.0](openapi.json), [P2 profile](p2-profile.json), and [pinned source revisions](source-revisions.json).
+
+Research records describe observations collected on 2026-11-04. Battery readings are historical samples, not current telemetry. Physical observations, source-code clues, hypotheses, and unknowns are identified separately. Personal device identifiers and full raw sessions remain in the external local development archive.

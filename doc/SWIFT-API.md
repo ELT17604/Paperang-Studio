@@ -1,23 +1,25 @@
-# Swift 模块 API
+# Swift module APIs
 
-Package.swift提供四个library产品。macOS14+、Swift6，内部Swift语言模式5。
+[Documentation](README.md) · [简体中文](SWIFT-API.zh-CN.md)
 
-| 产品 / import | 职责 |
+The package exports four library products. It targets macOS 14+ using Swift 6 tools with Swift language mode 5.
+
+| Product / import | Responsibility |
 |---|---|
-| PaperangProtocol / ProtocolCore | Wire、Decoder、Frame、Command、P2MediaStatus |
-| PaperangPrint / PrintCore | PrintSettings、Renderer、Raster、PrintFailure |
-| PaperangTerminal / TerminalCore | PTYSession、PaperTerminalBuffer；依赖C桥PTYBridge |
-| PaperangIntegration / IntegrationCore | HTTPRequest、HTTPParser、DeviceMatcher；主要供本机服务复用 |
+| PaperangProtocol / ProtocolCore | Wire, Decoder, Frame, Command, P2MediaStatus |
+| PaperangPrint / PrintCore | PrintSettings, Renderer, Raster, PrintFailure |
+| PaperangTerminal / TerminalCore | PTYSession, PaperTerminalBuffer, backed by the C PTYBridge |
+| PaperangIntegration / IntegrationCore | HTTPRequest, HTTPParser, DeviceMatcher |
 
-其他Swift Package可用`.package(path:"../PaperangStudio")`，目标依赖`.product(name:"PaperangProtocol",package:"PaperangStudio")`等。公开API源代码是精确签名依据。
+Add a local package dependency and select its library products. SwiftPM uses the directory's package identity: for a checkout named `Paperang Studio`, use `.package(path:"../Paperang Studio")` and `.product(name:"PaperangProtocol", package:"Paperang Studio")`; adjust the identity to your checkout name. The public source defines exact signatures.
 
-## 协议
+## Protocol
 
 ```swift
 import Foundation
 import ProtocolCore
 let handshake = Wire.frame(0x18, Data([0x21,0x95,0x76,0x35]), seed:0x35769521)
-let feed = Wire.frame(0x1A, Wire.u16(150)) // 仅封包，不会发送
+let feed = Wire.frame(0x1A, Wire.u16(150)) // Encode only; does not send.
 var decoder = Decoder()
 for frame in decoder.push(notificationBytes) where frame.valid {
     print(frame.command, Wire.hex(frame.payload))
@@ -26,11 +28,11 @@ let status = P2MediaStatus(0x0019)
 print(status.coverOpen, status.paperPresent as Any) // true, nil
 ```
 
-`frame(command,payload,seed:0,index:0)`要求payload≤1023（超限precondition失败）。`parseHex`接受空白分隔但不接受0x前缀，返回Data?。Decoder可reset，保留半帧、返回CRC valid标志；调用方必须检查valid。Decoder不是线程安全共享对象，请由同一串行上下文管理。
+`frame(command,payload,seed:0,index:0)` requires payload ≤1023 bytes; exceeding it triggers a precondition failure. `parseHex` returns `Data?`, accepts whitespace, and rejects `0x` prefixes. Decoder preserves partial frames, supports reset, and returns a CRC `valid` flag that callers must check. Keep each decoder on one serial execution context.
 
-Command.all包含证据目录；expected仅可信GET映射；研究目录条目不加入自动查询白名单。P2MediaStatus的纸张状态为Bool?，开盖时必须保留nil。
+`Command.all` includes evidence metadata; `expected` contains trusted GET response mappings. Research entries are not in the automatic-query allowlist. `paperPresent` is optional and must remain nil while the cover is open.
 
-## 图像和排版
+## Rendering
 
 ```swift
 import PrintCore
@@ -39,32 +41,32 @@ settings.fontSize = 24
 settings.density = 100
 settings.feedAfter = 150
 try settings.validate()
-let raster = try Renderer.render(text:"你好 P2", image:nil, mode:"文字", settings:settings)
-let bytes = raster.bytes // 72字节/行，固定576列，1黑0白
-let preview = raster.png // 同一数据生成的PNG Data?
+let raster = try Renderer.render(text:"Hello P2", image:nil, mode:"文字", settings:settings)
+let bytes = raster.bytes // 576 columns, 72 bytes/row, 1=black.
+let preview = raster.png // PNG Data? derived from the same raster.
 ```
 
-文字渲染使用AppKit字体，建议在主线程执行（App中由MainActor管理）；图片解码`Renderer.loadImage(URL)`、`loadImageData(Data)`返回CGImage；图片模式传image并设mode="图片"。所有参数与范围见[HTTP文档](API.md)。Raster.convert可直接接收灰度数组进行统一1位转换。复用库不会自动初始化蓝牙或发送数据。
+Text uses AppKit fonts; render on the main thread (the app uses MainActor). `Renderer.loadImage(URL)` and `loadImageData(Data)` return CGImage. Image rendering requires `mode:"图片"` and an image. Keep these literal mode values unchanged. `Raster.convert` converts an array of grayscale values through the shared monochrome pipeline. Importing these libraries does not initialize Bluetooth or send data. See [settings](API.md#all-settings).
 
 ## PTY
 
 ```swift
 import TerminalCore
 let session = PTYSession()
-session.onOutput = { bytes in /* 回调位于PTY串行队列，UI须切回MainActor */ }
-session.onExit = { waitStatus in /* 原始waitpid状态，非直接exit code */ }
+session.onOutput = { bytes in /* PTY serial queue; dispatch UI work to MainActor. */ }
+session.onExit = { waitStatus in /* Raw waitpid status, not a plain exit code. */ }
 try session.start(directory:"/your/folder", columns:72, rows:24,
                   loadProfile:false, helperURL:helperExecutableURL)
 session.write(Data("pwd\r".utf8))
 session.write(Data([3])) // Ctrl-C
 session.resize(columns:80, rows:24)
-// 结束：session.stop()
+// Finish with session.stop().
 ```
 
-PTYSession每个对象只能start一次；回调应在start之前设置，不并发修改。持有session直到退出，stop异步投递；退出时会回收子进程。helper必须是项目PaperangPTYHost可执行文件，默认位于主程序同目录；宿主App须打包并签名helper。只依赖library不会自动复制helper。
+Each PTYSession starts only once. Set callbacks before startup and do not mutate them concurrently. Retain the session until exit; stop is asynchronous and the child is reaped. `PaperangPTYHost` must be packaged and signed with the host app; its default location is beside the host executable. A library dependency alone does not copy the helper.
 
-PaperTerminalBuffer是值类型：feed(Data)归一化，transcript显示，pendingCount查看缓冲，take(maxCharacters:includePartial:)提取，prepend用于失败回补，clearPending丢弃。限制与纸面语义见[终端指南](TERMINAL.md)。
+`PaperTerminalBuffer` is a value type: `feed` normalizes bytes, `transcript` exposes display text, `pendingCount` reports pending content, `take` extracts batches, `prepend` restores failed content, and `clearPending` discards it. See [paper semantics](TERMINAL.md).
 
-## 设备传输边界
+## Device integration
 
-CoreBluetooth的连接、通知、额度、ACK等待及共享任务锁目前由App的Lab负责，不作为跨进程对象公开。外部App/网页应优先调用[HTTP API](API.md)，避免两个中心同时占用同一台P2。HTTP解析工具本身不启动listener；设备候选匹配只看名称，不是身份保证。
+The app's Lab owns CoreBluetooth connection state, notifications, credits, ACK waits, and the shared task lock. Those are not exported as cross-process objects. Other software should prefer the [HTTP API](API.md) rather than competing for the same printer. HTTP parser utilities do not start a listener; name matching is only a discovery hint.
