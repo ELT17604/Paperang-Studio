@@ -1,0 +1,13 @@
+.DS_Store
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+*.xcuserdata/
+__pycache__/
+*.pyc
+.env
+*token*
+Release/
+Reports/
+work/

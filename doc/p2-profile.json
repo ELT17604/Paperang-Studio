@@ -1,0 +1,23 @@
+{
+  "model": "Paperang_P2",
+  "protocol": "legacy-02-03",
+  "print_width_dots": 576,
+  "bytes_per_row": 72,
+  "nominal_dpi": 300,
+  "nominal_width_mm": 48.767999999999994,
+  "physical_edges_calibrated": true,
+  "post_batch_feed_lines": 150,
+  "feed_evidence": "user confirmed best on this unit",
+  "max_payload_bytes": 1023,
+  "raster_payload_bytes": 1008,
+  "ble_chunk_bytes": 180,
+  "bit_order": "MSB-first",
+  "black_bit": 1,
+  "max_image_height_firmware": null,
+  "cover_open_mask": 16,
+  "paper_absent_mask_when_cover_closed": 1,
+  "uncalibrated_baseline_mask": 8,
+  "physical_edges_verified": true,
+  "physical_width_mm": null,
+  "default_test_density": 100
+}
