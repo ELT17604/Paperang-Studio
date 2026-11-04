@@ -1,0 +1,16 @@
+{
+  "bind": "127.0.0.1",
+  "port": 8177,
+  "database": "/var/lib/paperang-relay/relay.sqlite3",
+  "allow_anonymous": true,
+  "anonymous_max_length": 500,
+  "anonymous_hourly_limit": 5,
+  "anonymous_hourly_chars": 2000,
+  "authenticated_max_length": 10000,
+  "authenticated_hourly_limit": 60,
+  "authenticated_hourly_chars": 60000,
+  "queue_limit": 200,
+  "retention_days": 7,
+  "trusted_proxies": [],
+  "device_id": "p2"
+}

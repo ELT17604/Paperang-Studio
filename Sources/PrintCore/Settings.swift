@@ -25,8 +25,8 @@ public struct PrintSettings: Codable, Equatable {
  public var feedBetweenCopies=false
  public var packetBytes=1008
  public var bleChunk=180
- public var writePauseMS=30
- public var framePauseMS=80
+ public var writePauseMS=10
+ public var framePauseMS=0
  public var timeoutSeconds=6
  public var finishWaitSeconds=2
  public init() {}

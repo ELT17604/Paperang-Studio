@@ -5,11 +5,13 @@ import ProtocolCore
 import PrintCore
 import IntegrationCore
 import TerminalCore
-struct DeviceRow: Identifiable { let id:UUID;let name:String;let rssi:Int }
+struct DeviceRow: Identifiable { let id:UUID;let name:String;let rssi:Int;var source="BLE广播" }
 struct Reading: Identifiable {let id:UInt8;let title:String;let value:String;let raw:String;let time:Date}
 struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let text:String}
 @MainActor final class Lab: NSObject,ObservableObject,@preconcurrency CBCentralManagerDelegate,@preconcurrency CBPeripheralDelegate {
  @Published var showAllDevices=false
+ @Published var scanSummary="尚未扫描"
+ var scanTask:Task<Void,Never>?;var scanSession=UUID();var scanAfterInitialization=false;var scanBroadcastIDs=Set<UUID>()
  @Published var devices=[DeviceRow]();@Published var readings=[Reading]();@Published var logs=[LogRow]();@Published var services=[String]()
  @Published var state="未连接";@Published var ready=false;@Published var busy=false;@Published var scanning=false;@Published var error=""
  @Published var text="Hello Paperang P2!\n你好，喵喵机。" {didSet{schedulePreview()}}
@@ -24,6 +26,18 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  @Published var ttyColumns=72;@Published var ttyRows=24;@Published var ttyLoadProfile=false;@Published var ttyAutoPrint=false;@Published var ttyPendingCount=0;@Published var ttyMessage="本地PTY尚未启动"
  @Published var ttyIdleSeconds=3;@Published var ttyFeed=0;@Published var ttyFontSize=12.0;@Published var ttyPrivateInput=false
  @Published var apiRunning=false;@Published var apiPort=8176;@Published var apiToken=UUID().uuidString+UUID().uuidString;@Published var apiOrigins="http://localhost:3000,http://127.0.0.1:3000"
+ @Published var relayOnline=false;@Published var relayFailures=0;@Published var relayLastSeen:Date?;@Published var relayWarning=false
+ @Published var relayAdminKey="";@Published var relayManagedKeys=[RelayManagedKey]();@Published var relayKeyName="";@Published var relayNewRole="submit";@Published var relayKeyDevice="p2";@Published var relayCreatedToken="";@Published var relayAdminMessage="";@Published var relayAdminBusy=false
+ var relaySession=UUID();var relayFlushing=false
+ @Published var relayURL="";@Published var relayKey="";@Published var relayAllowHTTP=false;@Published var relayRunning=false;@Published var relayAutoPrint=false
+ @Published var relayMessage="尚未连接中转服务器";@Published var relayJobs=[RelayJob]();@Published var relaySelection="";@Published var relayStyle=UserDefaults.standard.string(forKey:"relay.style") ?? "便签" {didSet{UserDefaults.standard.set(relayStyle,forKey:"relay.style")}}
+ @Published var relayIncludeID=false;@Published var relayIncludeText=true;@Published var relayIncludeSender=true;@Published var relayIncludeTime=true;@Published var relayIncludeIP=false;@Published var relayIncludeUA=false;@Published var relayIncludeDevice=false
+ @Published var relayDensity=100;@Published var relayFeed=150;@Published var relayPreview:NSImage?;@Published var relayMutating=false
+ @Published var relayDefaultAutoPrint=UserDefaults.standard.bool(forKey:"relay.defaultAutoPrint") {didSet{UserDefaults.standard.set(relayDefaultAutoPrint,forKey:"relay.defaultAutoPrint")}}
+ @Published var relayTemplates=RelayTemplate.load();@Published var relayTemplateID=UserDefaults.standard.string(forKey:"relay.templateID") ?? "" {didSet{UserDefaults.standard.set(relayTemplateID,forKey:"relay.templateID")}}
+ @Published var relayEditorOpen=false;@Published var relayFilter="全部";@Published var relaySearch=""
+ var relayDetailTask:Task<Void,Never>?;var relayDetailCache=[String:RelayJob]()
+ var relayTask:Task<Void,Never>?;var relayEndpoint:URL?;var relayCredential="";var relayFlight:RelayFlight?
  var terminal:PTYSession?;var terminalBuffer=PaperTerminalBuffer();var terminalTimer:Task<Void,Never>?;var ttyLastOutput=Date();var ttyFlight:(UUID,String)?
  var api:LocalAPI?
  var sourceImage:CGImage?;var raster:Raster?;var previewTask:Task<Void,Never>?;var activeSettings:PrintSettings?
@@ -33,15 +47,52 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  init(offline:Bool){super.init();if !offline{central=CBCentralManager(delegate:self,queue:.main)}else{state="离线API模式：不访问蓝牙"};schedulePreview();let root=Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent();let candidates=[root,root.deletingLastPathComponent().appendingPathComponent("PaperangStudio")];ttyDirectory=candidates.first{FileManager.default.fileExists(atPath:$0.appendingPathComponent("Package.swift").path)}?.path ?? FileManager.default.homeDirectoryForCurrentUser.path;configureLaunchAPI()}
  var visibleDevices:[DeviceRow] {devices.filter{showAllDevices || DeviceMatcher.paperang($0.name)}}
  func log(_ type:String,_ s:String){logs.append(.init(type:type,text:s));if logs.count>4000{logs.removeFirst(logs.count-4000)}}
- func centralManagerDidUpdateState(_ central:CBCentralManager){state=[CBManagerState.poweredOn:"蓝牙已开启",.poweredOff:"蓝牙已关闭",.unauthorized:"请在系统设置允许本App使用蓝牙",.unsupported:"不支持蓝牙" ][central.state] ?? "蓝牙初始化中";log("SYSTEM",state);if central.state != .poweredOn {reset()}}
- func scan(){guard let central,central.state == .poweredOn else{error=state;return};devices=[];scanning=true;central.scanForPeripherals(withServices:nil,options:[CBCentralManagerScanOptionAllowDuplicatesKey:false]);log("SCAN","扫描附近蓝牙；仅用户选择后连接");Task{try? await Task.sleep(for:.seconds(10));central.stopScan();scanning=false}}
- func centralManager(_ central:CBCentralManager,didDiscover p:CBPeripheral,advertisementData:[String:Any],rssi RSSI:NSNumber){known[p.identifier]=p;let row=DeviceRow(id:p.identifier,name:(advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? p.name ?? "未命名",rssi:RSSI.intValue);devices.removeAll{$0.id==row.id};devices.append(row);devices.sort{($0.name.contains("Paperang") ? 0:1,$0.name)<($1.name.contains("Paperang") ? 0:1,$1.name)}}
- func connect(_ id:UUID){disconnect();guard let p=known[id] else{return};central.stopScan();scanning=false;peripheral=p;p.delegate=self;state="连接 \(p.name ?? id.uuidString)";central.connect(p);Task{let g=generation;try? await Task.sleep(for:.seconds(20));if g==generation && !ready {error="连接/握手超时";disconnect()}}}
+ func centralManagerDidUpdateState(_ central:CBCentralManager){
+  guard self.central===central else{return}
+  state=[CBManagerState.poweredOn:"蓝牙已开启",.poweredOff:"蓝牙已关闭",.unauthorized:"请在系统设置允许本App使用蓝牙",.unsupported:"不支持蓝牙"][central.state] ?? "蓝牙初始化中";log("SYSTEM",state)
+  if central.state != .poweredOn{reset();if [.poweredOff,.unauthorized,.unsupported].contains(central.state){scanAfterInitialization=false;scanSummary=state}}
+  else if scanAfterInitialization{scanAfterInitialization=false;scan()}
+ }
+ func stopScan(){scanTask?.cancel();scanTask=nil;scanSession=UUID();if central?.state == .poweredOn{central.stopScan()};scanning=false}
+ func restartScanner(){
+  guard !busy,!ready,peripheral==nil else{error="请先断开当前会话，再重新初始化扫描";return}
+  stopScan();central?.delegate=nil;scanAfterInitialization=true;scanSummary="正在重新初始化本App的扫描连接…";error=""
+  central=CBCentralManager(delegate:self,queue:.main);log("SCAN","重新创建本App的CoreBluetooth中心；未重置系统蓝牙")
+ }
+ func addScanDevice(_ p:CBPeripheral,name:String,rssi:Int,source:String){
+  known[p.identifier]=p
+  if let previous=devices.first(where:{$0.id==p.identifier}),previous.name==name,previous.source==source,abs(previous.rssi-rssi)<5{return}
+  devices.removeAll{$0.id==p.identifier};devices.append(DeviceRow(id:p.identifier,name:name,rssi:rssi,source:source))
+  devices.sort{(DeviceMatcher.paperang($0.name) ? 0:1,$0.name)<(DeviceMatcher.paperang($1.name) ? 0:1,$1.name)}
+ }
+ func scan(){
+  guard let central,central.state == .poweredOn else{error=state;scanSummary=state;return}
+  guard !busy,peripheral==nil || ready else{error="连接处理中，请先等待或断开";return}
+  stopScan();error="";devices=[];scanBroadcastIDs=[];let session=UUID();scanSession=session
+  let recent=UserDefaults.standard.dictionary(forKey:"ble.recentPrinters") as? [String:String] ?? [:]
+  let ids=recent.keys.compactMap{UUID(uuidString:$0)}
+  for p in central.retrievePeripherals(withIdentifiers:ids){addScanDevice(p,name:p.name ?? recent[p.identifier.uuidString] ?? "历史打印机",rssi:0,source:"历史记录（未确认在线）")}
+  for p in central.retrieveConnectedPeripherals(withServices:[CBUUID(string:"FF00")]){addScanDevice(p,name:p.name ?? "已连接设备",rssi:0,source:"本机已有连接（需核对型号）")}
+  scanning=true;scanSummary="扫描中：等待BLE广播；历史记录不代表在线"
+  central.scanForPeripherals(withServices:nil,options:[CBCentralManagerScanOptionAllowDuplicatesKey:true])
+  log("SCAN","开始12秒扫描；isScanning=\(central.isScanning)，允许重复广播，已知记录\(devices.count)项")
+  scanTask=Task{do{try await Task.sleep(for:.seconds(12))}catch{return};guard scanSession==session,self.central===central else{return};central.stopScan();scanning=false;scanTask=nil;scanSummary="扫描结束：\(scanBroadcastIDs.count)个广播设备，\(visibleDevices.count)个当前筛选结果";if scanBroadcastIDs.isEmpty{scanSummary+="；可点击重新初始化扫描"};log("SCAN",scanSummary)}
+ }
+ func centralManager(_ central:CBCentralManager,didDiscover p:CBPeripheral,advertisementData:[String:Any],rssi RSSI:NSNumber){
+  guard self.central===central,scanning else{return}
+  let name=(advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? p.name ?? "未命名"
+  let first=scanBroadcastIDs.insert(p.identifier).inserted
+  addScanDevice(p,name:name,rssi:RSSI.intValue,source:"BLE广播")
+  if first{log("DISCOVER","\(name) · \(RSSI.intValue)dBm · \(p.identifier)")}
+  scanSummary="扫描中：\(scanBroadcastIDs.count)个广播设备，\(visibleDevices.count)个当前筛选结果"
+  if DeviceMatcher.paperang(name){var recent=UserDefaults.standard.dictionary(forKey:"ble.recentPrinters") as? [String:String] ?? [:];recent[p.identifier.uuidString]=name;if recent.count>16{for key in recent.keys.sorted().prefix(recent.count-16){recent.removeValue(forKey:key)}};UserDefaults.standard.set(recent,forKey:"ble.recentPrinters")}
+ }
+ func connect(_ id:UUID){disconnect();guard let p=known[id] else{return};stopScan();peripheral=p;p.delegate=self;state="连接 \(p.name ?? id.uuidString)";central.connect(p);Task{let g=generation;try? await Task.sleep(for:.seconds(20));if g==generation && !ready {error="连接/握手超时";disconnect()}}}
  func centralManager(_ central:CBCentralManager,didConnect p:CBPeripheral){guard peripheral?.identifier==p.identifier else{return};state="发现服务";log("CONNECTED",p.identifier.uuidString);p.discoverServices(nil)}
  func centralManager(_ central:CBCentralManager,didFailToConnect p:CBPeripheral,error:Error?){guard peripheral?.identifier==p.identifier else{return};self.error=error?.localizedDescription ?? "连接失败";reset()}
  func centralManager(_ central:CBCentralManager,didDisconnectPeripheral p:CBPeripheral,error:Error?){guard peripheral?.identifier==p.identifier else{return};log("DISCONNECT",error?.localizedDescription ?? "连接已断开");reset();state="未连接"}
  func disconnect(){if let p=peripheral{central.cancelPeripheralConnection(p)};reset();state="未连接"}
- func reset(){generation+=1;work?.cancel();work=nil;ready=false;busy=false;write=nil;queue=[];credits=0;notifyCount=0;pumping=false;decoder.reset();ackCommand=nil;request=nil;peripheral=nil;services=[]}
+ func reset(){stopScan();generation+=1;work?.cancel();work=nil;ready=false;busy=false;write=nil;queue=[];credits=0;notifyCount=0;pumping=false;decoder.reset();ackCommand=nil;request=nil;peripheral=nil;services=[]}
  func peripheral(_ p:CBPeripheral,didDiscoverServices error:Error?){guard peripheral?.identifier==p.identifier else{return};if let error{self.error=error.localizedDescription;return};for s in p.services ?? []{p.discoverCharacteristics(nil,for:s)}}
  func peripheral(_ p:CBPeripheral,didDiscoverCharacteristicsFor service:CBService,error:Error?){guard peripheral?.identifier==p.identifier else{return};if let error{self.error=error.localizedDescription;return};services.append("服务 \(service.uuid)");for c in service.characteristics ?? []{services.append("  \(c.uuid) properties=0x\(String(c.properties.rawValue,radix:16))");if service.uuid==CBUUID(string:"FF00"){if c.uuid==CBUUID(string:"FF02"){write=c;packetLimit=min(180,p.maximumWriteValueLength(for:.withoutResponse))};if ["FF01","FF03"].contains(c.uuid.uuidString){p.setNotifyValue(true,for:c)}};if c.properties.contains(.read){p.readValue(for:c)}}}
  func peripheral(_ p:CBPeripheral,didUpdateNotificationStateFor c:CBCharacteristic,error:Error?){guard peripheral?.identifier==p.identifier else{return};if let error{self.error=error.localizedDescription;return};if c.isNotifying{notifyCount+=1};if notifyCount==2 && write != nil {run{try await self.handshake()}}}
@@ -54,7 +105,7 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
   ackCommand=c;ackResult=nil;let data=Wire.frame(c,payload,seed:seed,index:index);log("TX FRAME",Wire.hex(data));let size=max(1,min(packetLimit,(activeSettings ?? settings).bleChunk))
   for offset in stride(from:0,to:data.count,by:size){queue.append(Data(data[offset..<min(offset+size,data.count)]))};pump()
   let end=Date().addingTimeInterval(Double((activeSettings ?? settings).timeoutSeconds))
-  while !queue.isEmpty || pumping || (ack && ackResult==nil){try Task.checkCancellation();if g != generation{throw Failure.message("连接已改变")};if Date()>end {queue=[];throw Failure.message(String(format:"0x%02X 超时：未收到完整确认或流控额度",c))};try await Task.sleep(for:.milliseconds(30))}
+  while !queue.isEmpty || pumping || (ack && ackResult==nil){try Task.checkCancellation();if g != generation{throw Failure.message("连接已改变")};if Date()>end {queue=[];throw Failure.message(String(format:"0x%02X 超时：未收到完整确认或流控额度",c))};try await Task.sleep(for:.milliseconds(5))}
   if ack && ackResult != true {throw Failure.message(String(format:"0x%02X 返回失败 ACK",c))};ackCommand=nil
  }
  func handshake() async throws {try await send(24,Data([0x21,0x95,0x76,0x35]),seed:0x35769521);try await query(6);guard let name=response.flatMap({String(data:$0,encoding:.utf8)}),["Paperang_P2","P2"].contains(name.trimmingCharacters(in:.controlCharacters)) else{throw Failure.message("此版本只验证了Paperang P2，型号未确认")};try await query(16);try await query(12);try await query(28);ready=true;state="P2 会话已就绪";log("SESSION","CRC key=0；传统协议，非A5")}

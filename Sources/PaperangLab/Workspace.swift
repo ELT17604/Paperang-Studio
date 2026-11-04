@@ -46,6 +46,7 @@ extension Lab {
     }
     try await self.query(12);self.jobStatus="发送完成，请核对纸面";self.log("PRINT",entry.detail)
     if let i=self.jobs.firstIndex(where:{$0.id==id}){self.jobs[i].status="已发送，待核对纸面"}
+    if self.relayRunning{do{try await self.relayFlush()}catch{self.relayMessage="发送已结束，结果待回报："+error.localizedDescription}}
    } catch {if let i=self.jobs.firstIndex(where:{$0.id==id}),self.jobs[i].status=="发送中"{self.jobs[i].status="未完成";self.jobStatus="未完成："+error.localizedDescription};throw error}
   }
   return id

@@ -6,7 +6,7 @@
 
 A native macOS app for Paperang P2: text and image printing, a physical paper terminal, protocol debugging, and a local HTTP API. Built with SwiftUI and CoreBluetooth, with no third-party runtime dependencies.
 
-**Version 0.2.1** · macOS 14+ · Swift 6 toolchain / Xcode 16+
+**Version 0.2.2** · macOS 14+ · Swift 6 toolchain / Xcode 16+
 
 ## Features
 
@@ -14,6 +14,7 @@ A native macOS app for Paperang P2: text and image printing, a physical paper te
 - **Printer discovery:** Paperang-family candidates shown by default, with an option to show all nearby Bluetooth devices.
 - **Engineering tools:** device readings, a protocol catalog with evidence levels, raw frames, transport settings, and newest-first logs.
 - **Paper terminal:** a real macOS controlling PTY running interactive zsh, with control keys and manual or automatic batches of printed output.
+- **Remote printing:** an Ubuntu relay with a submission webpage, multiple access keys, anonymous length limits, hourly per-IP quotas, task history, and a graphical print-layout editor. [Deployment guide](doc/REMOTE-PRINTING.md).
 - **Local API:** device management, read-only queries, offline rendering, print jobs, paper feed, logs, and protocol metadata. Includes OpenAPI and Python/JavaScript clients.
 - **One global paper switch:** enable paper use once in the sidebar for the workspace, terminal, API, and feed controls.
 
@@ -34,6 +35,8 @@ The defaults are density **100**, a **576-dot** canvas (**72 bytes per row**), a
 
 | Guide | Contents |
 |---|---|
+| [Layout editor](doc/LAYOUT-EDITOR.md) | Task states, optional short IDs, graphical blocks and reusable templates |
+| [Remote relay](doc/REMOTE-PRINTING.md) | Ubuntu installation, keys, quotas, and the Mac inbox |
 | [User guide](doc/USER-GUIDE.md) | Workspace, images, presets, settings, and engineering tools |
 | [Paper terminal](doc/TERMINAL.md) | PTY sessions, control keys, output buffering, and paper batches |
 | [HTTP API](doc/API.md) / [OpenAPI](doc/openapi.json) | Endpoints, parameters, responses, and client examples |
@@ -52,6 +55,7 @@ The defaults are density **100**, a **576-dot** canvas (**72 bytes per row**), a
 
 - `Sources/`: complete Swift and C implementation.
 - `Configurations/`: importable print presets.
+- `Server/`: lightweight relay, submission website, offline key generator, and Ubuntu installer.
 - `Clients/`: HTTP API client examples.
 - `assets/`: original logo, PNG, macOS ICNS, and ICO assets.
 - `scripts/`: build and icon generation tools.

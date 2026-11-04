@@ -56,3 +56,7 @@ The tested P2 uses 576 dots/72 bytes per row and nominal 300 DPI. Cover-open is 
 ## Build and additional features
 
 The build script packages and ad-hoc signs the app, with all outputs outside the source directory. Validation programs and historical evidence are also external; they are not run by the current build script. See [architecture](ARCHITECTURE.md), [paper terminal](TERMINAL.md), and [HTTP API](API.md).
+
+## Refreshing Bluetooth discovery
+
+A scan runs for12 seconds, shows the number of actual broadcasts, and cancels its previous timer so it cannot stop a later scan. Results distinguish live BLE advertising from recalled device identifiers and system-connected peripherals. History is not proof of online status; connection still performs the normal model/handshake checks. If all broadcasts are missing, disconnect any session and use Reinitialize scanning (`重新初始化扫描`). This recreates only the app's central manager, without resetting system Bluetooth. Avoid simultaneously running old copies of the app.

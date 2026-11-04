@@ -11,3 +11,9 @@ __pycache__/
 Release/
 Reports/
 work/
+
+# Private relay state and exported access keys
+*.keys.json
+*credentials*.json*
+*.sqlite3*
+Server/config.json

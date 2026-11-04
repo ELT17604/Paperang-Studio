@@ -87,7 +87,7 @@ POST jobs/feed需要同时满足：App侧栏“全局允许耗纸”、请求JSO
 | feedBetweenCopies | false | 每份之间额外送纸 |
 | packetBytes | 1008 | 72–1008且为72整数倍 |
 | bleChunk | 180 | 整数20–180，另受CoreBluetooth最大长度限制 |
-| writePauseMS / framePauseMS | 30 / 80 | 整数5–200 / 0–1000 |
+| writePauseMS / framePauseMS | 10 / 0 | 整数5–200 / 0–1000 |
 | timeoutSeconds / finishWaitSeconds | 6 / 2 | 整数3–30 / 1–15 |
 
 ## 错误及连接约束

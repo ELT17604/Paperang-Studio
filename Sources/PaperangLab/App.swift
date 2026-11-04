@@ -14,7 +14,7 @@ import PrintCore
 }
 struct PaperangApp:App {
  @StateObject var lab=Lab()
- var body:some Scene{WindowGroup{Content(lab:lab).frame(minWidth:1120,minHeight:760).onReceive(NotificationCenter.default.publisher(for:NSApplication.willTerminateNotification)){_ in lab.stopTTY();lab.stopAPI()}}.defaultSize(width:1420,height:940).commands{
+ var body:some Scene{WindowGroup{Content(lab:lab).frame(minWidth:1120,minHeight:760).onReceive(NotificationCenter.default.publisher(for:NSApplication.willTerminateNotification)){_ in lab.stopTTY();lab.stopAPI();lab.stopRelay()}}.defaultSize(width:1420,height:940).commands{
  CommandGroup(replacing:.appInfo){Button("About Paperang Studio",action:lab.showAbout)}
  CommandGroup(after:.newItem){Divider();Button("关于 Paperang Studio",action:lab.showAbout)}
  }}
@@ -24,11 +24,11 @@ struct Content:View {
  var body:some View {
   NavigationSplitView {
    VStack(alignment:.leading,spacing:16){Label("Paperang Studio",systemImage:"printer.fill").font(.title2.bold());Text("P2 · 打印与调试").foregroundStyle(.secondary)
-    List(selection:$lab.page){Label("打印工作台",systemImage:"doc.richtext").tag("打印工作台");Label("打印机",systemImage:"antenna.radiowaves.left.and.right").tag("打印机");Label("打印记录",systemImage:"clock").tag("打印记录");Label("纸带终端",systemImage:"terminal").tag("纸带终端");Label("本地 API",systemImage:"network").tag("本地 API");if lab.engineer{Label("工程界面",systemImage:"wrench.and.screwdriver").tag("工程界面")}}
+    List(selection:$lab.page){Label("打印工作台",systemImage:"doc.richtext").tag("打印工作台");Label("打印机",systemImage:"antenna.radiowaves.left.and.right").tag("打印机");Label("打印记录",systemImage:"clock").tag("打印记录");Label("纸带终端",systemImage:"terminal").tag("纸带终端");Label("本地 API",systemImage:"network").tag("本地 API");Label("远程打印",systemImage:"globe").tag("远程打印");if lab.engineer{Label("工程界面",systemImage:"wrench.and.screwdriver").tag("工程界面")}}
     Toggle("显示工程界面",isOn:$lab.engineer).onChange(of:lab.engineer){_,v in if !v && lab.page=="工程界面"{lab.page="打印工作台"}}
     Divider()
-    Toggle("全局允许耗纸",isOn:$lab.allowPaper).toggleStyle(.switch).onChange(of:lab.allowPaper){_,v in if !v{lab.ttyAutoPrint=false;if lab.jobs.last?.status=="发送中"{lab.stopJob()}}}
-    Text(lab.allowPaper ? "工作台 · 终端 · API · 送纸已允许":"开启后，本次运行全局生效").font(.caption).foregroundStyle(.secondary)
+    Toggle("全局允许耗纸",isOn:$lab.allowPaper).toggleStyle(.switch).onChange(of:lab.allowPaper){_,v in if !v{lab.ttyAutoPrint=false;lab.relayAutoPrint=false;if lab.jobs.last?.status=="发送中"{lab.stopJob()}}}
+    Text(lab.allowPaper ? "工作台 · 终端 · 远程 · API · 送纸已允许":"开启后，本次运行全局生效").font(.caption).foregroundStyle(.secondary)
     Divider();Label(lab.ready ? lab.connectedName:"未连接",systemImage:lab.ready ? "checkmark.circle.fill":"circle.dotted").foregroundStyle(lab.ready ? .green:.secondary)
     Text(lab.state).font(.caption).textSelection(.enabled)
     Text(lab.batterySummary).font(.caption)
@@ -40,7 +40,7 @@ struct Content:View {
   } detail:{VStack(alignment:.leading,spacing:14){header
    if !lab.error.isEmpty {Label(lab.error,systemImage:"exclamationmark.triangle.fill").foregroundStyle(.red).textSelection(.enabled)}
    if !lab.notice.isEmpty {HStack{Text(lab.notice).font(.callout).foregroundStyle(.secondary);Spacer();Button{lab.notice=""}label:{Image(systemName:"xmark")}.buttonStyle(.plain)}}
-   switch lab.page{case "打印机":devices;case "打印记录":history;case "工程界面":engineering;case "纸带终端":terminalPage;case "本地 API":apiPage;default:workspace}
+   switch lab.page{case "打印机":devices;case "打印记录":history;case "工程界面":engineering;case "纸带终端":terminalPage;case "本地 API":apiPage;case "远程打印":relayPage;default:workspace}
   }.padding(22)}
  }
  var header:some View{HStack(alignment:.firstTextBaseline){VStack(alignment:.leading,spacing:4){Text(lab.page).font(.largeTitle.bold());Text(lab.page=="打印工作台" ? "先预览，再打印。所有内容固定在576点画布内。":"本地蓝牙 · 原生macOS").font(.callout).foregroundStyle(.secondary)};Spacer();if lab.busy{ProgressView().controlSize(.small)};Text("P2 / 300 DPI").font(.system(.caption,design:.monospaced)).padding(8).background(.quaternary,in:RoundedRectangle(cornerRadius:8))}}
@@ -82,8 +82,9 @@ struct Content:View {
   HStack{Spacer();Button("仅送纸 \(lab.settings.feedAfter)行",action:lab.feedPaper).disabled(!lab.ready || lab.busy || !lab.allowPaper);if lab.busy{Button("停止并断开",role:.destructive,action:lab.stopJob)};Button("打印 \(lab.settings.copies)份",action:lab.submitJob).buttonStyle(.borderedProminent).disabled(!lab.canPrint)}
   Text(lab.busy ? "停止会阻止后续发送，无法撤回已进入打印机的内容。":"先检查盖子/纸张与浓度。发送完成后请核对纸面；300 DPI为固定规格，毫米尺寸尚未尺量校准。").font(.caption).foregroundStyle(.secondary)
  }}
- var devices:some View{VStack(alignment:.leading,spacing:14){HStack{Button(lab.scanning ? "扫描中…":"扫描附近设备",action:lab.scan).disabled(lab.scanning || lab.busy);Button("刷新电量与纸仓",action:lab.refreshDevice).disabled(!lab.ready || lab.busy);Toggle("展示全部蓝牙设备",isOn:$lab.showAllDevices)}
-  List(lab.visibleDevices){d in HStack{Image(systemName:d.name.contains("Paperang") ? "printer":"wave.3.right").font(.title2);VStack(alignment:.leading){Text(d.name).font(.headline);Text("信号 \(d.rssi) dBm").foregroundStyle(.secondary);Text(d.id.uuidString).font(.caption.monospaced()).textSelection(.enabled)};Spacer();Button("连接"){lab.connect(d.id)}.disabled(lab.busy)}}
+ var devices:some View{VStack(alignment:.leading,spacing:14){HStack{Button(lab.scanning ? "扫描中…":"扫描附近设备",action:lab.scan).disabled(lab.scanning || lab.busy);Button("重新初始化扫描",action:lab.restartScanner).disabled(lab.ready || lab.busy || lab.peripheral != nil);Button("刷新电量与纸仓",action:lab.refreshDevice).disabled(!lab.ready || lab.busy);Toggle("展示全部蓝牙设备",isOn:$lab.showAllDevices)}
+  Text(lab.scanSummary).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+  List(lab.visibleDevices){d in HStack{Image(systemName:d.name.contains("Paperang") ? "printer":"wave.3.right").font(.title2);VStack(alignment:.leading){Text(d.name).font(.headline);Text(d.rssi==0 || d.rssi==127 ? d.source:d.source+" · 信号 \(d.rssi) dBm").foregroundStyle(.secondary);Text(d.id.uuidString).font(.caption.monospaced()).textSelection(.enabled)};Spacer();Button("连接"){lab.connect(d.id)}.disabled(lab.busy)}}
   GroupBox("当前设备"){VStack(alignment:.leading,spacing:8){Text(lab.connectedName).font(.headline);Text(lab.mediaSummary);Text(lab.batterySummary);Text("充电：暂无独立实时字段 · LED控制：当前协议未确认").foregroundStyle(.secondary);Text("更多原始字段与GATT信息可在左侧开启工程界面查看。").font(.caption)}.frame(maxWidth:.infinity,alignment:.leading).padding(8)}
  }}
  var history:some View{VStack(alignment:.leading){Text("仅保存当前会话最近30项，不会自动重打失败任务。").foregroundStyle(.secondary);if lab.jobs.isEmpty{ContentUnavailableView("还没有打印记录",systemImage:"clock",description:Text("在工作台完成预览后发送一批打印"))}else{List(lab.jobs.reversed()){j in VStack(alignment:.leading,spacing:6){HStack{Text(j.title).bold();Spacer();Text(j.date,style:.time)};Text(j.detail);Text(j.status).foregroundStyle(.secondary)}}}}}

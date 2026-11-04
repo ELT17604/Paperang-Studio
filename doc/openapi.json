@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Paperang Studio Local API",
-    "version": "0.2.1",
-    "description": "Paperang Studio 0.2.1 local-only authenticated API. Default off. One sidebar global paper switch; jobs/feed also require JSON allowPaper:true. CC BY-NC-SA 4.0. Independent unofficial project.",
+    "version": "0.2.2",
+    "description": "Paperang Studio 0.2.2 local-only authenticated API. Default off. One sidebar global paper switch; jobs/feed also require JSON allowPaper:true. CC BY-NC-SA 4.0. Independent unofficial project.",
     "contact": {
       "name": "ELT Group",
       "email": "vox@calx.cc"
@@ -1104,12 +1104,14 @@
           "writePauseMS": {
             "type": "integer",
             "minimum": 5,
-            "maximum": 200
+            "maximum": 200,
+            "default": 10
           },
           "framePauseMS": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 1000
+            "maximum": 1000,
+            "default": 0
           },
           "timeoutSeconds": {
             "type": "integer",

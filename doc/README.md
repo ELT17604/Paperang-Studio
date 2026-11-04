@@ -9,6 +9,9 @@ All default documentation pages are in English. Each guide links to its Chinese 
 | Project overview | [README](../README.md) | [项目介绍](README.zh-CN.md) |
 | User guide | [User guide](USER-GUIDE.md) | [使用说明](USER-GUIDE.zh-CN.md) |
 | Paper terminal | [Terminal](TERMINAL.md) | [实体纸带终端](TERMINAL.zh-CN.md) |
+| Layout editor and task IDs | [Guide](LAYOUT-EDITOR.md) | [任务与样式](LAYOUT-EDITOR.zh-CN.md) |
+| macOS temporary relay | [Launcher and options](../Server/macOS-Temporary/README.md) | [macOS终端体验](MACOS-TEMPORARY.zh-CN.md) |
+| Remote relay | [Deployment and API](REMOTE-PRINTING.md) | [远程打印与安装](REMOTE-PRINTING.zh-CN.md) |
 | Local HTTP API | [API](API.md) | [API 文档](API.zh-CN.md) |
 | Swift libraries | [Swift APIs](SWIFT-API.md) | [Swift 模块 API](SWIFT-API.zh-CN.md) |
 | Protocol | [Reference](PROTOCOL.md) | [协议规范](PROTOCOL.zh-CN.md) |

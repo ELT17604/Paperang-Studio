@@ -70,3 +70,7 @@ Each PTYSession starts only once. Set callbacks before startup and do not mutate
 ## Device integration
 
 The app's Lab owns CoreBluetooth connection state, notifications, credits, ACK waits, and the shared task lock. Those are not exported as cross-process objects. Other software should prefer the [HTTP API](API.md) rather than competing for the same printer. HTTP parser utilities do not start a listener; name matching is only a discovery hint.
+
+## Composing template blocks
+
+`try Raster.stack([(raster: first, spaceBefore: 8), (raster: second, spaceBefore: 12)])` joins validated576-column one-bit rasters with white rows. It preserves packed pixels, limits the result to1400 rows and24 parts, and rejects empty/invalid layouts. The graphical editor and remote printing share this compositor.

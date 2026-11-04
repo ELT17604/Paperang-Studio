@@ -93,7 +93,7 @@ Geometry uses output dots/pixels, pauses use milliseconds, waits use seconds, an
 | feedBetweenCopies | false | Feed between copies |
 | packetBytes | 1008 | 72–1008, multiple of 72 |
 | bleChunk | 180 | Integer 20–180, also limited by CoreBluetooth |
-| writePauseMS / framePauseMS | 30 / 80 | Integers 5–200 / 0–1000 |
+| writePauseMS / framePauseMS | 10 / 0 | Integers 5–200 / 0–1000 |
 | timeoutSeconds / finishWaitSeconds | 6 / 2 | Integers 3–30 / 1–15 |
 
 ## Errors and HTTP limits
@@ -149,4 +149,4 @@ const job = await p.printText('Hello P2', {allowPaper: true});
 console.log(await p.job(job.id));
 ```
 
-Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v1` path is the API contract version, separate from app version 0.2.1 and OpenAPI format version 3.0.3.
+Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v1` path is the API contract version, separate from app version 0.2.2 and OpenAPI format version 3.0.3.

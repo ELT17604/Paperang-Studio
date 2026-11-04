@@ -70,3 +70,7 @@ PaperTerminalBuffer是值类型：feed(Data)归一化，transcript显示，pendi
 ## 设备传输边界
 
 CoreBluetooth的连接、通知、额度、ACK等待及共享任务锁目前由App的Lab负责，不作为跨进程对象公开。外部App/网页应优先调用[HTTP API](API.zh-CN.md)，避免两个中心同时占用同一台P2。HTTP解析工具本身不启动listener；设备候选匹配只看名称，不是身份保证。
+
+## 区块位图合成
+
+`try Raster.stack([(raster: first, spaceBefore: 8), (raster: second, spaceBefore: 12)])`合并576列1位位图与白色留白，保留原始像素，限制1400行/24区块，拒绝空或无效版式。图形化编辑器预览与远程打印共用此方法。

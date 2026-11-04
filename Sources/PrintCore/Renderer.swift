@@ -12,6 +12,16 @@ public struct Raster {
   let im=NSImage(size:NSSize(width:width,height:height));im.addRepresentation(rep);return im
  }
  public var png:Data? {guard let rep=image.representations.first as? NSBitmapImageRep else{return nil};return rep.representation(using:.png,properties:[:])}
+ public static func stack(_ parts:[(raster:Raster,spaceBefore:Int)]) throws -> Self {
+  guard !parts.isEmpty,parts.count<=24 else{throw PrintFailure("请启用至少一个有内容的区块（最多24个）")}
+  var height=0;var data=Data();var black=0
+  for part in parts {
+   guard part.raster.width==576,part.raster.height>0,part.raster.bytes.count==72*part.raster.height,(0...200).contains(part.spaceBefore) else{throw PrintFailure("区块尺寸或留白无效")}
+   height+=part.spaceBefore+part.raster.height;guard height<=1400 else{throw PrintFailure("组合版式超过1400行，请缩小字号、留白或关闭部分区块")}
+   data.append(Data(repeating:0,count:part.spaceBefore*72));data.append(part.raster.bytes);black+=part.raster.blackPixels
+  }
+  return Self(width:576,height:height,bytes:data,blackPixels:black)
+ }
  public static func convert(gray:[Double],width:Int,height:Int,settings s:PrintSettings) throws -> Self {
   try s.validate();guard width==576,height>0,height<=1400,gray.count==width*height else{throw PrintFailure("输出画布必须为576点宽、1–1400行")}
   var values=gray.map{v -> Double in let a=max(0,min(255,(v-127.5)*s.contrast+127.5+s.brightness*2.55));let b=pow(a/255,1/s.gamma)*255;return s.invert ? 255-b:b}
