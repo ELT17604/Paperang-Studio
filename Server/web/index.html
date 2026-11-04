@@ -46,8 +46,8 @@
     <section id="delivery" class="delivery" aria-label="Delivery progress" hidden>
       <div class="delivery-heading"><span id="result" role="status" aria-live="polite">In the inbox</span><span id="reference" class="reference"></span></div>
       <div class="progress-heading"><span id="progress-label">Delivery stage</span><span id="progress-count">1 of 5</span></div>
-      <progress id="progress" max="5" value="1" aria-label="Delivery stage">1 of 5</progress>
-      <ol class="stages" aria-label="Delivery stages"><li>Queued</li><li>Accepted</li><li>Sending</li><li>Sent</li><li>Confirmed</li></ol>
+      <div class="progress-track"><progress id="progress" max="100" value="20" aria-label="Delivery workflow">Queued</progress></div>
+      <ol class="stages" aria-label="Delivery stages"><li>Queued</li><li>Accepted</li><li>Printing</li><li>Sent</li><li>Confirmed</li></ol>
       <p id="detail">Waiting for the recipient to accept your note.</p>
       <details id="task-details" class="task-details">
         <summary>Task details</summary>

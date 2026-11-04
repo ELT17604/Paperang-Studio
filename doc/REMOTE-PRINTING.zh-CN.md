@@ -150,8 +150,16 @@ sudo -u paperang-relay python3 /opt/paperang-relay/relay.py \
 {"progress":{"completed":20,"total":90,"unit":"partitions","basis":"transport","percent":22.2}}
 ```
 
-计数合并所有份数；尚未收到计数时为 null，发送中的进度条显示不确定状态，不虚构
-百分比。过期或畸形回报不会降低进度或改变总量。`sent` 会完成已知的传输总量，但
+一个进度条包含 Queued、Accepted、Printing、Sent、Confirmed 五个等宽步骤，仅在
+Printing 段按分区数细化，20/90 表示填充该段的 22.2%，而非整条流程的 22.2%。没有
+计数时停在 Printing 段起点并等待回报，不虚构百分比；Sent 不会填满 Confirmed。
+这些位置是流程步骤，不是耗时预测。
+
+可见标签页中，排队每 500ms 查询，认领/打印每 250ms 查询，已发送每秒查询以等待
+纸面确认；隐藏标签页降为每 4 秒查询。自动轮询等待上一请求返回后再调度，不叠加
+请求。Mac 回报仍约每 2 秒一次，更快网页轮询不会凭空增加客户端采样。
+
+计数合并所有份数，尚未收到计数时 progress 为 null。过期或畸形回报不会降低进度或改变总量。`sent` 会完成已知的传输总量，但
 仍等待收件人手工确认 `confirmed`；`unknown` 保留最后部分计数，不自动重打。
 
 在网页 **Track** 输入 12 位十六进制 ID，支持大小写及 `ABCD-EF12-3456` 分组。
@@ -184,3 +192,6 @@ sudo -u paperang-relay python3 /opt/paperang-relay/relay.py \
 断线；API 没有绕过保护的参数。保护原始密钥导出，恢复历史备份也会恢复当时的密钥状态。
 
 本次服务端和浏览器测试不表示重新构建过 Mac App 或验证过实物出纸。
+
+数据位置、历史收据和备份保留见[存储说明](RELAY-DATA.zh-CN.md)。公开状态的
+`policy.retention_days` 返回实际配置值，任务默认从最后更新起保留 7 天。

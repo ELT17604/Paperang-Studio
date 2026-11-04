@@ -123,7 +123,7 @@ class Store:
             except ValueError: raise Problem(400,'Invalid forwarded address')
         return str(current)
     def policies(self):
-        return {k:self.c[k] for k in ['allow_anonymous','anonymous_max_length','anonymous_hourly_limit','anonymous_hourly_chars','authenticated_max_length','authenticated_hourly_limit','authenticated_hourly_chars','device_id']}
+        return {k:self.c[k] for k in ['allow_anonymous','anonymous_max_length','anonymous_hourly_limit','anonymous_hourly_chars','authenticated_max_length','authenticated_hourly_limit','authenticated_hourly_chars','device_id','retention_days']}
     def public_status(self):
         with self.connect() as db: row=db.execute('SELECT * FROM devices WHERE id=?',(self.c['device_id'],)).fetchone()
         data=json.loads(row['status']) if row else {}

@@ -16,6 +16,12 @@ let policy = null, connectionOK = false, sending = false, currentJob = null, pol
 let receipts = [];
 const countCharacters = () => Array.from($('text').value).length;
 const request = (path, options = {}) => fetch(path, {...options, cache: 'no-store', signal: AbortSignal.timeout(8000)});
+function jobPollDelay() {
+  if (document.hidden) return 4000;
+  if (['claimed', 'printing'].includes(currentJob?.state)) return 250;
+  if (currentJob?.state === 'queued') return 500;
+  return 1000; // Keep watching sent jobs for the recipient's confirmation.
+}
 function error(message = '') {
   $('error').textContent = message;
   $('error').hidden = !message;
@@ -44,26 +50,21 @@ function saveReceipt() {
 function renderProgress() {
   const progress = currentJob.progress;
   const counted = progress && Number.isInteger(progress.completed) && Number.isInteger(progress.total) && progress.total > 0 && progress.completed >= 0 && progress.completed <= progress.total;
-  if (counted) {
-    const percent = Math.round(progress.completed / progress.total * 1000) / 10;
-    $('progress').max = progress.total;
-    $('progress').value = progress.completed;
-    $('progress-label').textContent = 'Partitions sent';
-    $('progress-count').textContent = `${progress.completed} / ${progress.total} · ${percent}%`;
-    $('progress').setAttribute('aria-label', 'Raster partitions sent to printer');
-    $('progress').setAttribute('aria-valuetext', `${progress.completed} of ${progress.total} partitions sent. Paper output requires confirmation.`);
-  } else if (currentJob.state === 'printing') {
-    $('progress').removeAttribute('value');
-    $('progress-label').textContent = 'Sending to printer';
-    $('progress-count').textContent = 'Waiting for counts';
-    $('progress').setAttribute('aria-label', 'Raster transmission');
-    $('progress').setAttribute('aria-valuetext', 'Sending; partition counts have not been reported.');
+  // One five-segment workflow. Only Printing (40–60) has measured subprogress;
+  // this value is a stage position, never an estimate of elapsed print time.
+  const fractionalStage = currentJob.state === 'printing' || (currentJob.state === 'unknown' && counted);
+  const fraction = counted ? progress.completed / progress.total : 0;
+  const position = fractionalStage ? 40 + fraction * 20 : currentJob.step * 20;
+  $('progress').max = 100;
+  $('progress').value = position;
+  $('progress').setAttribute('aria-label', 'Delivery workflow');
+  $('progress-label').textContent = 'Delivery progress';
+  if (fractionalStage) {
+    const counts = counted ? `${progress.completed} / ${progress.total} partitions · ${Math.round(fraction * 1000) / 10}%` : 'Waiting for partition counts';
+    $('progress-count').textContent = counts;
+    $('progress').setAttribute('aria-valuetext', `Printing stage. ${counts}. Paper output is not confirmed.`);
   } else {
-    $('progress').max = 5;
-    $('progress').value = currentJob.step;
-    $('progress-label').textContent = 'Delivery stage';
-    $('progress-count').textContent = `${currentJob.step} of 5`;
-    $('progress').setAttribute('aria-label', 'Delivery stage');
+    $('progress-count').textContent = ['Queued', 'Accepted', 'Printing', 'Sent', 'Confirmed'][currentJob.step - 1];
     $('progress').setAttribute('aria-valuetext', stageMap[currentJob.state]?.detail || 'Receipt unavailable');
   }
 }
@@ -79,7 +80,7 @@ function renderDetails() {
 function renderJob(job) {
   const state = stageMap[job.state];
   if (!state) throw new Error('Unrecognized delivery status. Please check again later.');
-  const previousStep = currentJob?.step || 1;
+  const previousStep = job.state === 'unknown' && job.progress ? 3 : (currentJob?.step || 1);
   currentJob = {...currentJob, ...job, step: state.step || previousStep};
   if (job.detailsAvailable === false) {
     delete currentJob.text;
@@ -158,7 +159,7 @@ async function pollJob() {
     if (trackingVersion !== version) return;
     $('detail').textContent = 'Connection interrupted. Your note has not been resent. Reconnecting…';
   }
-  if (!terminal && trackingVersion === version) pollTimer = setTimeout(pollJob, 2000);
+  if (!terminal && trackingVersion === version) pollTimer = setTimeout(pollJob, jobPollDelay());
 }
 $('lookup').addEventListener('submit', async event => {
   event.preventDefault();
@@ -190,7 +191,7 @@ $('lookup').addEventListener('submit', async event => {
     trackingVersion++;
     currentJob = {...job, lookupID: shortID, ...(saved ? {receipt: saved.receipt} : {}), step: 1};
     renderJob(job);
-    if (!['confirmed', 'unknown', 'rejected'].includes(job.state)) pollTimer = setTimeout(pollJob, 2000);
+    if (!['confirmed', 'unknown', 'rejected'].includes(job.state)) pollTimer = setTimeout(pollJob, jobPollDelay());
   } catch (err) {
     if (version === lookupVersion) showError(err.message || 'Unable to look up this note.');
   } finally {
@@ -223,7 +224,7 @@ $('note').addEventListener('submit', async event => {
     currentJob = {...job, step: 1};
     renderJob(job);
     $('text').value = '';
-    pollTimer = setTimeout(pollJob, 1000);
+    pollTimer = setTimeout(pollJob, 250);
   } catch (err) {
     error(receivedResponse ? err.message : 'Connection interrupted. Your note may have been received. Check before sending it again.');
   } finally {

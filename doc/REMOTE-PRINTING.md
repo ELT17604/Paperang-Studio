@@ -201,8 +201,19 @@ Receipt, device-list, device-detail and short-ID lookup responses include:
 {"progress":{"completed":20,"total":90,"unit":"partitions","basis":"transport","percent":22.2}}
 ```
 
-Before any count is reported, `progress` is null and the sending bar is
-indeterminate. Counts aggregate all copies. Stale/malformed reports cannot
+One bar contains five equal workflow segments: Queued, Accepted, Printing, Sent,
+Confirmed. Only the Printing segment advances fractionally using partition counts;
+20/90 fills 22.2% of that segment, rather than 22.2% of the whole workflow. Without
+counts the bar stays at the start of Printing and says it is waiting for counts.
+Sent does not fill Confirmed, even when all partitions have been sent. These
+segment positions are milestones, not estimates of elapsed time.
+
+The visible tab polls queued tasks every 500ms, claimed/printing tasks every 250ms,
+and sent tasks every second until confirmation. Hidden tabs poll every four
+seconds. Each automatic poll waits for the previous response before scheduling
+the next one. Existing Mac reports still arrive about every two seconds.
+
+Before any count is reported, `progress` is null. Counts aggregate all copies. Stale/malformed reports cannot
 decrease accepted counts or change the total. A `sent` report completes an
 already known transport total, while physical confirmation still requires
 `confirmed`. An `unknown` result preserves the last partial count. No automatic
@@ -248,3 +259,7 @@ override and may disconnect clients; the API has no bypass. Protect credential
 exports; restoring old backups restores their historical key state.
 
 Server/browser tests do not imply a new Mac build or physical printing test.
+
+See [relay storage and retention](RELAY-DATA.md) for live database versus browser
+receipts and backups. `policy.retention_days` reports the actual configured task
+retention in public status; the default is seven days after the last task update.
