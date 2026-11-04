@@ -1,5 +1,11 @@
 # Paperang Studio relay
 
+The English page includes raster partition progress and lookup by the 12-character
+ID printed on a note. It works with the existing Mac app, without rebuilding it.
+See [progress and lookup](../doc/REMOTE-PRINTING.md#partition-progress-and-12-character-lookup).
+The current administrator, last active admin/device key, and online device key are
+protected from accidental revocation; configure replacements before rotating keys.
+
 [Full deployment and API guide](../doc/REMOTE-PRINTING.md) · [中文说明](../doc/REMOTE-PRINTING.zh-CN.md)
 
 A lightweight Ubuntu relay with a submission webpage, SQLite inbox, multiple revocable keys, anonymous character limits, and hourly per-IP quotas. Python 3.10+ standard library only. The Mac app polls outward, reports printer state, and prints through its existing Bluetooth pipeline.

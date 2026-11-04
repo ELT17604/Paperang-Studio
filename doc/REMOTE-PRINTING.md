@@ -145,7 +145,8 @@ This relay API is separate from the app's loopback API. Use `Authorization: Bear
 |---|---|---|
 | GET /v1/public/status | Public | `{status:{online,printerConnected,busy,lastSeen},policy:{…}}`; online heartbeat expires after15seconds |
 | POST /v1/jobs | Anonymous/submit/admin | `{text,browser?:{timezone,screen,platform,language}}` →202 `{id,shortID,receipt,state,resetAt}` |
-| GET /v1/jobs/{id} | Receipt | Header `X-Job-Receipt`; returns state/time/detail only, not content or visitor metadata |
+| GET /v1/jobs/{id} | Receipt | Header `X-Job-Receipt`; returns state/time/detail and nullable transport progress, not content or visitor metadata |
+| GET /v1/jobs/lookup/{shortID} | Public/scoped authorization | 12 hex characters, optionally grouped `ABCD-EF12-3456`; public state/time/progress, private details with a receipt or authorized key |
 | POST /v1/device/status | Device | `{status:{…}}`, bounded16KiB telemetry |
 | GET /v1/device/jobs | Device | Up to100 active/recent summaries with states, shortID and truncated text; active jobs prioritized |
 | GET /v1/device/jobs/{id} | Device | Full text, metadata, state and shortID for one owned task |
@@ -185,3 +186,65 @@ Additional JSON POST endpoints (Bearer roles specified below):
 Missing keys return 404; self-management returns 409; role isolation remains enforced. The existing revoke endpoint now returns 404 for missing records. Confirmation is an explicit human observation, not printer telemetry.
 
 New print defaults reduce BLE write pause from 30 to **10 ms** and image-frame pause from 80 to **0 ms**. The transfer-drain polling interval is 5 ms rather than 30 ms. Printer credits, CoreBluetooth backpressure, command acknowledgements, paper/cover checks, density readback and the 2-second finishing wait remain enforced. Imported presets preserve their saved timing. Engineering controls can restore the prior 30/80 ms timings if necessary. This removes fixed transfer delays but does not change thermal-head mechanical speed. No new physical speed or print-quality measurement is claimed by the software checks.
+
+## Partition progress and 12-character lookup
+
+The webpage shows `20 / 90 · 22.2%` when the existing Mac reports
+`第1/1份 · 分包20/90` in its result detail. The Mac app and Bluetooth protocol are
+unchanged. This measures **raster partitions sent**, not independently measured
+paper output. The Mac reports approximately every two seconds; quick jobs may
+finish before an intermediate count is sampled.
+
+Receipt, device-list, device-detail and short-ID lookup responses include:
+
+```json
+{"progress":{"completed":20,"total":90,"unit":"partitions","basis":"transport","percent":22.2}}
+```
+
+Before any count is reported, `progress` is null and the sending bar is
+indeterminate. Counts aggregate all copies. Stale/malformed reports cannot
+decrease accepted counts or change the total. A `sent` report completes an
+already known transport total, while physical confirmation still requires
+`confirmed`. An `unknown` result preserves the last partial count. No automatic
+resend occurs and no missing total is invented.
+
+Type the note's 12 hexadecimal characters into **Track**, with or without hyphens
+and in either case. The route is `GET /v1/jobs/lookup/ABCD-EF12-3456`. An ID alone
+returns state, timestamps, progress and `detailsAvailable:false`. It never exposes
+the full internal ID, note text, IP/browser metadata or device-supplied freeform
+detail. Removed or expired tasks return 404 under the normal retention policy.
+
+Full details require the original `X-Job-Receipt`, an admin key, a key for the
+owning device, or the exact submission key associated with that task. Wrong
+receipts produce 404; unrelated valid keys get public fields only. Supplied
+invalid/revoked keys produce 401. Historical tasks without submission-key
+association require a receipt or admin/owning-device key; a matching display
+name is never authorization. Keys and receipts belong in headers, not URLs.
+
+The page automatically reuses up to 20 of this tab's original receipts. These
+receipt capabilities remain in sessionStorage; access keys, note text and
+metadata are not stored there. The submission-key field can unlock that key's
+own notes. Private text is rendered as text, never HTML.
+
+Public status advertises
+`capabilities:{partitionProgress:"transport",shortIDLookup:true}`; older Macs can
+ignore the additive field. Startup adds nullable `progress` and `submit_key`
+columns, preserving keys, jobs and receipts. Existing matching progress details
+are backfilled; historical completed jobs whose final detail replaced their
+counts remain unknown. Back up SQLite consistently before upgrading; roll back
+code with its corresponding database snapshot.
+
+### Key rotation and recovery
+
+The server rejects revocation of the admin credential used by the request, the
+last active admin/device key for a target device, and a device key whose heartbeat
+is online. Create a replacement, update the Mac and verify its connection before
+revoking the old key. Revocation is immediate; deletion does not create a new key.
+
+If all credentials are lost, use the installed service account's local `key-add`
+command and configuration to issue fresh admin/device keys without resetting
+the database. `key-revoke KEY_ID --allow-lockout` is an explicit local emergency
+override and may disconnect clients; the API has no bypass. Protect credential
+exports; restoring old backups restores their historical key state.
+
+Server/browser tests do not imply a new Mac build or physical printing test.

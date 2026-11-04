@@ -5,6 +5,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 JOB_PATTERN = r'(?:[a-f0-9]{40}|[a-f0-9-]{36})'
+SHORT_JOB_PATTERN = r'(?:[A-Fa-f0-9]{12}|[A-Fa-f0-9]{4}(?:-[A-Fa-f0-9]{4}){2})'
+
+def transport_progress(detail):
+    """Read existing Mac reports; these are raster sends, not paper confirmation."""
+    if not isinstance(detail,str):return None
+    match=re.fullmatch(r'第([0-9]{1,2})/([0-9]{1,2})份 · 分包([0-9]{1,3})/([0-9]{1,3})',detail)
+    if not match:return None
+    copy,copies,part,total=map(int,match.groups())
+    if not 1<=copy<=copies<=20 or not 1<=part<=total<=256:return None
+    return dict(completed=(copy-1)*total+part,total=copies*total,unit='partitions',basis='transport')
 
 DEFAULTS = dict(bind='127.0.0.1', port=8177, database='relay.sqlite3', allow_anonymous=True,
     anonymous_max_length=500, anonymous_hourly_limit=5, anonymous_hourly_chars=2000,
@@ -44,6 +54,13 @@ class Store:
             conn.execute('BEGIN IMMEDIATE')
             try:
                 if 'short_id' not in [row[1] for row in conn.execute('PRAGMA table_info(jobs)')]:conn.execute('ALTER TABLE jobs ADD COLUMN short_id TEXT')
+                columns={row[1] for row in conn.execute('PRAGMA table_info(jobs)')}
+                if 'progress' not in columns:conn.execute('ALTER TABLE jobs ADD COLUMN progress TEXT')
+                if 'submit_key' not in columns:conn.execute('ALTER TABLE jobs ADD COLUMN submit_key TEXT')
+                # Recover counts already reported by the unmodified Mac app.
+                for row in conn.execute("SELECT id,detail FROM jobs WHERE progress IS NULL AND detail LIKE '第%'").fetchall():
+                    progress=transport_progress(row['detail'])
+                    if progress:conn.execute('UPDATE jobs SET progress=? WHERE id=?',(compact(progress),row['id']))
                 conn.execute('CREATE UNIQUE INDEX IF NOT EXISTS jobs_short_id ON jobs(short_id)')
                 for row in conn.execute('SELECT id FROM jobs WHERE short_id IS NULL').fetchall():conn.execute('UPDATE jobs SET short_id=? WHERE id=?',(self.short_id(conn),row['id']))
                 conn.execute('COMMIT')
@@ -64,6 +81,26 @@ class Store:
         identifier=str(uuid.uuid4())
         with self.connect() as db: db.execute('INSERT INTO keys(id,name,role,device,hash,created) VALUES(?,?,?,?,?,?)',(identifier,name,role,device,digest(token),time.time()))
         return dict(id=identifier,name=name,role=role,device=device,token=token)
+    def key_revoke(self,identifier,actor=None,allow_lockout=False):
+        if actor and identifier==actor['id']:
+            raise Problem(409,'Cannot revoke the administrator key currently in use')
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            try:
+                row=db.execute('SELECT * FROM keys WHERE id=?',(identifier,)).fetchone()
+                if not row:raise Problem(404,'Key not found')
+                if not row['revoked'] and not allow_lockout:
+                    if row['role'] in ['admin','device']:
+                        remaining=db.execute('SELECT count(*) FROM keys WHERE role=? AND device=? AND revoked=0 AND id<>?',(row['role'],row['device'],identifier)).fetchone()[0]
+                        if not remaining:raise Problem(409,'Create and configure a replacement '+row['role']+' key before revoking the last active key')
+                    if row['role']=='device':
+                        device=db.execute('SELECT * FROM devices WHERE id=?',(row['device'],)).fetchone()
+                        if device and time.time()-device['seen']<15 and json.loads(device['status']).get('_relay_key_id')==identifier:
+                            raise Problem(409,'This device key is in use. Switch the Mac to its replacement key and reconnect before revoking it')
+                db.execute('UPDATE keys SET revoked=1 WHERE id=?',(identifier,))
+                db.execute('COMMIT')
+            except Exception:db.execute('ROLLBACK');raise
+        return dict(revoked=True)
     def authenticate(self,authorization):
         if not authorization: return None
         if not authorization.startswith('Bearer ') or len(authorization)>256: raise Problem(401,'Invalid access key')
@@ -124,19 +161,39 @@ class Store:
                 if count>=self.c['queue_limit']: raise Problem(503,'Printer inbox is full')
                 db.execute('INSERT INTO usage VALUES(?,?,1,?) ON CONFLICT(ip,window) DO UPDATE SET jobs=jobs+1,chars=chars+excluded.chars',(ip,window,len(text)))
                 short=self.short_id(db)
-                db.execute('INSERT INTO jobs(id,device,text,meta,state,receipt,created,updated,short_id) VALUES(?,?,?,?,?,?,?,?,?)',
-                           (identifier,target,text,compact(meta),'queued',digest(receipt),now,now,short))
+                db.execute('INSERT INTO jobs(id,device,text,meta,state,receipt,created,updated,short_id,submit_key) VALUES(?,?,?,?,?,?,?,?,?,?)',
+                           (identifier,target,text,compact(meta),'queued',digest(receipt),now,now,short,key['id'] if key else None))
                 db.execute('COMMIT')
             except Exception:db.execute('ROLLBACK');raise
         return dict(id=identifier,shortID=short,receipt=receipt,state='queued',resetAt=reset)
     def job(self,row,private=True,summary=False):
         result={k:row[k] for k in ['id','state','created','updated','detail']};result['shortID']=row['short_id']
+        progress=json.loads(row['progress']) if row['progress'] else None
+        result['progress']={**progress,'percent':round(100*progress['completed']/progress['total'],1)} if progress else None
         if private:result.update(text=row['text'][:120] if summary else row['text'],metadata=json.loads(row['meta']),device=row['device'],truncated=summary and len(row['text'])>120)
+        return result
+    def lookup_job(self,short_id,key,headers):
+        identifier=short_id.replace('-','').upper()
+        with self.connect() as db:
+            self.prune(db,time.time())
+            row=db.execute('SELECT * FROM jobs WHERE short_id=?',(identifier,)).fetchone()
+        if row is None:raise Problem(404,'Job not found or expired')
+        receipt=headers.get('X-Job-Receipt','')
+        if receipt and not hmac.compare_digest(row['receipt'],digest(receipt)):raise Problem(404,'Job not found or expired')
+        authorized=bool(receipt) or bool(key and (key['role']=='admin' or (key['role']=='device' and key['device']==row['device']) or (key['role']=='submit' and key['id']==row['submit_key'])))
+        result=self.job(row,private=authorized)
+        result['detailsAvailable']=authorized
+        if not authorized:
+            # The printed ID is a locator, not a secret. Device-supplied detail
+            # may contain private text, so only expose fixed fields publicly.
+            result.pop('id');result.pop('detail')
         return result
     def route(self,method,path,body,key,ip,headers):
         now=time.time()
-        if method=='GET' and path=='/v1/public/status':return 200,dict(status=self.public_status(),policy=self.policies())
+        if method=='GET' and path=='/v1/public/status':return 200,dict(status=self.public_status(),policy=self.policies(),capabilities=dict(partitionProgress='transport',shortIDLookup=True))
         if method=='POST' and path=='/v1/jobs':return 202,self.submit(body,key,ip,headers)
+        lookup=re.fullmatch(r'/v1/jobs/lookup/('+SHORT_JOB_PATTERN+')',path)
+        if method=='GET' and lookup:return 200,self.lookup_job(lookup.group(1),key,headers)
         if method=='GET' and re.fullmatch(r'/v1/jobs/'+JOB_PATTERN,path):
             with self.connect() as db:
                 self.prune(db,now)
@@ -154,10 +211,7 @@ class Store:
                 except ValueError as e:raise Problem(400,str(e))
             if method=='POST' and re.fullmatch(r'/v1/admin/keys/[a-f0-9-]{36}/revoke',path):
                 identifier=path.split('/')[4]
-                if identifier==key['id']:raise Problem(409,'Cannot revoke the current administrator key')
-                with self.connect() as db:
-                    if not db.execute('UPDATE keys SET revoked=1 WHERE id=?',(identifier,)).rowcount:raise Problem(404,'Key not found')
-                return 200,dict(revoked=True)
+                return 200,self.key_revoke(identifier,key)
             change=re.fullmatch(r'/v1/admin/keys/([a-f0-9-]{36})/(rename|delete)',path)
             if method=='POST' and change:
                 identifier,action=change.groups()
@@ -178,6 +232,7 @@ class Store:
             if method=='POST' and path=='/v1/device/status':
                 status=body.get('status',{})
                 if not isinstance(status,dict) or len(compact(status).encode())>16384:raise Problem(400,'Invalid status')
+                status={**status,'_relay_key_id':key['id']}
                 with self.connect() as db:
                     db.execute('INSERT INTO devices VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET status=excluded.status,seen=excluded.seen',(key['device'],compact(status),now))
                     self.prune(db,now)
@@ -217,7 +272,16 @@ class Store:
                             if state not in ['printing','sent','unknown','rejected']:raise Problem(400,'Invalid result state')
                             if row['state'] in ['sent','confirmed','unknown','rejected']:
                                 if row['state']!=state and not (row['state']=='confirmed' and state=='sent'):raise Problem(409,'Final state cannot change')
-                            else:db.execute('UPDATE jobs SET state=?,detail=?,updated=? WHERE id=?',(state,str(body.get('detail',''))[:500],now,identifier))
+                            else:
+                                detail=str(body.get('detail',''))[:500]
+                                progress=transport_progress(detail) if state=='printing' else None
+                                old_progress=json.loads(row['progress']) if row['progress'] else None
+                                if state=='sent' and old_progress:
+                                    progress={**old_progress,'completed':old_progress['total']}
+                                # Ignore stale counts; never infer a missing total or
+                                # reset progress when the Mac sends its final report.
+                                if progress and old_progress and (progress['total']!=old_progress['total'] or progress['completed']<old_progress['completed']):progress=None
+                                db.execute('UPDATE jobs SET state=?,detail=?,updated=?,progress=COALESCE(?,progress) WHERE id=?',(state,detail,now,compact(progress) if progress else None,identifier))
                             result=dict(id=identifier,state='confirmed' if row['state']=='confirmed' else state)
                         db.execute('COMMIT')
                     except Exception:db.execute('ROLLBACK');raise
@@ -272,7 +336,9 @@ class Handler(BaseHTTPRequestHandler):
             self.send(status,data)
         except Problem as e:self.send(e.status,dict(error=e.message,**e.extra),extra={'Retry-After':e.extra['retryAfter']} if 'retryAfter' in e.extra else {})
         except (TimeoutError,ConnectionError):self.close_connection=True
-        except Exception:self.send(500,dict(error='Internal relay error'))
+        except Exception as exc:
+            print('relay internal error: '+type(exc).__name__,file=sys.stderr,flush=True)
+            self.send(500,dict(error='Internal relay error'))
 
 class Server(ThreadingHTTPServer):
     daemon_threads=True
@@ -292,7 +358,7 @@ def main():
     sub=parser.add_subparsers(dest='action',required=True);sub.add_parser('serve')
     add=sub.add_parser('key-add');add.add_argument('--name',required=True);add.add_argument('--role',choices=['admin','device','submit'],required=True);add.add_argument('--device')
     imp=sub.add_parser('key-import');imp.add_argument('--file',required=True)
-    sub.add_parser('key-list');rev=sub.add_parser('key-revoke');rev.add_argument('id')
+    sub.add_parser('key-list');rev=sub.add_parser('key-revoke');rev.add_argument('id');rev.add_argument('--allow-lockout',action='store_true',help='Explicit local emergency override for revoking the last or connected key')
     args=parser.parse_args();config=json.loads(Path(args.config).read_text());store=Store(config)
     if args.action=='key-add':print(compact(store.key_add(args.name,args.role,args.device or store.c['device_id'])))
     elif args.action=='key-import':
@@ -307,7 +373,8 @@ def main():
     elif args.action=='key-list':
         with store.connect() as db:print(json.dumps([dict(r) for r in db.execute('SELECT id,name,role,device,revoked,created FROM keys ORDER BY created')],indent=2))
     elif args.action=='key-revoke':
-        with store.connect() as db:db.execute('UPDATE keys SET revoked=1 WHERE id=?',(args.id,))
+        try:store.key_revoke(args.id,allow_lockout=args.allow_lockout)
+        except Problem as e:raise SystemExit(e.message)
         print('Key revoked')
     else:
         server=Server(store);signal.signal(signal.SIGTERM,lambda *_:threading.Thread(target=server.shutdown,daemon=True).start())

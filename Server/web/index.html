@@ -1,1 +1,64 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Paperang Studio · Leave a note</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><main><p class="eyebrow">PAPERANG STUDIO / REMOTE INBOX</p><h1>A little note.<br>A real piece of paper.</h1><p class="intro">Send a message to the printer's local inbox. Its owner chooses the layout and when to print.</p><section class="panel"><div class="status"><span id="dot"></span><span id="printer">Checking printer…</span></div><form id="note"><label for="key">Access key <small>optional for anonymous submissions</small></label><input id="key" type="password" autocomplete="off" placeholder="Paste your submission key"><label for="text">Your message</label><textarea id="text" rows="7" placeholder="Write something worth keeping…" required></textarea><div class="count"><span id="limit"></span><span id="count">0 characters</span></div><p class="privacy">Your IP address, user agent, language, time zone and screen size are attached to this task and shown to the printer owner. The owner may include them on paper. Precise location and a verified device identity are not collected.</p><button id="send" type="submit">Send to inbox <span>↗</span></button></form><p id="result" role="status" aria-live="polite"></p></section><footer>© 2026 ELT Group · Non-commercial research project · <a href="mailto:vox@calx.cc">vox@calx.cc</a></footer></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A small note, delivered to real paper.">
+  <meta name="theme-color" content="#f6f5f0">
+  <title>etel — Leave a note</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="header">
+      <h1>etel<span class="brand-dot" aria-hidden="true">.</span></h1>
+      <div class="connection"><span id="dot" aria-hidden="true"></span><span id="printer">Connecting</span></div>
+    </header>
+
+    <section class="paper" aria-label="Write a note">
+      <form id="note">
+        <div class="paper-heading"><label for="text">Leave a note</label><span class="paper-mark" aria-hidden="true">↗</span></div>
+        <textarea id="text" name="message" rows="8" placeholder="Something worth putting on paper…" aria-describedby="count privacy" required></textarea>
+        <div class="note-meta"><span>To a real piece of paper.</span><span id="count">0 / —</span></div>
+        <div class="form-bottom">
+          <details id="key-options">
+            <summary id="key-label">Use a submission key</summary>
+            <label class="sr-only" for="key">Submission key</label>
+            <input id="key" type="password" name="submission-key" autocomplete="off" spellcheck="false" placeholder="Paste your key" aria-describedby="key-help">
+            <p id="key-help">Only a submission key is needed here.</p>
+          </details>
+          <button id="send" type="submit" disabled><span id="send-label">Send note</span><span aria-hidden="true">↗</span></button>
+        </div>
+        <p id="privacy">Your IP and browser details are shared with the recipient and may be printed.</p>
+      </form>
+    </section>
+
+    <p id="error" class="error" role="alert" hidden></p>
+
+    <form id="lookup" class="lookup" aria-label="Track a note">
+      <label class="sr-only" for="lookup-id">12-character note ID</label>
+      <input id="lookup-id" name="note-id" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="Track ID · ABCD-EF12-3456" required>
+      <button id="track" type="submit">Track</button>
+    </form>
+    <p id="lookup-error" class="lookup-error" role="alert" hidden></p>
+
+    <section id="delivery" class="delivery" aria-label="Delivery progress" hidden>
+      <div class="delivery-heading"><span id="result" role="status" aria-live="polite">In the inbox</span><span id="reference" class="reference"></span></div>
+      <div class="progress-heading"><span id="progress-label">Delivery stage</span><span id="progress-count">1 of 5</span></div>
+      <progress id="progress" max="5" value="1" aria-label="Delivery stage">1 of 5</progress>
+      <ol class="stages" aria-label="Delivery stages"><li>Queued</li><li>Accepted</li><li>Sending</li><li>Sent</li><li>Confirmed</li></ol>
+      <p id="detail">Waiting for the recipient to accept your note.</p>
+      <details id="task-details" class="task-details">
+        <summary>Task details</summary>
+        <dl><div><dt>Created</dt><dd id="task-created">—</dd></div><div><dt>Updated</dt><dd id="task-updated">—</dd></div></dl>
+        <p id="detail-access">The note content is private.</p>
+        <pre id="task-text" hidden></pre>
+      </details>
+    </section>
+
+    <footer><span>© 2026 ELT Group · On paper.</span><a href="mailto:vox@calx.cc">Contact</a></footer>
+    <noscript><p class="error">JavaScript is needed to send a note and check its progress.</p></noscript>
+  </main>
+</body>
+</html>
