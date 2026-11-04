@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3-fix1 — 2026-11-04
+
+- Fix remote task previews being invalidated by unstable template serialization; fetch full task content on demand and show loading/errors.
+- Client-only release; relay server, webpage and SDK remain at their existing versions.
+
+- Fix raster jobs bypassing custom layouts: Body blocks now compose image/caption alongside existing metadata blocks; editor and print share the same parts. Preserve legacy text rendering and template JSON.
+
 ## 0.2.3 — 2026-11-04
 
 - Menu bar mode retains Bluetooth/network, authorizes network jobs, pauses unrelated work and restores prior settings.

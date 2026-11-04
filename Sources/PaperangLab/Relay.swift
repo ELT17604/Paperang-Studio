@@ -85,7 +85,7 @@ extension Lab {
   relayMessage="中转已连接 · 待处理 \(relayJobs.filter{$0.state=="queued"}.count) / 最近 \(relayJobs.count) 项 · 每2秒上报/刷新"
   if relayAutoPrint,networkPrintAllowed,ready,!busy,relayFlight==nil,let job=relayJobs.filter({$0.state=="queued"}).min(by:{$0.created<$1.created}){await printRelay(job)}
  }
- var relayPreviewSignature:String {relaySelection+relayStyle+String(relayDensity)+String(relayFeed)+[relayIncludeText,relayIncludeSender,relayIncludeTime,relayIncludeID,relayIncludeIP,relayIncludeUA,relayIncludeDevice].map{String($0)}.joined()+((try? JSONEncoder().encode(currentRelayTemplate).base64EncodedString()) ?? "")}
+ var relayPreviewSignature:String {(selectedRelayJob?.layoutSignature ?? relaySelection)+relayStyle+String(relayDensity)+String(relayFeed)+[relayIncludeText,relayIncludeSender,relayIncludeTime,relayIncludeID,relayIncludeIP,relayIncludeUA,relayIncludeDevice].map{String($0)}.joined()+currentRelayTemplate.layoutSignature}
  func abandonRelayReport(){guard !relayMutating else{return};if let id=relayFlight?.localID,jobs.first(where:{$0.id==id})?.status=="发送中"{return};relayFlight=nil;relayMessage="已清除本地结果关联，不会重新打印旧任务"}
  var selectedRelayJob:RelayJob? {relayJobs.first{$0.id==relaySelection}}
  func relayDocument(_ job:RelayJob)->String {
@@ -113,7 +113,25 @@ extension Lab {
   s.marginX=12;s.contentWidth=552;s.marginY=12
   return s
  }
- func previewRelay(){guard let job=selectedRelayJob else{return};do{let r=try relayRaster(job,settings:relayPrintSettings());relayPreview=r.png.flatMap{NSImage(data:$0)};relayMessage="预览 \(r.width)×\(r.height)，实际发送使用相同排版流程"}catch{relayPreview=nil;relayMessage=error.localizedDescription}}
+ var relayPreviewIsCurrent:Bool {relayPreview != nil && relayPreviewRenderedSignature==relayPreviewSignature}
+ func previewRelay(){
+  guard let job=selectedRelayJob else{relayMessage="请先选择一个任务";return}
+  relayPreviewTask?.cancel();let session=UUID();relayPreviewSession=session;relayPreviewLoading=true
+  relayMessage=job.hasFullText ? "正在生成预览…":"正在读取完整任务并生成预览…"
+  relayPreviewTask=Task{
+   defer{if self.relayPreviewSession==session{self.relayPreviewLoading=false;self.relayPreviewTask=nil}}
+   do{
+    let full=try await self.relayFullJob(job)
+    guard !Task.isCancelled,self.relaySelection==job.id,self.relayPreviewSession==session else{return}
+    let signature=self.relayPreviewSignature
+    let r=try self.relayRaster(full,settings:self.relayPrintSettings())
+    guard let png=r.png,let image=NSImage(data:png) else{throw PrintFailure("预览图片编码失败")}
+    self.relayPreviewRenderedSignature=signature;self.relayPreview=image
+    self.relayMessage="预览 \(r.width)×\(r.height)，实际发送使用相同排版流程"
+   }catch{if !Task.isCancelled,self.relayPreviewSession==session,self.relaySelection==job.id{self.relayPreview=nil;self.relayPreviewRenderedSignature="";self.relayMessage="预览失败："+error.localizedDescription}}
+  }
+ }
+
  func printSelectedRelay(){guard let job=selectedRelayJob else{return};Task{await self.printRelay(job)}}
  func printRelay(_ job:RelayJob) async {
   guard relayRunning,relayOnline,!relayMutating,relayFlight==nil,ready,!busy,networkPrintAllowed,job.state=="queued" else{relayMessage="请连接P2、开启侧栏全局耗纸并等待当前任务完成";return}

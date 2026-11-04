@@ -4,6 +4,18 @@ import CryptoKit
 import PrintCore
 import UniformTypeIdentifiers
 
+extension RelayJob {
+ /// A single decoder is shared by template parts, previews and the built-in renderer.
+ func verifiedRaster()throws->Raster? {
+  guard let content else{return nil}
+   guard content["type"] as? String=="raster1",content["schemaVersion"] as? Int==1,content["width"] as? Int==576,let height=content["height"] as? Int,content["bitOrder"] as? String=="msb-first",content["blackIsOne"] as? Bool==true,content["encoding"] as? String=="base64",let encoded=content["data"] as? String,encoded.utf8.count<=134400,let data=Data(base64Encoded:encoded),let checksum=content["sha256"] as? String,SHA256.hash(data:data).map({String(format:"%02x",$0)}).joined()==checksum else{throw PrintFailure("远程内容类型、尺寸或校验和不正确，请更新客户端或重新提交")}
+  return try Raster.packed(data,height:height)
+ }
+ var layoutSignature:String {
+  id+shortID+text+rawMetadata+String(created.timeIntervalSince1970)+String(hasFullText)+(content?["sha256"] as? String ?? "")+String(content?["data"] != nil)
+ }
+}
+
 struct RelayBlock:Codable,Identifiable,Equatable {
  var id=UUID();var kind="正文";var text="";var enabled=true;var font="PingFang SC";var size=24.0;var bold=false;var alignment="居左";var margin=12;var gap=8
  static let kinds=["标题","正文","投稿身份","时间","任务编号","IP","UA","浏览器信息","分隔线","自定义文字"]
@@ -30,6 +42,7 @@ struct RelayBlock:Codable,Identifiable,Equatable {
  }
 }
 struct RelayTemplate:Codable,Identifiable,Equatable {
+ var layoutSignature:String {let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys];return (try? encoder.encode(self).base64EncodedString()) ?? "invalid-template"}
  var id=UUID();var version=1;var name="我的样式";var blocks=[RelayBlock]()
  static let defaultsKey="relay.templates.v1"
  static func preset(_ name:String)->Self {
@@ -51,11 +64,18 @@ struct RelayTemplate:Codable,Identifiable,Equatable {
   for b in blocks {guard RelayBlock.kinds.contains(b.kind),b.text.count<=2000,b.font.count<=120,(8...96).contains(b.size),(0...120).contains(b.margin),(0...200).contains(b.gap),["居左","居中","居右"].contains(b.alignment) else{throw PrintFailure("区块参数超出范围")}}
  }
  func parts(_ job:RelayJob,settings:PrintSettings)throws->[RelayRenderedBlock] {
-  try validate();var output=[RelayRenderedBlock]()
+  try validate();let image=try job.verifiedRaster();var output=[RelayRenderedBlock]()
   for block in blocks where block.enabled {
-   let text=block.value(job);if text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{continue}
+   let text=block.value(job);let hasText = !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty
+   if !hasText && !(block.kind=="正文" && image != nil){continue}
    var s=settings;s.fontName=block.font;s.fontSize=block.size;s.bold=block.bold;s.alignment=block.alignment;s.marginX=block.margin;s.contentWidth=576-block.margin*2;s.marginY=0;s.lineSpacing=3
-   let r=try Renderer.render(text:text,image:nil,mode:"文字",settings:s)
+   let r:Raster
+   if block.kind=="正文",let image {
+    let fitted=try image.fitting(margin:block.margin)
+    if hasText{r=try Raster.stack([(fitted,0),(try Renderer.render(text:text,image:nil,mode:"文字",settings:s),4)])}else{r=fitted}
+   }else{
+    r=try Renderer.render(text:text,image:nil,mode:"文字",settings:s)
+   }
    output.append(.init(id:block.id,raster:r,gap:block.gap))
   }
   return output
@@ -67,15 +87,13 @@ struct RelayRenderedBlock:Identifiable {let id:UUID;let raster:Raster;let gap:In
 extension Lab {
  var currentRelayTemplate:RelayTemplate {relayTemplates.first{$0.id.uuidString==relayTemplateID} ?? relayTemplates.first ?? .preset("便签")}
  func relayRaster(_ job:RelayJob,settings:PrintSettings)throws->Raster {
-  if let content=job.content {
-   guard content["type"] as? String=="raster1",content["schemaVersion"] as? Int==1,content["width"] as? Int==576,let height=content["height"] as? Int,content["bitOrder"] as? String=="msb-first",content["blackIsOne"] as? Bool==true,content["encoding"] as? String=="base64",let encoded=content["data"] as? String,encoded.utf8.count<=134400,let data=Data(base64Encoded:encoded),let checksum=content["sha256"] as? String,SHA256.hash(data:data).map({String(format:"%02x",$0)}).joined()==checksum else{throw PrintFailure("远程内容类型、尺寸或校验和不正确，请更新客户端或重新提交")}
-   let image=try Raster.packed(data,height:height)
+  if relayStyle=="自定义"{return try currentRelayTemplate.raster(job,settings:settings)}
+  if let image=try job.verifiedRaster() {
    let footer=relayDocument(job)
    if footer.isEmpty{return image}
    let text=try Renderer.render(text:footer,image:nil,mode:"文字",settings:settings)
    return try Raster.stack([(image,0),(text,8)])
   }
-  if relayStyle=="自定义"{return try currentRelayTemplate.raster(job,settings:settings)}
   return try Renderer.render(text:relayDocument(job),image:nil,mode:"文字",settings:settings)
  }
  var relaySampleJob:RelayJob {if let job=selectedRelayJob,job.hasFullText{return job};return RelayJob(id:String(repeating:"a",count:40),shortID:"A1B2C3D4E5F6",text:"Hello Paperang!\n这是一条用于设计版式的示例纸条。",metadata:["identity":"Sample visitor","ip":"192.0.2.1","userAgent":"Example browser","browser":["platform":"Sample device"]],created:Date(timeIntervalSince1970:1793740800))}
@@ -96,7 +114,7 @@ struct RelayLayoutEditor:View {
  @StateObject private var draft:RelayEditorDraft
  @MainActor init(lab:Lab){self.lab=lab;_draft=StateObject(wrappedValue:RelayEditorDraft(lab:lab))}
  private var ti:Int {draft.templates.firstIndex{$0.id==draft.templateID} ?? 0}
- private var previewKey:String {((try? JSONEncoder().encode(draft.templates[ti]).base64EncodedString()) ?? "") + lab.relaySampleJob.text + lab.relaySampleJob.id}
+ private var previewKey:String {draft.templates[ti].layoutSignature + lab.relaySampleJob.layoutSignature}
  var body:some View {
   VStack(alignment:.leading,spacing:12){
    HStack{Label("打印样式编辑器",systemImage:"rectangle.3.group").font(.title2);Spacer();Button("取消"){dismiss()};Button("保存并应用",action:save).buttonStyle(.borderedProminent)}
@@ -116,6 +134,7 @@ struct RelayLayoutEditor:View {
       Toggle("启用",isOn:$draft.templates[ti].blocks[bi].enabled)
       Picker("内容",selection:$draft.templates[ti].blocks[bi].kind){ForEach(RelayBlock.kinds,id:\.self){Text($0)}}
       if ["标题","自定义文字"].contains(draft.templates[ti].blocks[bi].kind){TextEditor(text:$draft.templates[ti].blocks[bi].text).frame(height:100).border(.quaternary);Text("变量：{{text}} {{sender}} {{id}} {{time}} {{ip}} {{ua}} {{device}}；id为可打印的短编号。").font(.caption).foregroundStyle(.secondary)}
+      if draft.templates[ti].blocks[bi].kind=="正文"{Text("正文区块同时接收文字和图片。图片按本区块边距等比适配，说明文字紧随图片；字体与对齐用于文字。关闭正文会同时隐藏图片和说明。").font(.caption).foregroundStyle(.secondary)}
       Picker("字体",selection:$draft.templates[ti].blocks[bi].font){ForEach(["PingFang SC","Menlo","Helvetica","Times New Roman"],id:\.self){Text($0)}}
       Text("字号 \(Int(draft.templates[ti].blocks[bi].size))");Slider(value:$draft.templates[ti].blocks[bi].size,in:8...96,step:1)
       Toggle("粗体",isOn:$draft.templates[ti].blocks[bi].bold)

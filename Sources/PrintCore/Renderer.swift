@@ -16,6 +16,25 @@ public struct Raster {
   guard width==576,(1...1400).contains(height),bytes.count==72*height else{throw PrintFailure("远程位图尺寸无效")}
   return Self(width:width,height:height,bytes:bytes,blackPixels:bytes.reduce(0){$0+$1.nonzeroBitCount})
  }
+ /// Fit a packed image into the block's printable width, with symmetric white margins.
+ /// Use nearest-neighbor sampling to keep the image strictly one-bit without re-dithering.
+ public func fitting(margin:Int)throws->Self {
+  guard width==576,(1...1400).contains(height),bytes.count==72*height,(0...120).contains(margin) else{throw PrintFailure("图片区块边距或尺寸无效")}
+  if margin==0{return self}
+  let contentWidth=576-margin*2
+  let targetHeight=max(1,(height*contentWidth+575)/576)
+  var output=Data(repeating:0,count:72*targetHeight)
+  for y in 0..<targetHeight {
+   let sy=min(height-1,((2*y+1)*height)/(2*targetHeight))
+   for x in 0..<contentWidth {
+    let sx=min(575,((2*x+1)*576)/(2*contentWidth))
+    if bytes[sy*72+sx/8] & (1 << (7-sx%8)) != 0 {
+     let dx=x+margin;output[y*72+dx/8] |= 1 << (7-dx%8)
+    }
+   }
+  }
+  return try Self.packed(output,height:targetHeight)
+ }
  public static func stack(_ parts:[(raster:Raster,spaceBefore:Int)]) throws -> Self {
   guard !parts.isEmpty,parts.count<=24 else{throw PrintFailure("请启用至少一个有内容的区块（最多24个）")}
   var height=0;var data=Data();var black=0

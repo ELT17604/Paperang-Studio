@@ -25,7 +25,7 @@ extension Lab {
   trayPreviousAutoPrint=relayAutoPrint;trayStartedAPI=api==nil
   trayMode=true;trayPrintPaused=false
   stopTTY();terminalTimer?.cancel();terminalTimer=nil;previewTask?.cancel();previewTask=nil;rendering=false
-  relayDetailTask?.cancel();relayDetailTask=nil
+  relayDetailTask?.cancel();relayDetailTask=nil;relayPreviewTask?.cancel();relayPreviewTask=nil;relayPreviewLoading=false
   if api==nil{startAPI()}
   relayAutoPrint=relayRunning
   notice="托盘模式：网络请求可自动打印；工作台耗纸设置未改变"

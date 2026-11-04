@@ -28,21 +28,21 @@ extension Content {
   if let job=lab.selectedRelayJob{
    GroupBox("任务详情"){VStack(alignment:.leading,spacing:8){HStack{Text("#"+job.printableID).font(.headline.monospaced()).textSelection(.enabled);Text(job.stateLabel).foregroundStyle(job.stateColor);Spacer();Text(job.created,format:.dateTime).font(.caption)}
     DisclosureGroup("完整内部ID"){Text(job.id).font(.system(.caption,design:.monospaced)).textSelection(.enabled)}
-    if let content=job.content {Text("黑白绘图 · \(content["width"] as? Int ?? 576) × \(content["height"] as? Int ?? 0) 点；图片后附所选文字字段，总高不得超过1400行。图片保持原始点阵，自定义区块模板仅用于文字任务。").font(.caption)}
+    if let content=job.content {Text("黑白绘图 · \(content["width"] as? Int ?? 576) × \(content["height"] as? Int ?? 0) 点；自定义模板由正文区块放置图片及说明，其他区块保持模板顺序和样式；总高不得超过1400行。").font(.caption)}
     Text(job.text).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading)
     if !job.hasFullText{Text("正在读取完整正文…").font(.caption).foregroundStyle(.secondary)}
     if !job.detail.isEmpty{Text(job.detail).font(.caption).foregroundStyle(.secondary)}
     DisclosureGroup("来源原始信息（浏览器字段未经独立验证）"){Text(job.rawMetadata).font(.system(.caption,design:.monospaced)).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading)}
    }.frame(maxWidth:.infinity,alignment:.leading)}
   }
-  HStack{Button("生成预览",action:lab.previewRelay).disabled(lab.selectedRelayJob==nil || !(lab.selectedRelayJob?.hasFullText ?? false));Button("确认打印",action:lab.printSelectedRelay).buttonStyle(.borderedProminent).disabled(lab.selectedRelayJob?.state != "queued" || !lab.relayOnline || !lab.ready || lab.busy || !lab.allowPaper || lab.relayMutating || lab.relayFlight != nil);Button("拒绝",role:.destructive,action:lab.rejectRelay).disabled(lab.selectedRelayJob?.state != "queued" || lab.relayMutating);Button("复制内容到工作台",action:lab.copyRelayToWorkspace).disabled(lab.selectedRelayJob==nil)}
+  HStack{Button("生成预览",action:lab.previewRelay).disabled(lab.selectedRelayJob==nil || lab.relayPreviewLoading);Button("确认打印",action:lab.printSelectedRelay).buttonStyle(.borderedProminent).disabled(lab.selectedRelayJob?.state != "queued" || !lab.relayOnline || !lab.ready || lab.busy || !lab.allowPaper || lab.relayMutating || lab.relayFlight != nil);Button("拒绝",role:.destructive,action:lab.rejectRelay).disabled(lab.selectedRelayJob?.state != "queued" || lab.relayMutating);Button("复制内容到工作台",action:lab.copyRelayToWorkspace).disabled(lab.selectedRelayJob==nil)}
   if lab.selectedRelayJob?.state=="sent"{Button("我已核对纸面，确认打印完成",action:lab.confirmRelayOutput).disabled(!lab.relayOnline || lab.relayMutating)}
-  if let image=lab.relayPreview{Image(nsImage:image).resizable().interpolation(.none).scaledToFit().frame(maxWidth:460).background(.white)}
+  if lab.relayPreviewLoading{HStack{ProgressView().controlSize(.small);Text("正在获取内容并生成预览…").font(.caption)}}
+  if lab.relayPreviewIsCurrent,let image=lab.relayPreview{Image(nsImage:image).resizable().interpolation(.none).scaledToFit().frame(maxWidth:460).background(.white)}
   Text("列表不会自动重打已发送或结果不明的任务。需要人工重印时先核对纸面，再复制到工作台。IP/UA默认不打印，短编号可选。").font(.caption).foregroundStyle(.secondary)
  }.padding(2)}
  .alert("中转连接已断开",isPresented:$lab.relayWarning){Button("知道了",role:.cancel){}}message:{Text(lab.relayMessage)}
  .sheet(isPresented:$lab.relayEditorOpen,onDismiss:lab.previewRelay){RelayLayoutEditor(lab:lab)}
- .onChange(of:lab.relayPreviewSignature){_,_ in lab.relayPreview=nil}
  .onChange(of:lab.relaySelection){_,_ in lab.loadRelaySelection()}
  .onChange(of:lab.relayFilter){_,_ in lab.relaySelection=lab.relayVisibleJobs.first?.id ?? ""}
  .onChange(of:lab.relaySearch){_,_ in lab.relaySelection=lab.relayVisibleJobs.first?.id ?? ""}

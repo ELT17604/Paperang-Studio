@@ -34,6 +34,8 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  @Published var relayURL="";@Published var relayKey="";@Published var relayAllowHTTP=false;@Published var relayRunning=false;@Published var relayAutoPrint=false
  @Published var relayMessage="尚未连接中转服务器";@Published var relayJobs=[RelayJob]();@Published var relaySelection="";@Published var relayStyle=UserDefaults.standard.string(forKey:"relay.style") ?? "便签" {didSet{UserDefaults.standard.set(relayStyle,forKey:"relay.style")}}
  @Published var relayIncludeID=false;@Published var relayIncludeText=true;@Published var relayIncludeSender=true;@Published var relayIncludeTime=true;@Published var relayIncludeIP=false;@Published var relayIncludeUA=false;@Published var relayIncludeDevice=false
+ @Published var relayPreviewLoading=false;@Published var relayPreviewRenderedSignature=""
+ var relayPreviewTask:Task<Void,Never>?;var relayPreviewSession=UUID()
  @Published var relayDensity=100;@Published var relayFeed=150;@Published var relayPreview:NSImage?;@Published var relayMutating=false
  @Published var relayDefaultAutoPrint=UserDefaults.standard.bool(forKey:"relay.defaultAutoPrint") {didSet{UserDefaults.standard.set(relayDefaultAutoPrint,forKey:"relay.defaultAutoPrint")}}
  @Published var relayTemplates=RelayTemplate.load();@Published var relayTemplateID=UserDefaults.standard.string(forKey:"relay.templateID") ?? "" {didSet{UserDefaults.standard.set(relayTemplateID,forKey:"relay.templateID")}}

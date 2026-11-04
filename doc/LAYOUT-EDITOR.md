@@ -33,3 +33,9 @@ Block types: title, body, sender, time, short task ID, IP, UA, browser metadata,
 Limits:30 saved templates,24 blocks/template, name80 characters, custom text2000 characters/block, font size8–96, margins0–120 dots, preceding gap0–200 rows. Imports are capped at64KiB and validated. The composed raster is fixed576 dots wide and at most1400 rows high. Each block is rendered with the shared renderer, then exact one-bit rows and white gaps are stacked; preview and print use the same composition method.
 
 Custom templates control their own enabled fields; the built-in style checkboxes are disabled while Custom is selected. IP/UA/browser fields and task IDs are not enabled in the initial presets. Imported templates should be reviewed before automatic printing.
+
+## Image tasks in custom templates
+
+The Body block accepts both text and raster jobs. For an image task it contains the image, proportionally fitted to the block’s symmetric margins, then its optional caption (4 blank rows between them). Font/bold/alignment control the caption. The image uses one-bit nearest-neighbor scaling; margin 0 preserves its bytes. Reordering moves the whole body; disabling Body hides image and caption. All other blocks keep their existing rendering and spacing. Existing version-1 template JSON files work without migration. The editor, job preview, workspace copy and print path share the same template parts and final compositor. Built-in field checkboxes do not override custom block settings. Total height, including all gaps, remains capped at 1400 rows.
+
+Client v0.2.3-fix1 uses sorted-key template signatures for both editor and task preview. Preview requests fetch full content on demand, show loading/failure state, and retain a valid generated image across unrelated polling/status updates. Changing task content or layout marks the previous preview stale until regenerated. This client fix needs no relay or website update.

@@ -29,7 +29,7 @@ macOS14+、Swift6/Xcode16+（或相应Command Line Tools），无外部Swift Pac
 
 脚本编译所有目标，复制主程序、PTY helper、OpenAPI、AppIcon.icns，生成Info.plist，分别ad-hoc签名helper/App并strict验证。当前本机构建arm64，不声称已生成Universal或已测试Intel。提供源码可在Intel构建，但需独立验证。
 
-App未公证；分发到其他电脑需由项目所有者配置Developer ID签名和notarization。CFBundleIdentifier保留local.paperang.lab以沿用本机身份；显示名Paperang Studio 0.2.3。GUI蓝牙权限由系统管理，不自动重置。
+App未公证；分发到其他电脑需由项目所有者配置Developer ID签名和notarization。CFBundleIdentifier保留local.paperang.lab以沿用本机身份；显示名Paperang Studio 0.2.3-fix1。GUI蓝牙权限由系统管理，不自动重置。
 
 ## Logo与应用图标
 

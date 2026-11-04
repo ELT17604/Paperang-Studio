@@ -6,7 +6,7 @@
 
 A native macOS app for Paperang P2: text and image printing, a physical paper terminal, protocol debugging, and a local HTTP API. Built with SwiftUI and CoreBluetooth, with no third-party runtime dependencies.
 
-**Version 0.2.3** · macOS 14+ · Swift 6 toolchain / Xcode 16+
+**Version 0.2.3-fix1** · macOS 14+ · Swift 6 toolchain / Xcode 16+
 
 ## Features
 
