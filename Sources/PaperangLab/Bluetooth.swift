@@ -19,6 +19,8 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  @Published var mode="文字" {didSet{schedulePreview()}}
  @Published var page="打印工作台";@Published var engineer=false;@Published var engineerPage="设备字段"
  @Published var search="";@Published var selected:UInt8=4;@Published var rawCommand="04";@Published var rawPayload="01"
+ @Published var trayMode=false;@Published var trayPrintPaused=false
+ var trayPreviousAutoPrint=false;var trayStartedAPI=false
  @Published var allowPaper=false;@Published var allowEngineeringWrites=false
  @Published var imageName="尚未导入图片";@Published var preview:NSImage?;@Published var previewError="";@Published var rendering=false
  @Published var progress=0.0;@Published var jobStatus="等待打印";@Published var jobs=[JobRecord]();@Published var logFilter="";@Published var notice=""

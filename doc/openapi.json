@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Paperang Studio Local API",
-    "version": "0.2.2",
-    "description": "Paperang Studio 0.2.2 local-only authenticated API. Default off. One sidebar global paper switch; jobs/feed also require JSON allowPaper:true. CC BY-NC-SA 4.0. Independent unofficial project.",
+    "version": "0.2.3",
+    "description": "Paperang Studio 0.2.3 authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project.",
     "contact": {
       "name": "ELT Group",
       "email": "vox@calx.cc"
@@ -269,7 +269,7 @@
         }
       },
       "post": {
-        "summary": "Submit a print job; allowPaper must be true",
+        "summary": "Submit a print job; tray mode allows omitted allowPaper, explicit false always refuses",
         "requestBody": {
           "required": true,
           "content": {
@@ -840,7 +840,7 @@
     },
     "/v1/feed": {
       "post": {
-        "summary": "Feed paper; global App paper switch and request allowPaper:true required",
+        "summary": "Feed paper; network print permission and explicit allowPaper:true required",
         "requestBody": {
           "required": true,
           "content": {
@@ -1192,7 +1192,8 @@
           },
           "allowPaper": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Network job consent: required true in normal mode; may be omitted in active tray mode; explicit false always refuses."
           },
           "includeRaw": {
             "type": "boolean",

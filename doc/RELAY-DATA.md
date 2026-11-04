@@ -61,3 +61,5 @@ key active again if it was revoked after the snapshot.
 Application/Nginx logs are separate from task history. Their location and rotation
 depend on deployment; shared systemd/Cloudflare logs or external snapshots are
 outside this database's cleanup policy.
+
+Rich-media jobs additionally store binary raster payload and versioned content metadata in jobs; access, retention and backups match the message body. See [rich media](RICH-MEDIA.md).

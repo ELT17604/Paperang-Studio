@@ -48,3 +48,5 @@ SQLite DELETE 是逻辑删除，不保证对磁盘、快照做取证级擦除，
 
 应用/Nginx 日志不等于任务历史，其位置和轮转取决于部署。共享 systemd/Cloudflare
 日志和外部快照不属于数据库清理范围。
+
+富媒体任务额外在 jobs 保存点阵 BLOB、版本化内容摘要和 last_stage，访问、保留和备份规则与正文相同。详见[富媒体](RICH-MEDIA.zh-CN.md)。

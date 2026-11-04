@@ -60,3 +60,7 @@ The build script packages and ad-hoc signs the app, with all outputs outside the
 ## Refreshing Bluetooth discovery
 
 A scan runs for12 seconds, shows the number of actual broadcasts, and cancels its previous timer so it cannot stop a later scan. Results distinguish live BLE advertising from recalled device identifiers and system-connected peripherals. History is not proof of online status; connection still performs the normal model/handshake checks. If all broadcasts are missing, disconnect any session and use Reinitialize scanning (`重新初始化扫描`). This recreates only the app's central manager, without resetting system Bluetooth. Avoid simultaneously running old copies of the app.
+
+## Menu bar mode (v0.2.3)
+
+Use **进入托盘模式** in the sidebar/File menu for background network printing. [Lifecycle, consent and restoration](TRAY-MODE.md).

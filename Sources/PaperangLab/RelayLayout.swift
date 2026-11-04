@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import CryptoKit
 import PrintCore
 import UniformTypeIdentifiers
 
@@ -66,6 +67,14 @@ struct RelayRenderedBlock:Identifiable {let id:UUID;let raster:Raster;let gap:In
 extension Lab {
  var currentRelayTemplate:RelayTemplate {relayTemplates.first{$0.id.uuidString==relayTemplateID} ?? relayTemplates.first ?? .preset("便签")}
  func relayRaster(_ job:RelayJob,settings:PrintSettings)throws->Raster {
+  if let content=job.content {
+   guard content["type"] as? String=="raster1",content["schemaVersion"] as? Int==1,content["width"] as? Int==576,let height=content["height"] as? Int,content["bitOrder"] as? String=="msb-first",content["blackIsOne"] as? Bool==true,content["encoding"] as? String=="base64",let encoded=content["data"] as? String,encoded.utf8.count<=134400,let data=Data(base64Encoded:encoded),let checksum=content["sha256"] as? String,SHA256.hash(data:data).map({String(format:"%02x",$0)}).joined()==checksum else{throw PrintFailure("远程内容类型、尺寸或校验和不正确，请更新客户端或重新提交")}
+   let image=try Raster.packed(data,height:height)
+   let footer=relayDocument(job)
+   if footer.isEmpty{return image}
+   let text=try Renderer.render(text:footer,image:nil,mode:"文字",settings:settings)
+   return try Raster.stack([(image,0),(text,8)])
+  }
   if relayStyle=="自定义"{return try currentRelayTemplate.raster(job,settings:settings)}
   return try Renderer.render(text:relayDocument(job),image:nil,mode:"文字",settings:settings)
  }

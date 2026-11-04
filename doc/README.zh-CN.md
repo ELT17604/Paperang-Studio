@@ -4,7 +4,7 @@
 
 [English](../README.md) · [中文文档目录](INDEX.zh-CN.md)
 
-原生 macOS 喵喵机 P2 打印工作台、协议调试器、实体纸带终端与本机 HTTP API。SwiftUI + CoreBluetooth，无第三方运行库。当前版本 **0.2.2**，需要 macOS 14+、Swift 6 工具链（Xcode 16+）。项目为非官方工具。
+原生 macOS 喵喵机 P2 打印工作台、协议调试器、实体纸带终端与本机 HTTP API。SwiftUI + CoreBluetooth，无第三方运行库。当前版本 **0.2.3**，需要 macOS 14+、Swift 6 工具链（Xcode 16+）。项目为非官方工具。
 
 - 文字与图片共用最终黑白位图预览；旋转、适配/裁切、阈值和抖动、浓度、份数、送纸及传输参数可调，支持预设。
 - 设备列表默认仅显示名称匹配 Paperang / Miaomiaoji / 喵喵机的候选；“展示全部蓝牙设备”恢复完整扫描列表。名称筛选不是设备身份认证，连接后仍校验协议及型号。
@@ -59,3 +59,5 @@ Paperang Studio is an independent, unofficial project and is not affiliated with
 引用与历史快照的许可归各来源，本目录未附带第三方源码。
 
 [三个相关项目的可借鉴内容与限制](RELATED-PROJECTS.zh-CN.md)
+
+v0.2.3 新增[菜单栏托盘模式](TRAY-MODE.zh-CN.md)，可保留蓝牙和网络监听并自动处理网络打印。

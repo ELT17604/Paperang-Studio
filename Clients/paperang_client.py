@@ -30,11 +30,15 @@ class PaperangClient:
     def render(self, text, settings=None, include_raw=False):
         return self.request('POST', '/v1/render', {'text': text, 'settings': settings or {}, 'includeRaw': include_raw})
 
-    def print_text(self, text, settings=None, allow_paper=False):
-        return self.request('POST', '/v1/jobs', {'text': text, 'settings': settings or {}, 'allowPaper': allow_paper})
+    def print_text(self, text, settings=None, allow_paper=None):
+        body = {'text': text, 'settings': settings or {}}
+        if allow_paper is not None: body['allowPaper'] = allow_paper
+        return self.request('POST', '/v1/jobs', body)
 
-    def print_image(self, base64_image, settings=None, allow_paper=False):
-        return self.request('POST', '/v1/jobs', {'imageBase64': base64_image, 'settings': settings or {}, 'allowPaper': allow_paper})
+    def print_image(self, base64_image, settings=None, allow_paper=None):
+        body = {'imageBase64': base64_image, 'settings': settings or {}}
+        if allow_paper is not None: body['allowPaper'] = allow_paper
+        return self.request('POST', '/v1/jobs', body)
 
     def job(self, job_id):
         return self.request('GET', '/v1/jobs/' + job_id)

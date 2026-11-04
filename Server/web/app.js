@@ -14,6 +14,9 @@ const stageMap = {
 };
 let policy = null, connectionOK = false, sending = false, currentJob = null, pollTimer, trackingVersion = 0, lookupVersion = 0;
 let receipts = [];
+let drawMode = false, drawHasInk = false, supportsRaster = false;
+let drawActive = false, drawUndo = [];
+const canvas = $('draw-canvas'), drawContext = canvas.getContext('2d', {willReadFrequently: true});
 const countCharacters = () => Array.from($('text').value).length;
 const request = (path, options = {}) => fetch(path, {...options, cache: 'no-store', signal: AbortSignal.timeout(8000)});
 function jobPollDelay() {
@@ -29,11 +32,12 @@ function error(message = '') {
 function updateForm() {
   const keyed = Boolean($('key').value.trim());
   const limit = policy?.[keyed ? 'authenticated_max_length' : 'anonymous_max_length'];
-  const length = countCharacters();
+  const length = countCharacters() + (drawMode ? canvas.height : 0);
   $('count').textContent = `${length.toLocaleString('en-US')} / ${limit ? limit.toLocaleString('en-US') : '—'}`;
   $('count').classList.toggle('over', Boolean(limit && length > limit));
   const inFlight = currentJob?.receipt && ['queued', 'claimed', 'printing'].includes(currentJob.state);
-  $('send').disabled = sending || !connectionOK || !policy || !length || !$('text').value.trim() || length > limit || Boolean(inFlight);
+  $('send').disabled = sending || !connectionOK || !policy || !length || (drawMode ? (!drawHasInk || !supportsRaster) : !$('text').value.trim()) || length > limit || Boolean(inFlight);
+  for (const id of ['compose-mode','draw-height','pen-size','draw-clear','draw-undo','text','key']) $(id).disabled = sending;
   $('send-label').textContent = sending ? 'Sending…' : inFlight ? 'Note in progress' : 'Send note';
 }
 function saveReceipt() {
@@ -74,13 +78,14 @@ function renderDetails() {
   $('task-updated').textContent = format(currentJob.updated);
   const readable = currentJob.detailsAvailable === true && typeof currentJob.text === 'string';
   $('task-text').hidden = !readable;
-  $('task-text').textContent = readable ? currentJob.text : '';
+  $('task-text').textContent = readable ? (currentJob.content?.type === 'raster1' ? `Drawing · ${currentJob.content.width} × ${currentJob.content.height} pixels${currentJob.text ? '\n'+currentJob.text : ''}` : currentJob.text) : '';
   $('detail-access').textContent = readable ? 'Note content' : 'Content is private. Use this tab’s original receipt or the submission key used to send this note.';
 }
 function renderJob(job) {
   const state = stageMap[job.state];
   if (!state) throw new Error('Unrecognized delivery status. Please check again later.');
-  const previousStep = job.state === 'unknown' && job.progress ? 3 : (currentJob?.step || 1);
+  const remembered = currentJob?.id === job.id || currentJob?.shortID === job.shortID;
+  const previousStep = job.state === 'unknown' ? (job.lastStage === 'printing' || job.progress ? 3 : job.lastStage === 'claimed' ? 2 : Math.max(2, remembered ? (currentJob?.step || 2) : 2)) : (remembered ? (currentJob?.step || 1) : 1);
   currentJob = {...currentJob, ...job, step: state.step || previousStep};
   if (job.detailsAvailable === false) {
     delete currentJob.text;
@@ -108,10 +113,12 @@ async function refreshStatus() {
     if (!response.ok) throw new Error();
     const data = await response.json();
     policy = data.policy;
+    supportsRaster = Array.isArray(data.capabilities?.contentTypes) && data.capabilities.contentTypes.includes('raster1');
+    $('compose-mode').querySelector('option[value="raster1"]').disabled = !supportsRaster;
     connectionOK = true;
     const status = data.status;
     $('dot').className = status.online && status.printerConnected ? 'online' : '';
-    $('printer').textContent = status.online ? (status.printerConnected ? (status.busy ? 'Printer busy' : 'Printer online') : 'Printer disconnected') : 'Offline · notes can wait';
+    $('printer').textContent = status.online ? (status.printerConnected ? (status.busy ? 'Printer busy' : (status.automaticPrinting ? 'Printer online · automatic printing' : 'Printer online')) : 'Printer disconnected') : 'Offline · notes can wait';
     $('key').required = !policy.allow_anonymous;
     $('key-label').textContent = policy.allow_anonymous ? 'Use a submission key' : 'Submission key required';
     if (!policy.allow_anonymous) $('key-options').open = true;
@@ -130,7 +137,7 @@ async function pollJob() {
   const shortID = currentJob.lookupID || currentJob.shortID;
   const path = shortID ? `/v1/jobs/lookup/${normalizeID(shortID)}` : (currentJob.receipt && currentJob.id ? `/v1/jobs/${currentJob.id}` : null);
   if (!path) return;
-  const headers = {};
+  const headers = {'X-Paperang-Content-Summary': '1'};
   if (currentJob.receipt) headers['X-Job-Receipt'] = currentJob.receipt;
   // Lookups may use the submission key already entered in the form. It stays in memory.
   if (currentJob.lookupID && $('key').value.trim()) headers.Authorization = `Bearer ${$('key').value.trim()}`;
@@ -173,9 +180,10 @@ $('lookup').addEventListener('submit', async event => {
     showError('Enter the 12-character ID printed on the note.');
     return;
   }
+  if (sending) return;
   const version = ++lookupVersion;
   const saved = receipts.find(item => normalizeID(item.shortID) === shortID);
-  const headers = {};
+  const headers = {'X-Paperang-Content-Summary': '1'};
   if (saved) headers['X-Job-Receipt'] = saved.receipt;
   if ($('key').value.trim()) headers.Authorization = `Bearer ${$('key').value.trim()}`;
   $('track').disabled = true;
@@ -205,12 +213,16 @@ $('note').addEventListener('submit', async event => {
   const text = $('text').value;
   error();
   sending = true;
+  ++lookupVersion;
+  $('track').disabled = true;
   updateForm();
   let receivedResponse = false;
   try {
     const headers = {'Content-Type': 'application/json'};
     if (key) headers.Authorization = `Bearer ${key}`;
-    const response = await request('/v1/jobs', {method: 'POST', headers, body: JSON.stringify({text, browser: {timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, screen: `${screen.width}×${screen.height}`, platform: navigator.platform, language: navigator.language}})});
+    const body = {text, browser: {timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, screen: `${screen.width}×${screen.height}`, platform: navigator.platform, language: navigator.language}};
+    if (drawMode) body.content = await drawingContent();
+    const response = await request('/v1/jobs', {method: 'POST', headers, body: JSON.stringify(body)});
     receivedResponse = true;
     const job = await response.json();
     if (!response.ok) {
@@ -219,19 +231,62 @@ $('note').addEventListener('submit', async event => {
       if (response.status === 429) throw new Error(`Hourly limit reached.${job.resetAt ? ` Try again after ${new Date(job.resetAt * 1000).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}.` : ' Please try again later.'}`);
       throw new Error(job.error || 'Your note could not be sent. Please try again later.');
     }
+    ++lookupVersion;
     clearTimeout(pollTimer);
     trackingVersion++;
     currentJob = {...job, step: 1};
     renderJob(job);
     $('text').value = '';
+    if (drawMode) clearDrawing();
     pollTimer = setTimeout(pollJob, 250);
   } catch (err) {
     error(receivedResponse ? err.message : 'Connection interrupted. Your note may have been received. Check before sending it again.');
   } finally {
     sending = false;
+    $('track').disabled = false;
     updateForm();
   }
 });
+
+function clearDrawing() {
+  drawContext.fillStyle = '#fff';drawContext.fillRect(0, 0, canvas.width, canvas.height);
+  drawHasInk = false;drawActive = false;drawUndo = [];updateForm();
+}
+function drawSnapshot() {
+  drawUndo.push({pixels: drawContext.getImageData(0, 0, canvas.width, canvas.height), ink: drawHasInk});
+  if (drawUndo.length > 10) drawUndo.shift();
+}
+function drawPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  return [(event.clientX - rect.left) * canvas.width / rect.width, (event.clientY - rect.top) * canvas.height / rect.height];
+}
+canvas.addEventListener('pointerdown', event => {
+  if (sending || drawActive) return;
+  event.preventDefault();drawSnapshot();canvas.setPointerCapture(event.pointerId);drawActive = true;
+  const [x,y] = drawPoint(event);drawContext.strokeStyle = '#000';drawContext.fillStyle = '#000';drawContext.lineWidth = Number($('pen-size').value);drawContext.lineCap = 'round';drawContext.lineJoin = 'round';
+  drawContext.beginPath();drawContext.arc(x,y,drawContext.lineWidth/2,0,Math.PI*2);drawContext.fill();drawContext.beginPath();drawContext.moveTo(x,y);drawHasInk = true;updateForm();
+});
+canvas.addEventListener('pointermove', event => {
+  if (!drawActive || sending) return;event.preventDefault();const [x,y] = drawPoint(event);drawContext.lineTo(x,y);drawContext.stroke();
+});
+for (const kind of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(kind, () => {drawActive = false;});
+$('draw-undo').addEventListener('click', () => {if (sending) return;const previous=drawUndo.pop();if(previous){drawContext.putImageData(previous.pixels,0,0);drawHasInk=previous.ink;updateForm();}});
+$('draw-clear').addEventListener('click', () => {if(!sending)clearDrawing();});
+$('draw-height').addEventListener('change', () => {if(sending)return;const image=drawContext.getImageData(0,0,canvas.width,canvas.height);canvas.height=Number($('draw-height').value);drawContext.fillStyle='#fff';drawContext.fillRect(0,0,canvas.width,canvas.height);drawContext.putImageData(image,0,0);drawUndo=[];drawHasInk=drawContext.getImageData(0,0,canvas.width,canvas.height).data.some((v,i)=>i%4!==3 && v<128);updateForm();});
+$('compose-mode').addEventListener('change', () => {if(sending)return;drawMode=$('compose-mode').value==='raster1';$('drawing').hidden=!drawMode;$('text').required=!drawMode;$('text').placeholder=drawMode?'Optional caption…':'Something worth putting on paper…';updateForm();});
+async function drawingContent() {
+  // Snapshot pixels before any await. Always composite white and pack MSB first.
+  const width=canvas.width,height=canvas.height,pixels=drawContext.getImageData(0,0,width,height).data;
+  const data=new Uint8Array(width/8*height);
+  for(let i=0;i<width*height;i++) {const offset=i*4;const gray=(pixels[offset]*0.2126+pixels[offset+1]*0.7152+pixels[offset+2]*0.0722)*(pixels[offset+3]/255)+255*(1-pixels[offset+3]/255);if(gray<128)data[i>>3]|=1<<(7-(i%8));}
+  // Base64 stays small (at most 134400 characters at the protocol's height limit).
+  let raw='';for(let start=0;start<data.length;start+=8192)raw+=String.fromCharCode(...data.subarray(start,start+8192));
+  const result={schemaVersion:1,type:'raster1',width,height,encoding:'base64',bitOrder:'msb-first',blackIsOne:true,data:btoa(raw)};
+  if(globalThis.crypto?.subtle)result.sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data))).map(v=>v.toString(16).padStart(2,'0')).join('');
+  return result;
+}
+clearDrawing();
+
 $('text').addEventListener('input', updateForm);
 $('key').addEventListener('input', updateForm);
 try {

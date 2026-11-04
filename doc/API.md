@@ -149,4 +149,8 @@ const job = await p.printText('Hello P2', {allowPaper: true});
 console.log(await p.job(job.id));
 ```
 
-Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v1` path is the API contract version, separate from app version 0.2.2 and OpenAPI format version 3.0.3.
+Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v1` path is the API contract version, separate from app version 0.2.3 and OpenAPI format version 3.0.3.
+
+## v0.2.3 tray consent
+
+Tray mode authorizes network jobs independently of workspace paper consent. A job may omit allowPaper in active tray mode; explicit false is always refused. Feed still requires explicit true. Status adds appVersion/trayMode/networkPrintAllowed/automaticNetworkConsent/workspacePrintingEnabled; printingEnabled is effective network consent. [Complete behavior](TRAY-MODE.md).

@@ -165,7 +165,7 @@ Local checks cover concurrent SQLite quota admission, persistence/restart, UTC-h
 
 Task IDs use a40-hex internal identity and a separately unique12-hex printable short ID. Short-ID migration preserves old UUID jobs. See [task IDs and templates](LAYOUT-EDITOR.md).
 
-## 0.2.2 — Connection health, task feedback and key management
+## 0.2.3 — Connection health, task feedback and key management
 
 The Mac performs authenticated status and inbox requests every 2 seconds while connected. Each request times out after 4 seconds. An initial failed cycle marks the connection unavailable immediately; five further retry cycles are allowed, 2 seconds apart, before the app disconnects, disables automatic printing and shows an alert. A successful cycle resets the retry count. The interface displays the last successful response and labels cached tasks as a stale snapshot while unavailable. Old-session responses cannot update a new session. In-flight output is never automatically replayed.
 
@@ -173,7 +173,7 @@ The public status endpoint refreshes every 2 seconds in the webpage. A device he
 
 The server stores all task transitions: `queued → claimed → printing → sent → confirmed`. `sent` means the Mac finished sending raster and feed commands, not independent proof of paper output. The owner must inspect the paper and click **确认打印完成** to reach `confirmed` (explicitly labelled manual confirmation). The webpage polls the receipt every 2 seconds, including after `sent`, until confirmed, rejected or unknown. Printing progress is reported in `detail`. If a claimed/printing job has no update for 300 seconds, a subsequent device heartbeat, inbox or receipt operation expires it to `unknown`; receipt polling also triggers this expiry even with the Mac offline. No timer runs while the server itself is stopped. Queued tasks remain queued. The current webpage keeps one receipt in memory; reloading the page does not restore its tracking. Server/API records remain available with the receipt.
 
-Expand **用户密钥管理** in the Mac remote-printing page and enter a separate administrator key. Device keys cannot administer users. Refresh lists server records (no raw secrets); create a key with name, role and target device, copy its one-time token, rename its display identity, revoke it, then optionally delete the revoked record. Renames affect future submissions; historical jobs preserve their original identity. The current administrator cannot rename/revoke/delete itself through these endpoints. Existing installations need the updated server code as well as app 0.2.2.
+Expand **用户密钥管理** in the Mac remote-printing page and enter a separate administrator key. Device keys cannot administer users. Refresh lists server records (no raw secrets); create a key with name, role and target device, copy its one-time token, rename its display identity, revoke it, then optionally delete the revoked record. Renames affect future submissions; historical jobs preserve their original identity. The current administrator cannot rename/revoke/delete itself through these endpoints. Existing installations need the updated server code as well as app 0.2.3.
 
 Additional JSON POST endpoints (Bearer roles specified below):
 
@@ -263,3 +263,7 @@ Server/browser tests do not imply a new Mac build or physical printing test.
 See [relay storage and retention](RELAY-DATA.md) for live database versus browser
 receipts and backups. `policy.retention_days` reports the actual configured task
 retention in public status; the default is seven days after the last task update.
+
+## Rich media and state fixes
+
+See [drawing and content API](RICH-MEDIA.md) for the versioned raster envelope, capability negotiation, row quotas, privacy and limits. POST /v1/jobs now supports up to 160 KiB; other endpoints retain 64 KiB. Unknown tasks include lastStage.

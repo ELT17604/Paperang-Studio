@@ -133,3 +133,7 @@ console.log(await p.job(job.id));
 ```
 
 客户端是薄封装；其他端点可用其request方法。Python绕过系统HTTP代理访问回环，JavaScript调用浏览器/Node的fetch。API版本固定/v1；新增能力以兼容字段扩展，破坏性变更另开版本。
+
+## v0.2.3 托盘授权
+
+托盘单独授权网络任务，运行中 jobs 可省略 allowPaper，显式 false 始终拒绝。单独送纸仍需显式 true。状态增加 appVersion/trayMode/networkPrintAllowed/automaticNetworkConsent/workspacePrintingEnabled；printingEnabled 表示有效网络授权。[详细规则](TRAY-MODE.zh-CN.md)。

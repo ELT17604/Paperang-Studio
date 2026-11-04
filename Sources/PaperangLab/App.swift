@@ -12,12 +12,18 @@ import PrintCore
   } else {PaperangApp.main()}
  }
 }
-struct PaperangApp:App {
- @StateObject var lab=Lab()
- var body:some Scene{WindowGroup{Content(lab:lab).frame(minWidth:1120,minHeight:760).onReceive(NotificationCenter.default.publisher(for:NSApplication.willTerminateNotification)){_ in lab.stopTTY();lab.stopAPI();lab.stopRelay()}}.defaultSize(width:1420,height:940).commands{
+@MainActor struct PaperangApp:App {
+ @NSApplicationDelegateAdaptor(StudioLifecycle.self) private var lifecycle
+ @StateObject var lab:Lab
+ init(){let model=Lab();_lab=StateObject(wrappedValue:model);StudioLifecycle.lab=model}
+ var body:some Scene{Window("Paperang Studio",id:"main"){Content(lab:lab).frame(minWidth:1120,minHeight:760)}.defaultSize(width:1420,height:940).commands{
  CommandGroup(replacing:.appInfo){Button("About Paperang Studio",action:lab.showAbout)}
- CommandGroup(after:.newItem){Divider();Button("关于 Paperang Studio",action:lab.showAbout)}
- }}
+ CommandGroup(after:.newItem){Divider();Button("进入托盘模式",action:lab.enterTray);Button("关于 Paperang Studio",action:lab.showAbout)}
+ }
+ MenuBarExtra(isInserted:Binding(get:{lab.trayMode},set:{if !$0{lab.exitTray()}})) {
+  TrayMenu(lab:lab)
+ } label: {Image(systemName:lab.trayPrintPaused || lab.relayWarning ? "exclamationmark.triangle.fill":"printer.fill").help("Paperang Studio v"+AppIdentity.version)}.menuBarExtraStyle(.menu)
+ }
 }
 struct Content:View {
  @ObservedObject var lab:Lab
@@ -34,6 +40,7 @@ struct Content:View {
     Text(lab.batterySummary).font(.caption)
     if lab.ready{Button("刷新状态",action:lab.refreshDevice).disabled(lab.busy);Button("断开连接",action:lab.disconnect)}else{Button("连接打印机"){lab.page="打印机"}}
        Divider()
+    Button("进入托盘模式",action:lab.enterTray).help("维持蓝牙和网络监听，自动允许网络请求打印")
     Text("v"+AppIdentity.version).font(.caption2).foregroundStyle(.secondary)
     Text(AppIdentity.copyright).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
    }.padding().navigationSplitViewColumnWidth(220)

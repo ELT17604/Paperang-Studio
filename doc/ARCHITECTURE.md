@@ -28,7 +28,7 @@ Defaults: sibling `PaperangStudio-Development/build/` and `Release/Paperang Stud
 
 The recorded local toolchain failed with duplicate AIModel specifications in the default SwiftBuild system. The script uses the working `native` build-system option; that option is deprecated and should be reevaluated if a future toolchain removes it. The script builds targets, copies the executable, PTY helper, OpenAPI, ICNS, LICENSE, and NOTICE, generates Info.plist, ad-hoc signs helper/app, and performs strict signature verification. It does not run the external validation programs.
 
-The recorded release was arm64, not Universal. Intel builds require independent verification. The app is not notarized; distribution with Developer ID and notarization requires the owner's signing setup. Bundle identifier remains `local.paperang.lab`, display name Paperang Studio, version 0.2.2. macOS manages Bluetooth permissions; the app does not reset them.
+The recorded release was arm64, not Universal. Intel builds require independent verification. The app is not notarized; distribution with Developer ID and notarization requires the owner's signing setup. Bundle identifier remains `local.paperang.lab`, display name Paperang Studio, version 0.2.3. macOS manages Bluetooth permissions; the app does not reset them.
 
 ## Logo
 

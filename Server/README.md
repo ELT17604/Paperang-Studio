@@ -92,6 +92,14 @@ bash Server/macOS-Temporary/run.sh --port 9088 \
 
 For temporary mode, do not supply installation-only flags such as `--config` or `--prefix`.
 
-## Version 0.2.2 status and key API
+## Version 0.2.3 status and key API
 
-The webpage and Mac refresh every 2 seconds; server device presence expires after 15 seconds. Task receipts include sent versus manually confirmed paper output. The Mac supports administrator key creation, rename, revoke and deletion. See the [complete status, retry and API contract](../doc/REMOTE-PRINTING.md#022--connection-health-task-feedback-and-key-management) and [中文说明](../doc/REMOTE-PRINTING.zh-CN.md). Both client and server must be updated. Existing command-line installation parameters above remain available.
+The webpage and Mac refresh every 2 seconds; server device presence expires after 15 seconds. Task receipts include sent versus manually confirmed paper output. The Mac supports administrator key creation, rename, revoke and deletion. See the [complete status, retry and API contract](../doc/REMOTE-PRINTING.md#023--connection-health-task-feedback-and-key-management) and [中文说明](../doc/REMOTE-PRINTING.zh-CN.md). Both client and server must be updated. Existing command-line installation parameters above remain available.
+
+## Drawing payloads
+
+[Rich-media API and compatibility guide](../doc/RICH-MEDIA.md) · [中文说明](../doc/RICH-MEDIA.zh-CN.md). The existing installation quota flags apply to text characters plus raster rows; allow a 160 KiB submission body in the reverse proxy. Both server and Mac must be updated for drawing tasks.
+
+## v0.2.3 client tray mode
+
+The server website/version/status are synchronized to v0.2.3. Fresh automatic-print telemetry is visible on the webpage. [Client tray mode and consent](../doc/TRAY-MODE.md).

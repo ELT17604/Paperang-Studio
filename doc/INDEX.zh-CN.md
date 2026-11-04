@@ -19,3 +19,7 @@
 - 版式：[远程任务列表、可选短编号与图形化编辑器](LAYOUT-EDITOR.zh-CN.md)
 
 - macOS：[终端临时体验与全部可选参数](MACOS-TEMPORARY.zh-CN.md)
+
+- [远程绘图与富媒体 API](RICH-MEDIA.zh-CN.md)
+
+- [菜单栏托盘模式](TRAY-MODE.zh-CN.md)

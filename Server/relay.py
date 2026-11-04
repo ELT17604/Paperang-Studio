@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Paperang Studio relay: standard-library HTTP + SQLite, Python 3.10+."""
+import base64, binascii
 import argparse, contextlib, hashlib, hmac, ipaddress, json, os, re, secrets, signal, sqlite3, sys, threading, time, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+APP_VERSION = '0.2.3'
 
 JOB_PATTERN = r'(?:[a-f0-9]{40}|[a-f0-9-]{36})'
 SHORT_JOB_PATTERN = r'(?:[A-Fa-f0-9]{12}|[A-Fa-f0-9]{4}(?:-[A-Fa-f0-9]{4}){2})'
@@ -57,6 +60,9 @@ class Store:
                 columns={row[1] for row in conn.execute('PRAGMA table_info(jobs)')}
                 if 'progress' not in columns:conn.execute('ALTER TABLE jobs ADD COLUMN progress TEXT')
                 if 'submit_key' not in columns:conn.execute('ALTER TABLE jobs ADD COLUMN submit_key TEXT')
+                for column,kind in [('content_meta','TEXT'),('payload','BLOB'),('last_stage','TEXT')]:
+                    if column not in columns:conn.execute('ALTER TABLE jobs ADD COLUMN '+column+' '+kind)
+                conn.execute("UPDATE jobs SET last_stage=state WHERE last_stage IS NULL AND state IN ('claimed','printing')")
                 # Recover counts already reported by the unmodified Mac app.
                 for row in conn.execute("SELECT id,detail FROM jobs WHERE progress IS NULL AND detail LIKE '第%'").fetchall():
                     progress=transport_progress(row['detail'])
@@ -124,11 +130,28 @@ class Store:
         return str(current)
     def policies(self):
         return {k:self.c[k] for k in ['allow_anonymous','anonymous_max_length','anonymous_hourly_limit','anonymous_hourly_chars','authenticated_max_length','authenticated_hourly_limit','authenticated_hourly_chars','device_id','retention_days']}
+    def content(self,body,limit):
+        content=body.get('content')
+        if content is None:return None,None,0
+        if not isinstance(content,dict) or type(content.get('schemaVersion')) is not int or content.get('schemaVersion')!=1:raise Problem(400,'Unsupported content schema')
+        if content.get('type')!='raster1':raise Problem(400,'Unsupported content type')
+        width,height=content.get('width'),content.get('height')
+        if type(width) is not int or width!=576 or type(height) is not int or not 1<=height<=min(1400,limit):raise Problem(400,'Raster must be 576 pixels wide and within the row allowance')
+        if content.get('encoding')!='base64' or content.get('bitOrder')!='msb-first' or content.get('blackIsOne') is not True:raise Problem(400,'Unsupported raster encoding')
+        encoded=content.get('data')
+        if not isinstance(encoded,str) or len(encoded)!=4*((72*height+2)//3):raise Problem(400,'Invalid raster size')
+        try:raw=base64.b64decode(encoded,validate=True)
+        except (ValueError,binascii.Error):raise Problem(400,'Invalid raster base64')
+        if len(raw)!=72*height:raise Problem(400,'Raster byte count mismatch')
+        checksum=hashlib.sha256(raw).hexdigest()
+        if content.get('sha256',checksum)!=checksum:raise Problem(400,'Raster checksum mismatch')
+        meta=dict(schemaVersion=1,type='raster1',width=width,height=height,encoding='base64',bitOrder='msb-first',blackIsOne=True,sha256=checksum,byteLength=len(raw))
+        return meta,raw,height
     def public_status(self):
         with self.connect() as db: row=db.execute('SELECT * FROM devices WHERE id=?',(self.c['device_id'],)).fetchone()
         data=json.loads(row['status']) if row else {}
         online=bool(row and time.time()-row['seen']<15)
-        return dict(online=online,printerConnected=online and data.get('connected',False),busy=online and data.get('busy',False),lastSeen=row['seen'] if row else None,serverTime=time.time(),staleAfter=15)
+        return dict(online=online,printerConnected=online and data.get('connected',False),busy=online and data.get('busy',False),automaticPrinting=online and data.get('relayAutomaticPrinting',data.get('automaticNetworkConsent',False)),lastSeen=row['seen'] if row else None,serverTime=time.time(),staleAfter=15)
     def prune(self,db,now):
         db.execute('DELETE FROM usage WHERE window<?',(int(now//3600)-48,))
         db.execute("DELETE FROM jobs WHERE updated<? AND state NOT IN ('claimed','printing')",(now-self.c['retention_days']*86400,))
@@ -137,8 +160,9 @@ class Store:
     def submit(self,body,key,ip,headers):
         if key: self.require(key,['submit','admin'])
         if not key and not self.c['allow_anonymous']: raise Problem(403,'Anonymous submissions are disabled')
-        text=body.get('text');limit=self.c['authenticated_max_length' if key else 'anonymous_max_length']
-        if not isinstance(text,str) or not text.strip() or len(text)>limit: raise Problem(400,f'Text must contain 1–{limit} characters')
+        text=body.get('text','');limit=self.c['authenticated_max_length' if key else 'anonymous_max_length']
+        content,payload,rows=self.content(body,limit)
+        if not isinstance(text,str) or (not text.strip() and content is None) or len(text)+rows>limit: raise Problem(400,f'Provide text or a raster; caption characters plus raster rows must not exceed {limit}')
         if any(ord(v)<32 and v not in '\n\r\t' for v in text): raise Problem(400,'Control characters are not accepted')
         target=key['device'] if key else self.c['device_id']
         browser=body.get('browser',{})
@@ -155,22 +179,27 @@ class Store:
             try:
                 self.prune(db,now)
                 usage=db.execute('SELECT * FROM usage WHERE ip=? AND window=?',(ip,window)).fetchone()
-                if usage and (usage['jobs']>=maxjobs or usage['chars']+len(text)>maxchars): raise Problem(429,'Hourly IP quota reached',resetAt=reset,retryAfter=max(1,int(reset-now)+1))
-                if len(text)>maxchars: raise Problem(400,'Message exceeds the hourly character allowance')
+                if usage and (usage['jobs']>=maxjobs or usage['chars']+len(text)+rows>maxchars): raise Problem(429,'Hourly IP quota reached',resetAt=reset,retryAfter=max(1,int(reset-now)+1))
+                if len(text)+rows>maxchars: raise Problem(400,'Message exceeds the hourly character allowance')
                 count=db.execute("SELECT count(*) FROM jobs WHERE state IN ('queued','claimed','printing')").fetchone()[0]
                 if count>=self.c['queue_limit']: raise Problem(503,'Printer inbox is full')
-                db.execute('INSERT INTO usage VALUES(?,?,1,?) ON CONFLICT(ip,window) DO UPDATE SET jobs=jobs+1,chars=chars+excluded.chars',(ip,window,len(text)))
+                db.execute('INSERT INTO usage VALUES(?,?,1,?) ON CONFLICT(ip,window) DO UPDATE SET jobs=jobs+1,chars=chars+excluded.chars',(ip,window,len(text)+rows))
                 short=self.short_id(db)
-                db.execute('INSERT INTO jobs(id,device,text,meta,state,receipt,created,updated,short_id,submit_key) VALUES(?,?,?,?,?,?,?,?,?,?)',
-                           (identifier,target,text,compact(meta),'queued',digest(receipt),now,now,short,key['id'] if key else None))
+                db.execute('INSERT INTO jobs(id,device,text,meta,state,receipt,created,updated,short_id,submit_key,content_meta,payload) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+                           (identifier,target,text,compact(meta),'queued',digest(receipt),now,now,short,key['id'] if key else None,compact(content) if content else None,payload))
                 db.execute('COMMIT')
             except Exception:db.execute('ROLLBACK');raise
         return dict(id=identifier,shortID=short,receipt=receipt,state='queued',resetAt=reset)
-    def job(self,row,private=True,summary=False):
-        result={k:row[k] for k in ['id','state','created','updated','detail']};result['shortID']=row['short_id']
+    def job(self,row,private=True,summary=False,include_payload=True):
+        result={k:row[k] for k in ['id','state','created','updated','detail']};result['shortID']=row['short_id'];result['lastStage']=row['last_stage']
         progress=json.loads(row['progress']) if row['progress'] else None
         result['progress']={**progress,'percent':round(100*progress['completed']/progress['total'],1)} if progress else None
-        if private:result.update(text=row['text'][:120] if summary else row['text'],metadata=json.loads(row['meta']),device=row['device'],truncated=summary and len(row['text'])>120)
+        if row['content_meta']:
+            result['content']={'type':'raster1'}
+            if private:
+                result['content']=json.loads(row['content_meta'])
+                if not summary and include_payload:result['content']['data']=base64.b64encode(row['payload']).decode('ascii')
+        if private:result.update(text=row['text'][:120] if summary else row['text'],metadata=json.loads(row['meta']),device=row['device'],truncated=summary and (len(row['text'])>120 or bool(row['content_meta'])))
         return result
     def lookup_job(self,short_id,key,headers):
         identifier=short_id.replace('-','').upper()
@@ -181,7 +210,7 @@ class Store:
         receipt=headers.get('X-Job-Receipt','')
         if receipt and not hmac.compare_digest(row['receipt'],digest(receipt)):raise Problem(404,'Job not found or expired')
         authorized=bool(receipt) or bool(key and (key['role']=='admin' or (key['role']=='device' and key['device']==row['device']) or (key['role']=='submit' and key['id']==row['submit_key'])))
-        result=self.job(row,private=authorized)
+        result=self.job(row,private=authorized,include_payload=headers.get('X-Paperang-Content-Summary')!='1')
         result['detailsAvailable']=authorized
         if not authorized:
             # The printed ID is a locator, not a secret. Device-supplied detail
@@ -190,7 +219,7 @@ class Store:
         return result
     def route(self,method,path,body,key,ip,headers):
         now=time.time()
-        if method=='GET' and path=='/v1/public/status':return 200,dict(status=self.public_status(),policy=self.policies(),capabilities=dict(partitionProgress='transport',shortIDLookup=True))
+        if method=='GET' and path=='/v1/public/status':return 200,dict(version=APP_VERSION,status=self.public_status(),policy=self.policies(),capabilities=dict(partitionProgress='transport',shortIDLookup=True,contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840))
         if method=='POST' and path=='/v1/jobs':return 202,self.submit(body,key,ip,headers)
         lookup=re.fullmatch(r'/v1/jobs/lookup/('+SHORT_JOB_PATTERN+')',path)
         if method=='GET' and lookup:return 200,self.lookup_job(lookup.group(1),key,headers)
@@ -238,9 +267,10 @@ class Store:
                     self.prune(db,now)
                 return 200,dict(accepted=True)
             if method=='GET' and path=='/v1/device/jobs':
+                supported='raster1' in headers.get('X-Paperang-Content-Types','').split(',')
                 with self.connect() as db:
                     self.prune(db,now)
-                    rows=db.execute("SELECT * FROM jobs WHERE device=? ORDER BY CASE WHEN state IN ('queued','claimed','printing') THEN 0 ELSE 1 END,CASE WHEN state IN ('queued','claimed','printing') THEN created ELSE -created END LIMIT 100",(key['device'],)).fetchall()
+                    rows=db.execute("SELECT id,state,created,updated,detail,short_id,last_stage,progress,content_meta,text,meta,device FROM jobs WHERE device=? AND (content_meta IS NULL OR ?=1) ORDER BY CASE WHEN state IN ('queued','claimed','printing') THEN 0 ELSE 1 END,CASE WHEN state IN ('queued','claimed','printing') THEN created ELSE -created END LIMIT 100",(key['device'],int(supported))).fetchall()
                 return 200,dict(jobs=[self.job(r,summary=True) for r in rows])
             detail=re.fullmatch(r'/v1/device/jobs/('+JOB_PATTERN+')',path)
             if method=='GET' and detail:
@@ -256,9 +286,10 @@ class Store:
                         row=db.execute('SELECT * FROM jobs WHERE id=? AND device=?',(identifier,key['device'])).fetchone()
                         if not row:raise Problem(404,'Job not found')
                         if action=='claim':
+                            if row['content_meta'] and 'raster1' not in headers.get('X-Paperang-Content-Types','').split(','):raise Problem(409,'Client does not support this content type')
                             if row['state']!='queued':raise Problem(409,'Job already claimed or handled')
                             claim=secrets.token_urlsafe(32)
-                            db.execute("UPDATE jobs SET state='claimed',claim_key=?,claim_hash=?,updated=? WHERE id=?",(key['id'],digest(claim),now,identifier))
+                            db.execute("UPDATE jobs SET state='claimed',last_stage='claimed',claim_key=?,claim_hash=?,updated=? WHERE id=?",(key['id'],digest(claim),now,identifier))
                             result=dict(id=identifier,claim=claim,state='claimed')
                         elif action=='confirm':
                             if row['state'] not in ['sent','confirmed']:raise Problem(409,'Only sent jobs can be physically confirmed')
@@ -281,7 +312,7 @@ class Store:
                                 # Ignore stale counts; never infer a missing total or
                                 # reset progress when the Mac sends its final report.
                                 if progress and old_progress and (progress['total']!=old_progress['total'] or progress['completed']<old_progress['completed']):progress=None
-                                db.execute('UPDATE jobs SET state=?,detail=?,updated=?,progress=COALESCE(?,progress) WHERE id=?',(state,detail,now,compact(progress) if progress else None,identifier))
+                                db.execute("UPDATE jobs SET state=?,detail=?,updated=?,progress=COALESCE(?,progress),last_stage=CASE WHEN ?='printing' THEN 'printing' ELSE last_stage END WHERE id=?",(state,detail,now,compact(progress) if progress else None,state,identifier))
                             result=dict(id=identifier,state='confirmed' if row['state']=='confirmed' else state)
                         db.execute('COMMIT')
                     except Exception:db.execute('ROLLBACK');raise
@@ -289,7 +320,7 @@ class Store:
         raise Problem(404,'Unknown route')
 
 class Handler(BaseHTTPRequestHandler):
-    server_version='PaperangRelay/1'
+    server_version='PaperangRelay/'+APP_VERSION
     def setup(self):
         self.request.settimeout(12)
         super().setup()
@@ -324,7 +355,8 @@ class Handler(BaseHTTPRequestHandler):
                 if len(lengths)!=1 or self.headers.get('Transfer-Encoding'):raise Problem(400,'One Content-Length is required; chunked is not supported')
                 try:length=int(lengths[0])
                 except ValueError:raise Problem(400,'Invalid Content-Length')
-                if length<0 or length>65536:raise Problem(413,'Request body exceeds 64 KiB')
+                limit=163840 if self.path=='/v1/jobs' else 65536
+                if length<0 or length>limit:raise Problem(413,'Request body exceeds '+str(limit)+' bytes')
                 if self.headers.get('Content-Type','').split(';')[0]!='application/json':raise Problem(415,'Expected application/json')
                 raw=self.rfile.read(length)
                 if len(raw)!=length:raise Problem(400,'Incomplete request')

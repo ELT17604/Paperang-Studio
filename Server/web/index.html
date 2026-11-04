@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="A small note, delivered to real paper.">
+  <meta name="application-version" content="0.2.3">
   <meta name="theme-color" content="#f6f5f0">
-  <title>etel — Leave a note</title>
+  <title>etel — Leave a note · v0.2.3</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
@@ -19,6 +20,12 @@
     <section class="paper" aria-label="Write a note">
       <form id="note">
         <div class="paper-heading"><label for="text">Leave a note</label><span class="paper-mark" aria-hidden="true">↗</span></div>
+        <div class="compose-tools"><label for="compose-mode">Content</label><select id="compose-mode"><option value="text">Text note</option><option value="raster1" disabled>Drawing</option></select></div>
+        <section id="drawing" hidden aria-label="Drawing editor">
+          <div class="draw-tools"><label>Pen <input id="pen-size" type="range" min="1" max="24" value="4"></label><label>Height <select id="draw-height"><option>192</option><option selected>384</option><option>576</option><option>768</option><option>1024</option></select></label><button id="draw-undo" type="button">Undo</button><button id="draw-clear" type="button">Clear</button></div>
+          <canvas id="draw-canvas" width="576" height="384" aria-label="Draw here with a finger, stylus or mouse"></canvas>
+          <p class="draw-hint">576-pixel print area. Draw with a finger, stylus or mouse. Each row uses one quota unit; a caption uses one per character. The Mac adds the owner's selected footer.</p>
+        </section>
         <textarea id="text" name="message" rows="8" placeholder="Something worth putting on paper…" aria-describedby="count privacy" required></textarea>
         <div class="note-meta"><span>To a real piece of paper.</span><span id="count">0 / —</span></div>
         <div class="form-bottom">
@@ -57,7 +64,7 @@
       </details>
     </section>
 
-    <footer><span>© 2026 ELT Group · On paper.</span><a href="mailto:vox@calx.cc">Contact</a></footer>
+    <footer><span>© 2026 ELT Group · Paperang Studio v0.2.3</span><a href="mailto:vox@calx.cc">Contact</a></footer>
     <noscript><p class="error">JavaScript is needed to send a note and check its progress.</p></noscript>
   </main>
 </body>

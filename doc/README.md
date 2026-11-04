@@ -28,3 +28,7 @@ All default documentation pages are in English. Each guide links to its Chinese 
 Shared machine-readable references: [OpenAPI 3.0](openapi.json), [P2 profile](p2-profile.json), and [pinned source revisions](source-revisions.json).
 
 Research records describe observations collected on 2026-11-04. Battery readings are historical samples, not current telemetry. Physical observations, source-code clues, hypotheses, and unknowns are identified separately. Personal device identifiers and full raw sessions remain in the external local development archive.
+
+- [Remote drawing and rich-media API](RICH-MEDIA.md)
+
+- [Menu bar / tray mode](TRAY-MODE.md)

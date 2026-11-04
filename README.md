@@ -6,7 +6,7 @@
 
 A native macOS app for Paperang P2: text and image printing, a physical paper terminal, protocol debugging, and a local HTTP API. Built with SwiftUI and CoreBluetooth, with no third-party runtime dependencies.
 
-**Version 0.2.2** · macOS 14+ · Swift 6 toolchain / Xcode 16+
+**Version 0.2.3** · macOS 14+ · Swift 6 toolchain / Xcode 16+
 
 ## Features
 
@@ -70,3 +70,5 @@ Build caches and the packaged app go to the sibling `PaperangStudio-Development/
 Licensed under [CC BY-NC-SA 4.0](LICENSE): credit ELT Group, use it non-commercially, identify modifications, and follow the ShareAlike terms. Intended for personal research and learning; commercial use is prohibited. See [NOTICE](NOTICE) for attribution and the full project statement.
 
 Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any related companies or affiliates. All third-party names and trademarks belong to their respective owners. Referenced third-party materials retain their own licenses.
+
+Menu bar background printing: [tray mode](doc/TRAY-MODE.md) · [中文](doc/TRAY-MODE.zh-CN.md).

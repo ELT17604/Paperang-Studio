@@ -2,10 +2,11 @@ import SwiftUI
 import Foundation
 import PrintCore
 import IntegrationCore
+import CryptoKit
 
 struct RelayJob:Identifiable {
  let id:String;var shortID:String="";var text:String;let metadata:[String:Any];let created:Date
- var state="queued";var updated:Date?;var detail="";var hasFullText=true
+ var state="queued";var updated:Date?;var detail="";var hasFullText=true;var content:[String:Any]?=nil
  var sender:String {metadata["identity"] as? String ?? "Anonymous"}
  var printableID:String {let value=shortID.isEmpty ? String(id.replacingOccurrences(of:"-",with:"").prefix(12)).uppercased():shortID;guard value.count==12 else{return value};return stride(from:0,to:12,by:4).map{start in String(value.dropFirst(start).prefix(4))}.joined(separator:"-")}
  var stateLabel:String {["queued":"待处理","claimed":"已认领","printing":"发送中","sent":"已发送，待核对纸面","confirmed":"纸面完成（人工确认）","unknown":"结果不确定","rejected":"已拒绝"][state] ?? state}
@@ -13,7 +14,7 @@ struct RelayJob:Identifiable {
  var rawMetadata:String {guard let bytes=try? JSONSerialization.data(withJSONObject:metadata,options:[.prettyPrinted,.sortedKeys]),let s=String(data:bytes,encoding:.utf8) else{return ""};return s}
  static func decode(_ row:[String:Any])->Self? {
   guard let id=row["id"] as? String,id.range(of:"^(?:[a-f0-9]{40}|[a-f0-9-]{36})$",options:.regularExpression) != nil,let text=row["text"] as? String,text.count<=10000,let meta=row["metadata"] as? [String:Any] else{return nil}
-  return Self(id:id,shortID:row["shortID"] as? String ?? "",text:text,metadata:meta,created:Date(timeIntervalSince1970:(row["created"] as? Double) ?? 0),state:row["state"] as? String ?? "queued",updated:(row["updated"] as? Double).map{Date(timeIntervalSince1970:$0)},detail:row["detail"] as? String ?? "",hasFullText:!(row["truncated"] as? Bool ?? false))
+  return Self(id:id,shortID:row["shortID"] as? String ?? "",text:text,metadata:meta,created:Date(timeIntervalSince1970:(row["created"] as? Double) ?? 0),state:row["state"] as? String ?? "queued",updated:(row["updated"] as? Double).map{Date(timeIntervalSince1970:$0)},detail:row["detail"] as? String ?? "",hasFullText:!(row["truncated"] as? Bool ?? false),content:row["content"] as? [String:Any])
  }
 }
 struct RelayManagedKey:Identifiable {let id:String;var name:String;let role:String;let device:String;let revoked:Bool}
@@ -24,6 +25,7 @@ extension Lab {
   guard let base=relayEndpoint else{throw PrintFailure("请先连接中转服务器")}
   let session=relaySession
   var req=URLRequest(url:base.appendingPathComponent(path));req.httpMethod=method;req.timeoutInterval=4
+  req.setValue("text,raster1",forHTTPHeaderField:"X-Paperang-Content-Types")
   req.cachePolicy = .reloadIgnoringLocalCacheData;req.setValue("Bearer "+(credential ?? relayCredential),forHTTPHeaderField:"Authorization")
   if let body{req.setValue("application/json",forHTTPHeaderField:"Content-Type");req.httpBody=try JSONSerialization.data(withJSONObject:body)}
   let (data,response)=try await URLSession.shared.data(for:req)
@@ -38,7 +40,7 @@ extension Lab {
   relayKey=relayKey.trimmingCharacters(in:.whitespacesAndNewlines)
   guard relayKey.hasPrefix("psr_"),relayKey.utf8.count<=256 else{relayMessage="请输入设备密钥（psr_开头），不是投稿或管理密钥";return}
   if relayFlight != nil && (relayEndpoint != url || relayCredential != relayKey){relayMessage="上一任务尚待回报，请保持同一服务器和设备密钥";return}
-  relaySession=UUID();relayOnline=false;relayFailures=0;relayLastSeen=nil;relayManagedKeys=[];relayCreatedToken="";relayEndpoint=url;relayCredential=relayKey;relayRunning=true;relayMessage="正在连接…";relayAutoPrint=relayDefaultAutoPrint
+  relaySession=UUID();relayOnline=false;relayFailures=0;relayLastSeen=nil;relayManagedKeys=[];relayCreatedToken="";relayEndpoint=url;relayCredential=relayKey;relayRunning=true;relayMessage="正在连接…";relayAutoPrint=trayMode ? !trayPrintPaused:relayDefaultAutoPrint
   let session=relaySession
   relayTask=Task{
    var health=RelayHealth()
@@ -77,11 +79,11 @@ extension Lab {
   guard relayRunning,!relayMutating else{return}
   let result=try await relayRequest("GET","v1/device/jobs")
   guard relayRunning else{return}
-  relayJobs=(result["jobs"] as? [[String:Any]] ?? []).compactMap{row in guard var job=RelayJob.decode(row) else{return nil};if let cached=relayDetailCache[job.id]{job.text=cached.text;job.hasFullText=true};return job}
+  relayJobs=(result["jobs"] as? [[String:Any]] ?? []).compactMap{row in guard var job=RelayJob.decode(row) else{return nil};if let cached=relayDetailCache[job.id]{job.text=cached.text;job.content=cached.content;job.hasFullText=true};return job}
   let ids=Set(relayJobs.map(\.id));relayDetailCache=relayDetailCache.filter{ids.contains($0.key)}
   if !relayJobs.contains(where:{$0.id==relaySelection}){relaySelection=relayJobs.first?.id ?? ""}
   relayMessage="中转已连接 · 待处理 \(relayJobs.filter{$0.state=="queued"}.count) / 最近 \(relayJobs.count) 项 · 每2秒上报/刷新"
-  if relayAutoPrint,allowPaper,ready,!busy,relayFlight==nil,let job=relayJobs.filter({$0.state=="queued"}).min(by:{$0.created<$1.created}){await printRelay(job)}
+  if relayAutoPrint,networkPrintAllowed,ready,!busy,relayFlight==nil,let job=relayJobs.filter({$0.state=="queued"}).min(by:{$0.created<$1.created}){await printRelay(job)}
  }
  var relayPreviewSignature:String {relaySelection+relayStyle+String(relayDensity)+String(relayFeed)+[relayIncludeText,relayIncludeSender,relayIncludeTime,relayIncludeID,relayIncludeIP,relayIncludeUA,relayIncludeDevice].map{String($0)}.joined()+((try? JSONEncoder().encode(currentRelayTemplate).base64EncodedString()) ?? "")}
  func abandonRelayReport(){guard !relayMutating else{return};if let id=relayFlight?.localID,jobs.first(where:{$0.id==id})?.status=="发送中"{return};relayFlight=nil;relayMessage="已清除本地结果关联，不会重新打印旧任务"}
@@ -114,14 +116,14 @@ extension Lab {
  func previewRelay(){guard let job=selectedRelayJob else{return};do{let r=try relayRaster(job,settings:relayPrintSettings());relayPreview=r.png.flatMap{NSImage(data:$0)};relayMessage="预览 \(r.width)×\(r.height)，实际发送使用相同排版流程"}catch{relayPreview=nil;relayMessage=error.localizedDescription}}
  func printSelectedRelay(){guard let job=selectedRelayJob else{return};Task{await self.printRelay(job)}}
  func printRelay(_ job:RelayJob) async {
-  guard relayRunning,relayOnline,!relayMutating,relayFlight==nil,ready,!busy,allowPaper,job.state=="queued" else{relayMessage="请连接P2、开启侧栏全局耗纸并等待当前任务完成";return}
+  guard relayRunning,relayOnline,!relayMutating,relayFlight==nil,ready,!busy,networkPrintAllowed,job.state=="queued" else{relayMessage="请连接P2、开启侧栏全局耗纸并等待当前任务完成";return}
   relayMutating=true;defer{relayMutating=false}
   do{
    let job=try await relayFullJob(job);let s=relayPrintSettings();let r=try relayRaster(job,settings:s)
    let result=try await relayRequest("POST","v1/device/jobs/\(job.id)/claim",[:]);guard let claim=result["claim"] as? String else{throw PrintFailure("缺少任务认领凭据")}
    relayFlight=RelayFlight(serverID:job.id,claim:claim,localID:nil,outcome:nil)
    _ = try await relayRequest("POST","v1/device/jobs/\(job.id)/result",["claim":claim,"state":"printing"])
-   guard relayRunning,allowPaper,ready,!busy else{throw PrintFailure("本地打印条件已改变，任务不会重发")}
+   guard relayRunning,networkPrintAllowed,ready,!busy else{throw PrintFailure("本地打印条件已改变，任务不会重发")}
    let id=try submitRaster(r,settings:s,title:"远程 · "+job.sender)
    relayFlight?.localID=id;if let i=relayJobs.firstIndex(where:{$0.id==job.id}){relayJobs[i].state="printing"};relayMessage="远程任务已提交；完成后回报中转"
   }catch{
@@ -140,11 +142,11 @@ extension Lab {
   let result=try await relayRequest("GET","v1/device/jobs/\(job.id)")
   guard let full=RelayJob.decode(result),full.id==job.id,full.hasFullText else{throw PrintFailure("无法获取完整任务正文，已阻止打印摘要")}
   relayDetailCache[job.id]=full
-  if let i=relayJobs.firstIndex(where:{$0.id==job.id}){relayJobs[i].text=full.text;relayJobs[i].hasFullText=true}
+  if let i=relayJobs.firstIndex(where:{$0.id==job.id}){relayJobs[i].text=full.text;relayJobs[i].hasFullText=true;relayJobs[i].content=full.content}
   return full
  }
  func loadRelaySelection(){relayDetailTask?.cancel();guard let job=selectedRelayJob,!job.hasFullText else{return};relayDetailTask=Task{do{_ = try await self.relayFullJob(job)}catch{if !Task.isCancelled{self.relayMessage=error.localizedDescription}}}}
- func copyRelayToWorkspace(){guard let job=selectedRelayJob else{return};Task{do{let full=try await self.relayFullJob(job);self.text=full.text;self.mode="文字";self.page="打印工作台"}catch{self.relayMessage=error.localizedDescription}}}
+ func copyRelayToWorkspace(){guard let job=selectedRelayJob else{return};Task{do{let full=try await self.relayFullJob(job);if full.content != nil{let image=try self.relayRaster(full,settings:self.relayPrintSettings());guard let png=image.png else{throw PrintFailure("位图转换失败")};self.sourceImage=try Renderer.loadImageData(png);self.imageName="远程绘图 · "+full.printableID;self.mode="图片"}else{self.text=full.text;self.mode="文字"};self.page="打印工作台"}catch{self.relayMessage=error.localizedDescription}}}
 }
 
 extension Lab {

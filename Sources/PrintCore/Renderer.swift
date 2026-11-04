@@ -12,6 +12,10 @@ public struct Raster {
   let im=NSImage(size:NSSize(width:width,height:height));im.addRepresentation(rep);return im
  }
  public var png:Data? {guard let rep=image.representations.first as? NSBitmapImageRep else{return nil};return rep.representation(using:.png,properties:[:])}
+ public static func packed(_ bytes:Data,width:Int=576,height:Int)throws->Self {
+  guard width==576,(1...1400).contains(height),bytes.count==72*height else{throw PrintFailure("远程位图尺寸无效")}
+  return Self(width:width,height:height,bytes:bytes,blackPixels:bytes.reduce(0){$0+$1.nonzeroBitCount})
+ }
  public static func stack(_ parts:[(raster:Raster,spaceBefore:Int)]) throws -> Self {
   guard !parts.isEmpty,parts.count<=24 else{throw PrintFailure("请启用至少一个有内容的区块（最多24个）")}
   var height=0;var data=Data();var black=0

@@ -24,10 +24,10 @@ export class PaperangClient {
   render(text, settings = {}, includeRaw = false) {
     return this.request('POST', '/v1/render', { text, settings, includeRaw });
   }
-  printText(text, { settings = {}, allowPaper = false } = {}) {
+  printText(text, { settings = {}, allowPaper } = {}) {
     return this.request('POST', '/v1/jobs', { text, settings, allowPaper });
   }
-  printImage(imageBase64, { settings = {}, allowPaper = false } = {}) {
+  printImage(imageBase64, { settings = {}, allowPaper } = {}) {
     return this.request('POST', '/v1/jobs', { imageBase64, settings, allowPaper });
   }
   job(id) { return this.request('GET', `/v1/jobs/${encodeURIComponent(id)}`); }

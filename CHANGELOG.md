@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.3 — 2026-11-04
+
+- Menu bar mode retains Bluetooth/network, authorizes network jobs, pauses unrelated work and restores prior settings.
+- Synchronize app, web, server, SDK and current documentation to v0.2.3.
+
+- Invalidate stale lookups on submission; preserve the last accepted/sending stage for unknown jobs.
+- Add versioned raster1 drawing jobs, touch canvas, capability negotiation, row quotas, private full-content fetch and native previews.
+- [Content API and limits](doc/RICH-MEDIA.md).
+
 ## 0.2.2 — 2026-11-04
 
 - Authenticated 2-second heartbeat, fresh/stale status, five retries followed by disconnect and alert.
