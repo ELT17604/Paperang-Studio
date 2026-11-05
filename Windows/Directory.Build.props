@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <PaperangWindowsWorkRoot Condition="'$(PAPERANG_WIN_WORK_DIR)' != ''">$(PAPERANG_WIN_WORK_DIR)</PaperangWindowsWorkRoot>
+    <PaperangWindowsWorkRoot Condition="'$(PaperangWindowsWorkRoot)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../PaperangStudio-Windows-Development'))</PaperangWindowsWorkRoot>
+    <BaseOutputPath>$(PaperangWindowsWorkRoot)/Build/$(MSBuildProjectName)/bin/</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(PaperangWindowsWorkRoot)/Build/$(MSBuildProjectName)/obj/</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

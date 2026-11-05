@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3-win_lite — 2026-11-06 (Windows client)
+
+- Add native Windows tray-only relay reception, settings, encrypted credentials and pending-result recovery, optional sign-in startup and remembered-printer reconnection. The existing macOS defaults, server and webpage are unchanged.
+- Add the macOS-compatible v1 block-template editor with four presets, drag/reorder, paper selection, margins/gaps, variables, JSON import/export and shared drawing/text composition.
+- Fix actual P2 discovery on the tested Windows stack by enumerating all GATT services before selecting FF00; filtered discovery incorrectly returned no entries. Preserve FF03 credits, key-zero CRC, media checks and density readback.
+- Verify complete Chinese paper output with user confirmation, 150-row feed, two reconnect cycles, 39 automated checks and original-relay integration. Keep build output and credentials outside published source; document adapter/firmware and font-rendering limits.
+
 ## 0.2.3-fix1 — 2026-11-04
 
 - Fix remote task previews being invalidated by unstable template serialization; fetch full task content on demand and show loading/errors.

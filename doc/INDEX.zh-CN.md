@@ -4,6 +4,8 @@
 
 从 [项目首页](README.zh-CN.md) 开始。
 
+- Windows：[V0.2.3-win_lite 托盘客户端与模板编辑](WINDOWS.zh-CN.md)、[移植与实机验证](WINDOWS-PORTING.zh-CN.md)
+
 - 使用：[用户指南](USER-GUIDE.zh-CN.md)、[纸带终端](TERMINAL.zh-CN.md)
 - 集成：[HTTP API](API.zh-CN.md)、[OpenAPI 3.0](openapi.json)、[Swift API](SWIFT-API.zh-CN.md)
 - 协议：[完整协议规范](PROTOCOL.zh-CN.md)、[设备配置](p2-profile.json)

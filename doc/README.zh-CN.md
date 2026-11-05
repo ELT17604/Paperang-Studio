@@ -16,6 +16,8 @@
 
 ## 快速开始
 
+**Windows 版本：**已新增 [V0.2.3-win_lite 原生托盘客户端](WINDOWS.zh-CN.md)，兼容同一中转服务器与传统 BLE P2，包含与 Mac v1 JSON 兼容的图形化模板编辑、加密凭证保存和可选登录自启。[源码与构建](../Windows/README.md)。完整 macOS 版保持 0.2.3-fix1。
+
 ```sh
 ./scripts/build.sh
 open '../PaperangStudio-Development/Release/Paperang Studio.app'

@@ -10,6 +10,8 @@ A native macOS app for Paperang P2: text and image printing, a physical paper te
 
 ## Features
 
+**Windows:** [V0.2.3-win_lite](Windows/README.md) is now available as a native tray-only client for the same relay and legacy BLE P2, including compatible block-template editing, encrypted saved credentials and optional sign-in startup. See the [Windows guide](doc/WINDOWS.md) / [简体中文](doc/WINDOWS.zh-CN.md). The full macOS application remains at 0.2.3-fix1.
+
 - **Print workspace:** a shared final monochrome preview for text and images, with rotation, fitting, cropping, dithering, density, copies, paper feed, and reusable presets.
 - **Printer discovery:** Paperang-family candidates shown by default, with an option to show all nearby Bluetooth devices.
 - **Engineering tools:** device readings, a protocol catalog with evidence levels, raw frames, transport settings, and newest-first logs.
@@ -54,6 +56,7 @@ The defaults are density **100**, a **576-dot** canvas (**72 bytes per row**), a
 ## Project layout
 
 - `Sources/`: complete Swift and C implementation.
+- `Windows/`: native Windows tray client, compatible template editor, build scripts and tests.
 - `Configurations/`: importable print presets.
 - `Server/`: lightweight relay, submission website, offline key generator, and Ubuntu installer.
 - `Clients/`: HTTP API client examples.

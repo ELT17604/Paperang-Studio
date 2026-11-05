@@ -17,3 +17,9 @@ work/
 *credentials*.json*
 *.sqlite3*
 Server/config.json
+
+# Windows client build output and local IDE state
+**/bin/
+**/obj/
+.vs/
+*.user

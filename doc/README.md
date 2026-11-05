@@ -8,6 +8,8 @@ All default documentation pages are in English. Each guide links to its Chinese 
 |---|---|---|
 | Project overview | [README](../README.md) | [项目介绍](README.zh-CN.md) |
 | User guide | [User guide](USER-GUIDE.md) | [使用说明](USER-GUIDE.zh-CN.md) |
+| Windows tray client | [Windows guide](WINDOWS.md) | [Windows 使用说明](WINDOWS.zh-CN.md) |
+| Windows porting | [Porting notes](WINDOWS-PORTING.md) | [Windows 移植记录](WINDOWS-PORTING.zh-CN.md) |
 | Paper terminal | [Terminal](TERMINAL.md) | [实体纸带终端](TERMINAL.zh-CN.md) |
 | Layout editor and task IDs | [Guide](LAYOUT-EDITOR.md) | [任务与样式](LAYOUT-EDITOR.zh-CN.md) |
 | macOS temporary relay | [Launcher and options](../Server/macOS-Temporary/README.md) | [macOS终端体验](MACOS-TEMPORARY.zh-CN.md) |
