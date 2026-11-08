@@ -1,0 +1,95 @@
+openapi: 3.1.0
+info:
+  title: Paperang Studio Relay v2 - ChatGPT Actions
+  version: 0.3.0
+  description: >-
+    Minimal least-privilege actions for the existing Paperang Studio relay.
+    A/B bearer token required. Print only at the user's explicit request.
+servers:
+  - url: https://REPLACE-WITH-YOUR-HTTPS-RELAY.example
+security:
+  - submitKey: []
+components:
+  securitySchemes:
+    submitKey:
+      type: http
+      scheme: bearer
+  schemas:
+    JobSubmission:
+      type: object
+      additionalProperties: false
+      required: [text, request_id]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: Exact user-authorized message to print. Check relay limits.
+        request_id:
+          type: string
+          format: uuid
+          description: Stable UUID per intentional print. Reuse on uncertain network retry.
+paths:
+  /v2/public/status:
+    get:
+      operationId: paperangCapabilities
+      summary: Read server policy and supported content types
+      description: Does not assert printer online or paper completion.
+      responses:
+        '200':
+          description: Relay policy and capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /v2/jobs:
+    post:
+      operationId: paperangPrintText
+      summary: Submit exactly one explicitly authorized paper note
+      description: >-
+        Consequential: consumes physical paper. Never call for previews or
+        implicit suggestions. A timeout may have already printed; never
+        create a new request_id to retry it.
+      x-openai-isConsequential: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSubmission'
+      responses:
+        '202':
+          description: Accepted, NOT physically printed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: {type: string}
+                  shortID: {type: string}
+                  accepted: {type: boolean}
+                  statusReadable: {type: boolean}
+  /v2/jobs/{id}:
+    get:
+      operationId: paperangGetJobStatus
+      summary: Read own print status (B credential only)
+      description: A-role keys receive 403. sent is not paper confirmation.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Non-sensitive job state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: {type: string}
+                  shortID: {type: string}
+                  state: {type: string}
+                  created: {type: number}
+                  updated: {type: number}
