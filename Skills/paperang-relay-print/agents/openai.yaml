@@ -1,0 +1,3 @@
+interface:
+  display_name: "Paperang 中转打印"
+  short_description: "通过中转打印文字和图片，调整排版与黑白参数，生成预览并追踪任务回执"

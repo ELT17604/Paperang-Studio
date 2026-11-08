@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.3-relayskill — 2026-11-08 (independent skill distribution)
+
+- Add `Skills/paperang-relay-print` as a peer distribution: native text and print-ready raster1 submission, CJK typography, image transforms/dithering, previews and bounded receipt tracking.
+- Reuse relay HTTP v1 with explicit Content-Length, capability/quota preflight, explicit intended copies and exclusive attempt records; never automatically replay ambiguous submissions.
+- Keep submit credentials separate from device keys and document density/feed/template as receiver-local controls. No client/server protocol or runtime changes are needed.
+- Extend version policy, registry, feature matrix and bilingual docs. Validate 12 local tests, original relay/SQLite integration and read-only live status.
+
 ## v0.2.3-winlite-fix1 — 2026-11-08 (Windows client)
 
 - Keep the tray label fixed at “开启自动打印”; indicate state with its check mark only. Add live status in settings and save/connect on the Connection tab.

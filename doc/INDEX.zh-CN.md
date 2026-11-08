@@ -4,6 +4,8 @@
 
 从 [项目首页](README.zh-CN.md) 开始。
 
+- 独立技能：[RelaySkill 中转打印](RELAY-SKILL.zh-CN.md)，与 Client、Relay、Lite 共用 0.2.3 基线，版本独立维护。
+
 - 跨端同步：[版本命名与兼容规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)、[版本登记表](../VERSIONS.json)
 
 - Windows：[V0.2.3-win_lite 托盘客户端与模板编辑](WINDOWS.zh-CN.md)、[移植与实机验证](WINDOWS-PORTING.zh-CN.md)

@@ -59,6 +59,7 @@ The defaults are density **100**, a **576-dot** canvas (**72 bytes per row**), a
 
 - `Sources/`: complete Swift and C implementation.
 - `Windows/`: native Windows tray client, compatible template editor, build scripts and tests.
+- `Skills/`: independently versioned relay-print skill, renderer, submission helper and tests; [RelaySkill guide](doc/RELAY-SKILL.md).
 - `Configurations/`: importable print presets.
 - `Server/`: lightweight relay, submission website, offline key generator, and Ubuntu installer.
 - `Clients/`: HTTP API client examples.

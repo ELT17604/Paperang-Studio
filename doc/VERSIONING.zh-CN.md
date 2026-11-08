@@ -2,7 +2,7 @@
 
 [English](VERSIONING.md) · [功能实现矩阵](FEATURE-MATRIX.zh-CN.md) · [版本登记表](../VERSIONS.json)
 
-统一格式：**`v主版本.次版本.修订号-distribution[-note]`**，例如 **`v0.2.3-winlite-fix1`**。标签、发布标题、文档使用 `v`；运行时字符串及 VERSION 可省略 `v`。发行版标识固定为小写：`macclient`、`linuxrelayserver`、`winlite`、`winclient`、`linuxclient`，新版本不再使用 `win_lite` 或大小写变体。
+统一格式：**`v主版本.次版本.修订号-distribution[-note]`**，例如 **`v0.2.3-winlite-fix1`**。标签、发布标题、文档使用 `v`；运行时字符串及 VERSION 可省略 `v`。发行版标识固定为小写：`macclient`、`linuxrelayserver`、`winlite`、`relayskill`、`winclient`、`linuxclient`，新版本不再使用 `win_lite` 或大小写变体。
 
 前面的 **0.2.3 是共同功能与兼容基线**：同一代、共享接口/格式兼容、已实现共同功能语义一致。服务端不需要客户端界面，托盘精简版也不自动等于完整客户端；定位差异必须在矩阵逐项说明。完整客户端缺少必需功能时，不能声称已达到同基线完整功能一致。
 

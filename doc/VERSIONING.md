@@ -2,7 +2,7 @@
 
 [简体中文](VERSIONING.zh-CN.md) · [Feature implementation matrix](FEATURE-MATRIX.md) · [Release registry](../VERSIONS.json)
 
-Use **`vMAJOR.MINOR.PATCH-distribution[-note]`**, for example **`v0.2.3-winlite-fix1`**. Tags, release titles and documentation use the leading `v`; runtime strings and VERSION files may omit it. Distribution IDs are stable lowercase ASCII: `macclient`, `linuxrelayserver`, `winlite`, `winclient`, `linuxclient`. Do not introduce `win_lite` or mixed-case spellings in new releases.
+Use **`vMAJOR.MINOR.PATCH-distribution[-note]`**, for example **`v0.2.3-winlite-fix1`**. Tags, release titles and documentation use the leading `v`; runtime strings and VERSION files may omit it. Distribution IDs are stable lowercase ASCII: `macclient`, `linuxrelayserver`, `winlite`, `relayskill`, `winclient`, `linuxclient`. Do not introduce `win_lite` or mixed-case spellings in new releases.
 
 The numeric baseline identifies one product generation and its compatibility contract. Matching baselines mean the declared shared relay API, content and template schemas interoperate, with equivalent semantics for implemented common features. It does not mean a relay server has a printer UI or a tray-only client has every full-client tool. Scope differences must be explicit in the matrix; an unimplemented mandatory feature blocks a full-client parity claim.
 

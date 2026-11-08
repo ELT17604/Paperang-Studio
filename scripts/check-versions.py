@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parents[1]
 registry = json.loads((root / 'VERSIONS.json').read_text(encoding='utf-8'))
 baseline = registry['baseline']
 assert re.fullmatch(r'\d+\.\d+\.\d+', baseline)
-expected = {'macclient', 'linuxrelayserver', 'winlite', 'winclient', 'linuxclient'}
+expected = {'macclient', 'linuxrelayserver', 'winlite', 'relayskill', 'winclient', 'linuxclient'}
 assert set(registry['distributions']) == expected
 for name, item in registry['distributions'].items():
     if item['status'] == 'planned':
@@ -27,4 +27,6 @@ assert f'Current = "{win}"' in (root / 'Windows/src/Paperang.Core/AppVersion.cs'
 assert f'<InformationalVersion>{win}</InformationalVersion>' in (root / 'Windows/src/Paperang.WinLite/Paperang.WinLite.csproj').read_text(encoding='utf-8')
 for doc in ('VERSIONING', 'FEATURE-MATRIX'):
     assert (root / f'doc/{doc}.md').exists() and (root / f'doc/{doc}.zh-CN.md').exists()
+skill = registry['distributions']['relayskill']['runtimeVersion']
+assert f"__version__ = '{skill}'" in (root / 'Skills/paperang-relay-print/scripts/relay_print.py').read_text(encoding='utf-8')
 print('PASS distribution naming, runtime aliases, baseline and bilingual policy/matrix')
