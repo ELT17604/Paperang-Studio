@@ -1,5 +1,11 @@
 # 变更记录
 
+## 未发布 · ChatGPT 发送端实验性集成
+
+- 新增仅监听本机的 MCP 发送端适配器与传统 GPT Actions OpenAPI 兼容定义，保持中转 API v2。
+- 支持明确授权的文字、预渲染 raster1、服务器核实 A/B 身份、B 本身份状态与 UUID 幂等；不自动重试不确定 POST。
+- 补充模拟 HTTP 合同测试、中英文文档及认证/部署边界。OAuth 网关、ChatGPT 真实连接和纸面测试均待完成，不增加正式发行版或修改共享协议。
+
 ## v0.3.0 — 2026-11-08
 
 中转 API v2，A/B/C/M 分级、稳定身份、Argon2id 口令、持久安全 Cookie、RSA 私钥挑战、WinLite/SwiftUI 原生 C 管理和筛选历史 JSONL 导出；同步执行器、Keychain/DPAPI 待回报恢复与 RelaySkill。旧中转 v1 关闭，本地 Mac v1 不变。Windows 已测试，Mac/Linux 原生验证待接手。[升级记录](UPGRADE-v0.3.0.zh-CN.md)。
