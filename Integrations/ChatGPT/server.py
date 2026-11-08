@@ -1,78 +1,81 @@
 #!/usr/bin/env python3
-"""Paperang Studio MCP adapter for Relay API v2.
+"""Paperang Studio ChatGPT MCP adapter (experimental, local backend only).
 
-Run behind a trusted OAuth-capable access gateway. Never expose the bare
-MCP server on the public Internet.
+This is NOT an authentication gateway. Keep it on loopback and place an
+OAuth-capable HTTPS MCP gateway in front of it before remote installation.
 """
-import asyncio
+from __future__ import annotations
+
 import os
-import re
-import uuid
-from urllib.parse import urlsplit
 
-import httpx
-from mcp.server.fastmcp import FastMCP
+from bridge import BridgeError, RelayBridge
 
-RELAY_URL = os.environ.get("PAPERANG_RELAY_URL", "").rstrip("/")
-SUBMIT_KEY = os.environ.get("PAPERANG_RELAY_SUBMIT_KEY", "")
-HOST = os.environ.get("PAPERANG_MCP_HOST", "127.0.0.1")
-PORT = int(os.environ.get("PAPERANG_MCP_PORT", "8188"))
+try:
+    from mcp.server.fastmcp import FastMCP
+except ImportError:
+    raise SystemExit("Install optional MCP runtime: pip install -r requirements.txt")
 
+APP_VERSION = "0.3.0-chatgpt-dev"
+HOST = "127.0.0.1"
+PORT = 8188
+
+# Publicly exposed Streamable HTTP without authorization is unsafe: this
+# server deliberately always binds to loopback.
 mcp = FastMCP("Paperang Studio", host=HOST, port=PORT)
 
 
-def config() -> None:
-    u = urlsplit(RELAY_URL)
-    if u.scheme != "https" or not u.hostname or u.username or u.password or u.query or u.fragment or u.path not in ("", "/"):
-        raise ValueError("PAPERANG_RELAY_URL must be a trusted HTTPS relay root")
-    if not re.fullmatch(r"psr_[A-Za-z0-9_-]{40,100}", SUBMIT_KEY):
-        raise ValueError("Configure a dedicated A/B random submit key, never M/C")
-
-
-async def call(method: str, path: str, body: dict | None = None) -> dict:
-    config()
-    headers = {"Authorization": "Bearer " + SUBMIT_KEY, "Accept": "application/json"}
-    async with httpx.AsyncClient(timeout=12, follow_redirects=False, trust_env=False) as client:
-        response = await client.request(method, RELAY_URL + path, json=body, headers=headers)
-        response.raise_for_status()
-        return response.json()
+def client() -> RelayBridge:
+    endpoint = os.environ.get("PAPERANG_RELAY_URL", "")
+    key = os.environ.get("PAPERANG_RELAY_SUBMIT_KEY", "")
+    return RelayBridge(endpoint, key)
 
 
 @mcp.tool()
 async def relay_capabilities() -> dict:
-    """Read public policy/capabilities. This does NOT prove physical printer readiness."""
-    return await call("GET", "/v2/public/status")
+    """Read relay policy, payload limits and capabilities.
+
+    Public status does not establish real-time Bluetooth/paper readiness.
+    """
+    return await client().capabilities()
 
 
 @mcp.tool()
 async def print_text(text: str, request_id: str) -> dict:
-    """Print exactly one explicitly requested text note. Physical side effect!
-    
-    The caller must get user authorization for the content before invoking.
-    request_id must be a UUID, unique for each intentional submission; reuse
-    the SAME UUID after an uncertain timeout to avoid duplicate output.
-    Never generate another request_id to retry uncertain printing.
+    """Submit ONE explicitly user-authorized note for real physical printing.
+
+    Consumes paper. Do not invoke after mere preview/layout requests.
+    request_id is a canonical UUID for one intentional print; preserve it
+    across an uncertain timeout. Never create a new UUID to retry.
+    Accepted means queued at relay, NOT actually printed.
     """
-    if not isinstance(text, str) or not text.strip() or len(text) > 10000:
-        raise ValueError("Text must be nonempty, at most 10000 characters")
-    try:
-        rid = str(uuid.UUID(request_id))
-    except (ValueError, TypeError, AttributeError):
-        raise ValueError("request_id must be a UUID") from None
-    return await call("POST", "/v2/jobs", {"text": text, "request_id": rid})
+    return await client().submit_text(text, request_id)
+
+
+@mcp.tool()
+async def print_raster1(data: str, height: int, request_id: str,
+                        caption: str = "", sha256: str = "") -> dict:
+    """Print a user-authorized pre-rendered one-bit raster; ONE physical copy.
+
+    Advanced: packed 576px rows, MSB-first, black=1, base64 of 72*height
+    bytes; SHA-256 optional. 1..1400 rows subject to relay quota/receiver
+    footer. This tool does NOT convert images or change physical density,
+    feed, template, or BLE settings. No automatic retries.
+    """
+    return await client().submit_raster(data, height, request_id, caption, sha256)
 
 
 @mcp.tool()
 async def print_status(job_id: str) -> dict:
-    """Read a job's state with a B credential. A credentials cannot read status.
-    
-    'sent' means transport finished, NOT confirmed physical output.
+    """Read job state (B only; A credential returns 403).
+
+    Use a full UUID or 12-hex short ID. sent means transport completion,
+    not physical-paper confirmation; only C can manually confirm.
     """
-    if not re.fullmatch(r"[a-fA-F0-9-]{36}", job_id):
-        raise ValueError("Invalid job id")
-    return await call("GET", "/v2/jobs/" + job_id)
+    return await client().status(job_id)
 
 
 if __name__ == "__main__":
-    config()
+    # Fail closed before listening if the relay or token is misconfigured.
+    client()
+    # RelayBridge constructor validates without making a print request.
     mcp.run(transport="streamable-http")
