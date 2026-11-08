@@ -165,6 +165,22 @@ static class Tests
             var changed = restored with { Style = "小票", Feed = 189 };
             var merged = Settings.WithPrintingFrom(changed);
             Check(merged.Server == Settings.Server && merged.DeviceKey == Settings.DeviceKey && merged.Feed == 189 && merged.TemplateId == template.Id, "print autosave preserves connection credentials and selected template");
+            var full = value with { OwnerKeyFile = @"C:\Paperang\owner.json", AutoConnect = false, AutoAllowPrint = false, KeepReconnecting = false, StartAtLogin = true, AllowHttp = true };
+            store.SaveSettings(full);
+            var all = new LocalStore(directory).LoadSettings();
+            Check(all.OwnerKeyFile == full.OwnerKeyFile && all.StartAtLogin == true && !all.AutoConnect && !all.AutoAllowPrint && !all.KeepReconnecting && all.AllowHttp, "restart restores key-file path and all connection/startup preferences");
+            store.SaveDraft(full with { Server = "unfinished server" });
+            Check(new LocalStore(directory).LoadDraft()?.Server == "unfinished server" && store.LoadSettings().Server == full.Server, "unfinished connection draft persists separately without replacing recoverable active configuration");
+            Check(!Encoding.UTF8.GetString(File.ReadAllBytes(Path.Combine(directory, "settings-draft.dat"))).Contains("unfinished server"), "connection drafts are DPAPI encrypted");
+            var ui = new UiPreferences { SettingsTab = 3, ShowAllPrinters = true, AdminCategory = 4, AdminPageSize = 100, AdminHideRevoked = false, AdminUserFilter = "fixture-identity" };
+            store.SaveUi(ui);
+            Check(new LocalStore(directory).LoadUi() == ui, "management category, page size, revoked filter and settings tabs survive restart");
+            string exported = ConfigurationExport.Serialize(full, ui);
+            using (var document = JsonDocument.Parse(exported)) {
+                var exportedSettings = document.RootElement.GetProperty("settings").Deserialize<AppSettings>(RelayClient.Json)!;
+                Check(document.RootElement.GetProperty("schemaVersion").GetInt32() == 1 && exportedSettings.OwnerKeyFile == full.OwnerKeyFile && exportedSettings.Templates[0].Name == template.Name && exportedSettings.StartAtLogin == true, "JSON configuration export preserves paths, templates and startup preference");
+                Check(exportedSettings.DeviceKey == "" && !exported.Contains("psr_test") && !exported.Contains("privateKeyPem") && document.RootElement.GetProperty("ui").GetProperty("adminPageSize").GetInt32() == 100, "configuration export omits raw credentials and private-key contents while retaining UI preferences");
+            }
             var legacy = JsonSerializer.Deserialize<AppSettings>("{}", RelayClient.Json)!;
             Check(legacy.KeepReconnecting && RelayTiming.Default.RetryCooldown == TimeSpan.FromMinutes(1), "old settings default to continuous reconnect and exact 60 second cooldown");
             Parallel.For(0, 80, i => { store.SaveSettings(value with { Feed = i }); store.Save(new PendingResult("http://localhost/", "fixture", new string('a', 40), "fixture")); });

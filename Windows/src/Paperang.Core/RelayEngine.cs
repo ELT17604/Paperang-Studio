@@ -32,6 +32,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
     public void InvalidatePrinter() => reconnectPrinter = true;
     public void ApplyTemplates(List<RelayTemplate> templates, string id) => settings = settings with { Templates = templates, TemplateId = id, Style = "自定义" };
     public void ApplyPrintingPreferences(AppSettings value) => settings = settings.WithPrintingFrom(value);
+    public void ApplySavedPreferences(AppSettings value) => settings = settings.WithPrintingFrom(value) with { KeepReconnecting = value.KeepReconnecting, AutoConnect = value.AutoConnect, StartAtLogin = value.StartAtLogin };
     public async Task StartAsync(AppSettings value)
     {
         value.Validate();

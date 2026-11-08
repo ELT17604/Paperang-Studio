@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1-winlite-fix2 — 2026-11-09
+
+Autosave all settings, including the paired owner-file path, startup preferences, remembered printer and reconnect options. Encrypt unfinished connection drafts separately from active recovery settings. Remember settings/management tabs, page size, revoked-row visibility and identity filters. Add versioned JSON configuration export with templates and UI preferences; raw credentials, private-key contents, sessions and pending tasks are excluded. Valid settings are restored on startup; live connection changes still use Save and Connect.
+
 ## v0.3.1-winlite-fix1 — 2026-11-09
 
 Redesign the native management center with category navigation, contextual actions, readable tables, 25/50/100-row pages, previous/next navigation and optional hiding of revoked credentials/identities. Credential creation uses a dedicated form and server-generated IDs; existing identities are selected rather than typed. Key generation requires an unlocked owner and writes the registered ID automatically, without placeholder JSON. Add backwards-compatible relay pagination/filtering and content-free C history summaries with selected-record details. Legacy relays remain usable through bounded client paging.

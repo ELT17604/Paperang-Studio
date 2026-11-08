@@ -17,6 +17,7 @@ public sealed record AppSettings
     public bool AutoConnect { get; init; } = true;
     public bool AutoAllowPrint { get; init; } = true;
     public bool KeepReconnecting { get; init; } = true;
+    public bool? StartAtLogin { get; init; }
     public string Style { get; init; } = "便签";
     public int Density { get; init; } = 100;
     public int Feed { get; init; } = 150;

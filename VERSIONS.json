@@ -31,8 +31,8 @@
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.1-winlite-fix1",
-      "runtimeVersion": "0.3.1-winlite-fix1",
+      "version": "v0.3.1-winlite-fix2",
+      "runtimeVersion": "0.3.1-winlite-fix2",
       "versionSource": "Windows/VERSION",
       "verification": "Windows regression and live owner-management UI verified; native management redesign and legacy pagination supported"
     },

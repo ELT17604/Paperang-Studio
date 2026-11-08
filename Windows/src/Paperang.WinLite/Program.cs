@@ -33,7 +33,7 @@ internal static class Program
         var me = await client.Get("v2/auth/me", timeout.Token);
         if (me.GetProperty("role").GetString() != "C") throw new InvalidDataException("私钥未获得 C 管理权限");
         await client.Get("v2/device/jobs", timeout.Token);
-        store.SaveSettings(next);
+        store.SaveSettings(next); store.SaveDraft(next);
         Console.WriteLine("所有者配对及执行权限已验证；旧密钥值已清除，模板和打印设置已保留");
     }
 }
@@ -119,7 +119,7 @@ internal sealed class TrayContext : ApplicationContext
     private void ShowSettings()
     {
         if (form is { IsDisposed: false }) { form.WindowState = FormWindowState.Normal; form.Show(); form.Activate(); return; }
-        form = new SettingsForm(settings, engine, async (value, startup) => {
+        form = new SettingsForm(store.LoadDraft() ?? settings, engine, async (value, startup) => {
             value.Validate();
             if (engine.Busy) throw new InvalidOperationException("请等待当前打印完成后保存");
             // Validate journal affinity before replacing credentials on disk.
@@ -127,16 +127,27 @@ internal sealed class TrayContext : ApplicationContext
             if (pending != null && (pending.Server != value.Validate().AbsoluteUri || pending.KeyFingerprint != RelayEngine.CredentialFingerprint(value)))
                 throw new InvalidOperationException("有未回报结果，请先使用原服务器和密钥重新连接");
             StartupRegistration.Set(startup);
-            store.SaveSettings(value); settings = value; storageError = "";
+            store.SaveSettings(value); store.SaveDraft(value); settings = value; storageError = "";
             await engine.StartAsync(settings);
         }, (templates, id) => {
             var next = settings with { Templates = templates, TemplateId = id, Style = "自定义" };
             foreach (var template in templates) template.Validate();
             store.SaveSettings(next); settings = next; engine.ApplyTemplates(templates, id);
-        }, value => {
-            var next = settings.WithPrintingFrom(value);
-            foreach (var template in next.Templates) template.Validate();
-            store.SaveSettings(next); settings = next; engine.ApplyPrintingPreferences(next);
+        }, (value, startup) => {
+            foreach (var template in value.Templates) template.Validate();
+            value = value with { StartAtLogin = startup };
+            store.SaveDraft(value);
+            if (StartupRegistration.Enabled != startup) StartupRegistration.Set(startup);
+            var next = settings.WithPrintingFrom(value) with { AutoConnect = value.AutoConnect, KeepReconnecting = value.KeepReconnecting, StartAtLogin = startup };
+            string result = "全部设置已自动保存；连接变更可点击“保存并连接”立即应用。";
+            try {
+                var uri = value.Validate(); var pending = store.Load();
+                if (pending == null || pending.Server == uri.AbsoluteUri && pending.KeyFingerprint == RelayEngine.CredentialFingerprint(value)) next = value;
+                else result = "全部草稿已保存；先完成原连接的待回报任务，再切换服务器或私钥。";
+            } catch (ArgumentException) { result = "全部草稿已保存；连接尚未填完整，后台继续使用原连接。"; }
+              catch (Exception e) when (e is InvalidDataException or System.Text.Json.JsonException or System.Security.Cryptography.CryptographicException or IOException or UnauthorizedAccessException) { result = "全部草稿已保存；请检查私钥文件，后台继续使用原连接。"; }
+            store.SaveSettings(next); settings = next; engine.ApplySavedPreferences(next);
+            return result;
         });
         form.Show();
     }

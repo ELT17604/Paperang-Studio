@@ -10,7 +10,9 @@ namespace Paperang.WinLite;
 /// Administrative credentials live only for the lifetime of this window.
 internal sealed class AdminForm : Form
 {
-    private readonly AppSettings settings;
+    private AppSettings settings;
+    private readonly Func<string, bool>? rememberOwner;
+    private readonly LocalStore local = new();
     private RelayClient? client;
     private readonly CancellationTokenSource lifetime = new();
     private readonly TextBox user = new() { ReadOnly = true, Width = 250, PlaceholderText = "全部身份" };
@@ -37,10 +39,11 @@ internal sealed class AdminForm : Form
     private readonly System.Windows.Forms.Timer sessionTimer = new() { Interval = 600000 };
     private bool busy;
 
-    public AdminForm(AppSettings settings)
+    public AdminForm(AppSettings settings, Func<string, bool>? rememberOwner = null)
     {
         SuspendLayout(); AutoScaleDimensions = new SizeF(96, 96);
-        this.settings = settings;
+        this.settings = settings; this.rememberOwner = rememberOwner;
+        var ui = local.LoadUi(); hideRevoked.Checked = ui.AdminHideRevoked; user.Text = ui.AdminUserFilter;
         Text = "Paperang Studio · 管理中心"; ClientSize = new Size(1180, 780);
         MinimumSize = new Size(1040, 700); Font = new Font("Microsoft YaHei UI", 9.5f); AutoScaleMode = AutoScaleMode.Dpi;
         StartPosition = FormStartPosition.CenterParent; BackColor = Color.FromArgb(246, 248, 252);
@@ -58,7 +61,7 @@ internal sealed class AdminForm : Form
         var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2 };
         workspace.ColumnStyles.Add(new(SizeType.Absolute, 160)); workspace.ColumnStyles.Add(new(SizeType.Percent, 100));
         string[] categories = ["凭证", "身份", "浏览器会话", "任务历史", "审计记录"];
-        view.Items.AddRange(categories); view.SelectedIndex = 0;
+        view.Items.AddRange(categories); view.SelectedIndex = Math.Clamp(ui.AdminCategory, 0, categories.Length - 1);
         navigation.DrawMode = DrawMode.OwnerDrawFixed;
         navigation.DrawItem += (_, e) => {
             if (e.Index < 0) return;
@@ -66,19 +69,19 @@ internal sealed class AdminForm : Form
             using var brush = new SolidBrush(selected ? Color.FromArgb(219, 231, 250) : navigation.BackColor); e.Graphics.FillRectangle(brush, e.Bounds);
             TextRenderer.DrawText(e.Graphics, categories[e.Index], navigation.Font, new Rectangle(e.Bounds.X + 10, e.Bounds.Y, e.Bounds.Width - 12, e.Bounds.Height), selected ? Color.FromArgb(25, 70, 135) : Color.FromArgb(65, 83, 107), TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
         };
-        navigation.Items.AddRange(categories); navigation.SelectedIndex = 0;
+        navigation.Items.AddRange(categories); navigation.SelectedIndex = view.SelectedIndex;
         var sidebar = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10, 20, 10, 10), BackColor = navigation.BackColor, Margin = new Padding(0, 0, 18, 0) };
         sidebar.Controls.Add(navigation); workspace.Controls.Add(sidebar, 0, 0);
         var main = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, BackColor = Color.White, Padding = new Padding(16) };
         main.RowStyles.Add(new(SizeType.AutoSize)); main.RowStyles.Add(new(SizeType.AutoSize)); main.RowStyles.Add(new(SizeType.AutoSize)); main.RowStyles.Add(new(SizeType.Percent, 100)); main.RowStyles.Add(new(SizeType.AutoSize));
-        heading.Text = "凭证"; main.Controls.Add(heading, 0, 0);
+        heading.Text = view.Text; main.Controls.Add(heading, 0, 0);
         void Context(string text, Func<Task> run, params int[] views) { var button = AddButton(actions, text, run); contextual.Add((button, views)); }
         Context("＋ 新建凭证", Create, 0, 1); Context("修改展示名称", Rename, 0); Context("轮换…", Rotate, 0);
         Context("吊销…", Revoke, 0, 1, 2); Context("登记公钥…", TrustKey, 0);
         Context("查看此身份的任务", FilterSelected, 0, 1); Context("导出历史…", Export, 3); Context("确认纸面完成", Confirm, 3);
         main.Controls.Add(actions, 0, 1);
         filters.Controls.Add(hideRevoked); filters.Controls.Add(new Label { Text = "任务身份", AutoSize = true, Padding = new Padding(8, 8, 0, 0), Name = "filterLabel" });
-        filters.Controls.Add(user); var clearFilter = AddButton(filters, "清除筛选", async () => { user.Clear(); await RefreshRows(false); }); clearFilter.Name = "clearFilter";
+        filters.Controls.Add(user); var clearFilter = AddButton(filters, "清除筛选", async () => { user.Clear(); SaveUi(); await RefreshRows(false); }); clearFilter.Name = "clearFilter";
         main.Controls.Add(filters, 0, 2);
         grid.EnableHeadersVisualStyles = false; grid.ColumnHeadersHeight = 40; grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
         grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(239, 243, 249), ForeColor = Color.FromArgb(47, 65, 89), Font = new Font(Font, FontStyle.Bold), Padding = new Padding(6) };
@@ -91,14 +94,14 @@ internal sealed class AdminForm : Form
         var imagePage = new TabPage("任务图片"); imagePage.Controls.Add(bodyImage);
         contents.TabPages.AddRange([recordPage, textPage, imagePage]); split.Panel1.Controls.Add(grid); split.Panel2.Controls.Add(contents); main.Controls.Add(split, 0, 3);
         paging.Controls.Add(new Label { Text = "每页", AutoSize = true, Padding = new Padding(0, 8, 3, 0) });
-        pageSize.Items.AddRange([25, 50, 100]); pageSize.SelectedIndex = 0; paging.Controls.Add(pageSize);
+        pageSize.Items.AddRange([25, 50, 100]); pageSize.SelectedItem = new[] { 25, 50, 100 }.Contains(ui.AdminPageSize) ? ui.AdminPageSize : 25; paging.Controls.Add(pageSize);
         previous = AddButton(paging, "上一页", async () => { if (pageIndex > 0) { pageIndex--; await DisplayPage(); } });
         nextPage = AddButton(paging, "下一页", () => RefreshRows(true)); paging.Controls.Add(pageLabel); AddButton(paging, "刷新", () => RefreshRows(false)); main.Controls.Add(paging, 0, 4);
         workspace.Controls.Add(main, 1, 0); root.Controls.Add(workspace, 0, 1); root.Controls.Add(message, 0, 2); Controls.Add(root);
         grid.SelectionChanged += async (_, _) => { if (!busy && client != null) await Work(LoadSelected); };
-        navigation.SelectedIndexChanged += async (_, _) => { view.SelectedIndex = navigation.SelectedIndex; UpdateContext(); if (client != null) await Work(() => RefreshRows(false)); };
-        pageSize.SelectedIndexChanged += async (_, _) => { if (client != null) await Work(() => RefreshRows(false)); };
-        hideRevoked.CheckedChanged += async (_, _) => { if (client != null) await Work(() => RefreshRows(false)); };
+        navigation.SelectedIndexChanged += async (_, _) => { view.SelectedIndex = navigation.SelectedIndex; SaveUi(); UpdateContext(); if (client != null) await Work(() => RefreshRows(false)); };
+        pageSize.SelectedIndexChanged += async (_, _) => { SaveUi(); if (client != null) await Work(() => RefreshRows(false)); };
+        hideRevoked.CheckedChanged += async (_, _) => { SaveUi(); if (client != null) await Work(() => RefreshRows(false)); };
         FormClosed += (_, _) => { lifetime.Cancel(); client?.Dispose(); sessionTimer.Dispose(); ClearDetails(); rows.Clear(); pages.Clear(); lifetime.Dispose(); };
         Shown += async (_, _) => { if (File.Exists(settings.OwnerKeyFile)) await Work(() => LoginOwnerFile(settings.OwnerKeyFile)); };
         sessionTimer.Tick += (_, _) => { if (!busy) Lock(); };
@@ -110,6 +113,11 @@ internal sealed class AdminForm : Form
         var button = new Button { Text = title, AutoSize = true, MinimumSize = new Size(72, 34), Padding = new Padding(8, 3, 8, 3), Margin = new Padding(0, 3, 8, 3), FlatStyle = FlatStyle.Flat, BackColor = Color.White };
         button.FlatAppearance.BorderColor = Color.FromArgb(211, 220, 232);
         button.Click += async (_, _) => await Work(run); panel.Controls.Add(button); return button;
+    }
+    private void SaveUi()
+    {
+        try { local.SaveUi(local.LoadUi() with { AdminCategory = view.SelectedIndex, AdminPageSize = (int)pageSize.SelectedItem!, AdminHideRevoked = hideRevoked.Checked, AdminUserFilter = user.Text }); }
+        catch { message.Text = "管理界面偏好保存失败，请检查本地数据权限。"; }
     }
     private void UpdateContext()
     {
@@ -139,6 +147,11 @@ internal sealed class AdminForm : Form
         using var authorized = new RelayClient(settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" });
         var me = await authorized.Get("v2/auth/me", lifetime.Token);
         if (me.GetProperty("role").GetString() != "C") throw new InvalidDataException("私钥未获得 C 权限");
+        if (!string.Equals(settings.OwnerKeyFile, path, StringComparison.OrdinalIgnoreCase))
+        {
+            if (rememberOwner != null && !rememberOwner(path)) throw new InvalidOperationException("私钥路径保存失败，请检查本地配置权限。");
+            settings = settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" };
+        }
         // Each management request can renew its proof session without storing a token.
         client?.Dispose(); client = new RelayClient(settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" });
         actions.Enabled = filters.Enabled = paging.Enabled = true; sessionTimer.Stop(); sessionTimer.Start(); await RefreshRows(false);
@@ -249,7 +262,7 @@ internal sealed class AdminForm : Form
     private Task FilterSelected()
     {
         var row = Selected(); user.Text = row.GetProperty(view.SelectedIndex == 1 ? "id" : "user_id").GetString();
-        navigation.SelectedIndex = 3; view.SelectedIndex = 3; UpdateContext(); return RefreshRows(false);
+        navigation.SelectedIndex = 3; view.SelectedIndex = 3; SaveUi(); UpdateContext(); return RefreshRows(false);
     }
     private async Task ShowSecret(Task<JsonElement> operation)
     {

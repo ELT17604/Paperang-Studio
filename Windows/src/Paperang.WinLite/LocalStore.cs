@@ -14,6 +14,10 @@ internal sealed class LocalStore : IJournal
     public LocalStore(string? directory = null) => this.directory = directory ?? Root;
     public AppSettings LoadSettings() => Read<AppSettings>("settings.dat") ?? new();
     public void SaveSettings(AppSettings value) => Write("settings.dat", value);
+    public AppSettings? LoadDraft() => Read<AppSettings>("settings-draft.dat");
+    public void SaveDraft(AppSettings value) => Write("settings-draft.dat", value);
+    public UiPreferences LoadUi() => Read<UiPreferences>("ui.dat") ?? new();
+    public void SaveUi(UiPreferences value) => Write("ui.dat", value);
     public PendingResult? Load() => Read<PendingResult>("pending.dat");
     public void Save(PendingResult? value)
     {
@@ -62,6 +66,26 @@ internal sealed class LocalStore : IJournal
         }
         finally { Marshal.FreeHGlobal(input.Data); if (output.Data != IntPtr.Zero) LocalFree(output.Data); }
     }
+}
+
+internal sealed record UiPreferences
+{
+    public int SettingsTab { get; init; }
+    public bool ShowAllPrinters { get; init; }
+    public int AdminCategory { get; init; }
+    public int AdminPageSize { get; init; } = 25;
+    public bool AdminHideRevoked { get; init; } = true;
+    public string AdminUserFilter { get; init; } = "";
+}
+
+internal static class ConfigurationExport
+{
+    public static string Serialize(AppSettings settings, UiPreferences ui) => JsonSerializer.Serialize(new {
+        format = "paperang-winlite-config", schemaVersion = 1, version = AppVersion.Current,
+        exportedAt = DateTimeOffset.UtcNow,
+        note = "包含本地私钥路径，不包含私钥文件、密钥正文、会话或待回报任务。换机需单独迁移私钥并调整路径。",
+        settings = settings with { DeviceKey = "" }, ui
+    }, new JsonSerializerOptions(RelayClient.Json) { WriteIndented = true });
 }
 
 internal static class StartupRegistration
