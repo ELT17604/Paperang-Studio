@@ -139,12 +139,20 @@ class RelayClient:
         except ValueError:
             raise PaperangError("Relay returned invalid JSON") from None
 
+    async def identity(self) -> dict:
+        """Verify A/B role from the server, not token format."""
+        response = await self.request("GET", "/v2/auth/me")
+        if response.get("role") not in ("A", "B"):
+            raise PaperangError("ChatGPT adapter requires a dedicated A/B sender identity")
+        return {"role": response["role"]}
+
     async def capabilities(self) -> dict:
         return await self.request("GET", "/v2/public/status")
 
     async def submit(self, job: dict, request_id: str, *, allow_queue: bool = False) -> dict:
         """Call only after explicit print authorization; never retry POST."""
         rid = normalize_request_id(request_id)
+        await self.identity()  # Reject C/M before a physical submission.
         validated, units = validated_job(job.get("text", ""), job.get("content"))
         policy = await self.capabilities()
         if policy.get("capabilities", {}).get("authVersion") != 2:
@@ -169,6 +177,9 @@ class RelayClient:
     async def status(self, job_id: str) -> dict:
         if not isinstance(job_id, str) or not JOB_ID_RE.fullmatch(job_id):
             raise PaperangError("Invalid job identifier")
+        identity = await self.identity()
+        if identity["role"] != "B":
+            raise PaperangError("Job status requires a B sender identity")
         result = await self.request("GET", "/v2/jobs/" + job_id)
         return {k: result[k] for k in ("id", "shortID", "state", "created", "updated") if k in result}
 
