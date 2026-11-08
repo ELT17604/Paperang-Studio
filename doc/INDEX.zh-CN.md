@@ -6,14 +6,14 @@
 
 - ChatGPT 集成（实验性源码）：[中文说明](CHATGPT.zh-CN.md) · [English](CHATGPT.md) · [适配器源码](../Integrations/ChatGPT/README.md)。当前尚未部署网关或在 ChatGPT 中安装。
 
-- 独立技能：[RelaySkill 中转打印](RELAY-SKILL.zh-CN.md)，与 Client、Relay、Lite 共用 0.2.3 基线，版本独立维护。
+- 独立技能：[RelaySkill 中转打印](RELAY-SKILL.zh-CN.md)，与 Client、Relay、Lite 共用 0.3.0 基线，版本独立维护。
 
 - 跨端同步：[版本命名与兼容规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)、[版本登记表](../VERSIONS.json)
 
 - Windows：[V0.2.3-win_lite 托盘客户端与模板编辑](WINDOWS.zh-CN.md)、[移植与实机验证](WINDOWS-PORTING.zh-CN.md)
 
 - 使用：[用户指南](USER-GUIDE.zh-CN.md)、[纸带终端](TERMINAL.zh-CN.md)
-- 集成：[HTTP API](API.zh-CN.md)、[OpenAPI 3.0](openapi.json)、[Swift API](SWIFT-API.zh-CN.md)
+- 集成：[ChatGPT 实验性插件适配](CHATGPT.zh-CN.md)、[HTTP API](API.zh-CN.md)、[OpenAPI 3.0](openapi.json)、[Swift API](SWIFT-API.zh-CN.md)
 - 协议：[完整协议规范](PROTOCOL.zh-CN.md)、[设备配置](p2-profile.json)
 - 研究：[获取步骤与验证](ACQUISITION.zh-CN.md)、[跨型号研究](RESEARCH.zh-CN.md)、[ESP32补充](ESP32-EMULATOR.zh-CN.md)、[充电与LED](CHARGING-AND-LED.zh-CN.md)
 - 开发：[架构与构建](ARCHITECTURE.zh-CN.md)、[来源](SOURCES.zh-CN.md)、[固定版本](source-revisions.json)
