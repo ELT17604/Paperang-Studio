@@ -17,6 +17,7 @@ import httpx
 
 TOKEN_RE = re.compile(r"psr_[A-Za-z0-9_-]{40,100}\Z")
 JOB_ID_RE = re.compile(r"(?:[a-fA-F0-9]{40}|[a-fA-F0-9-]{36})\Z")
+SHORT_ID_RE = re.compile(r"[a-fA-F0-9]{12}\Z")
 MAX_BODY_BYTES = 163840
 MAX_TEXT = 10000
 MAX_ROWS = 1400
@@ -30,8 +31,11 @@ def relay_url(value: str) -> str:
     """Reject URL credentials, fragments, paths and unsafe remote HTTP."""
     url = urlsplit(value or "")
     try:
-        loopback = url.hostname == "localhost" or ipaddress.ip_address(url.hostname or "").is_loopback
         _ = url.port
+    except ValueError:
+        raise PaperangError("Invalid relay port") from None
+    try:
+        loopback = url.hostname == "localhost" or ipaddress.ip_address(url.hostname or "").is_loopback
     except ValueError:
         loopback = url.hostname == "localhost"
     if (url.scheme not in ("http", "https") or not url.hostname
@@ -149,7 +153,7 @@ class RelayClient:
     async def capabilities(self) -> dict:
         return await self.request("GET", "/v2/public/status")
 
-    async def submit(self, job: dict, request_id: str, *, allow_queue: bool = False) -> dict:
+    async def submit(self, job: dict, request_id: str) -> dict:
         """Call only after explicit print authorization; never retry POST."""
         rid = normalize_request_id(request_id)
         await self.identity()  # Reject C/M before a physical submission.
@@ -166,21 +170,19 @@ class RelayClient:
         limit = policy.get("policy", {}).get("authenticated_max_length")
         if type(limit) is not int or units > limit:
             raise PaperangError("Job exceeds relay configured sender allowance")
-        # Public status cannot report physical printer readiness. allow_queue is
-        # reserved for future private readiness preflight, not a server override.
-        _ = allow_queue
         result = await self.request("POST", "/v2/jobs", {**validated, "request_id": rid})
         if result.get("accepted") is not True or not JOB_ID_RE.fullmatch(result.get("id", "")):
             raise PaperangError("Uncertain submission result; do not retry with a new request_id")
         return {k: result[k] for k in ("id", "shortID", "accepted", "statusReadable") if k in result}
 
     async def status(self, job_id: str) -> dict:
-        if not isinstance(job_id, str) or not JOB_ID_RE.fullmatch(job_id):
+        if not isinstance(job_id, str) or not (JOB_ID_RE.fullmatch(job_id) or SHORT_ID_RE.fullmatch(job_id)):
             raise PaperangError("Invalid job identifier")
         identity = await self.identity()
         if identity["role"] != "B":
             raise PaperangError("Job status requires a B sender identity")
-        result = await self.request("GET", "/v2/jobs/" + job_id)
+        path = "/v2/jobs/lookup/" + job_id.upper() if SHORT_ID_RE.fullmatch(job_id) else "/v2/jobs/" + job_id
+        result = await self.request("GET", path)
         return {k: result[k] for k in ("id", "shortID", "state", "created", "updated") if k in result}
 
 
