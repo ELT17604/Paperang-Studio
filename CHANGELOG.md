@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased · ChatGPT sender integration (experimental)
+
+- Add loopback MCP sender adapter and optional GPT Actions OpenAPI schema targeting existing Relay API v2.
+- Support explicitly authorized text and pre-rendered raster1, server-side A/B identity verification, B own-status and UUID idempotency; never retry ambiguous POST.
+- Add offline HTTP contract tests, bilingual guides and security/deployment boundaries. OAuth gateway, live ChatGPT connection and paper testing remain pending; no new released distribution or shared protocol change.
+
 ## v0.3.0 — 2026-11-08
 
 Coordinated API v2 identity/authentication update, A/B/C/M permissions, persistent browser sessions, RSA owner files, native WinLite/SwiftUI C administration, filtered JSONL history/export and migration safeguards. RelaySkill upgraded; local Mac API v1 retained. Windows tested; native Mac/Linux deployment validation pending. [Complete upgrade record](doc/UPGRADE-v0.3.0.zh-CN.md).
