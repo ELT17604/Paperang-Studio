@@ -43,8 +43,7 @@ jobs under their identity.
 
 The adapter does not expose C/M credentials, printer controls, the local
 Mac API, thermal density, physical feed or receiver templates. Text uses
-the receiver's active template. `print_raster1` takes exact pre-rendered
-base64 one-bit bytes, **not** a PNG/JPEG or arbitrary source URL.
+the receiver's active template. `print_raster1` accepts the exact RelaySkill-compatible `content` object (including base64-packed bytes and SHA-256), **not** a PNG/JPEG or arbitrary source URL.
 It checks 576 columns/72 bytes each row, 1..1400 rows, MSB-first,
 black=1 and SHA-256. Combined receiver footer + content must still fit
 1400 rows and the active relay quota. For full image/photo/CJK rendering,
@@ -69,8 +68,7 @@ Use a **fresh, dedicated, revocable A or B random key** created in the
 project's C management UI/CLI. Do not use an M receiver key or C owner key.
 Put secrets in a restricted environment file/secret manager, never in
 repo commits, public examples, URL query parameters, command-line flags,
-or ChatGPT messages. HTTPS is mandatory for the relay root; redirects
-are rejected. The MCP backend is locally available at
+or ChatGPT messages. HTTPS is mandatory for remote relay roots (HTTP loopback only for local tests); redirects are rejected. The MCP backend is locally available at
 `http://127.0.0.1:8188/mcp`, not publicly authenticated. Deploy a
 trusted HTTPS/OAuth gateway first, configured to forward only the MCP
 endpoint and enforce authorization. A generic reverse proxy with TLS
@@ -98,7 +96,7 @@ python3 -m unittest discover -s Integrations/ChatGPT -p 'test_*.py' -v
 python3 scripts/check-versions.py
 ```
 
-Unit tests use `httpx.MockTransport` and do **not** send paper or access
+The Python sender is implemented in `core.py`; MCP tools are declared in `server.py`. Unit tests use `httpx.MockTransport` and do **not** send paper or access
 a live server. After deployment, run a controlled staging test against
 a v0.3.0 relay: capabilities, A read denial, B own-status read, one
 approved text print, raster1 render, uncertain timeout/no replay, and
