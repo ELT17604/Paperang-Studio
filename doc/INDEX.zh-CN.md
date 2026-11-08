@@ -4,6 +4,8 @@
 
 从 [项目首页](README.zh-CN.md) 开始。
 
+- ChatGPT 集成（实验性源码）：[中文说明](CHATGPT.zh-CN.md) · [English](CHATGPT.md) · [适配器源码](../Integrations/ChatGPT/README.md)。当前尚未部署网关或在 ChatGPT 中安装。
+
 - 独立技能：[RelaySkill 中转打印](RELAY-SKILL.zh-CN.md)，与 Client、Relay、Lite 共用 0.2.3 基线，版本独立维护。
 
 - 跨端同步：[版本命名与兼容规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)、[版本登记表](../VERSIONS.json)
