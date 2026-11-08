@@ -189,6 +189,28 @@ class SecurityTests(unittest.TestCase):
         Store(dict(database=path))
         self.assertEqual(len(list(Path(self.temp.name).glob('legacy.db.pre-v0.3.0-*.bak'))),1)
 
+    def test_raw_token_cannot_be_used_as_cookie(self):
+        with self.assertRaises(Problem) as exc:
+            self.auth.authenticate(cookie='psr_session='+self.credentials['C']['token'])
+        self.assertEqual(exc.exception.status,401)
+
+    def test_repeated_heartbeat_does_not_inflate_events(self):
+        job=self.submit('B');path='/v2/device/jobs/'+job['id']
+        claim=self.route('POST',path+'/claim','M')['claim']
+        for _ in range(20):
+            self.route('POST',path+'/result','M',dict(claim=claim,state='printing'))
+        with self.s.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM job_events WHERE job_id=?',(job['id'],)).fetchone()[0],3)
+
+    def test_prune_removes_related_rows_in_one_pass(self):
+        import time
+        job=self.submit('B')
+        with self.s.connect() as db:
+            db.execute('UPDATE jobs SET updated=0 WHERE id=?',(job['id'],))
+            self.s.prune(db,time.time())
+            for table in ('job_events','submission_ids'):
+                self.assertEqual(db.execute('SELECT count(*) FROM '+table+' WHERE job_id=?',(job['id'],)).fetchone()[0],0)
+
     def test_HTTP_cookie_csrf_and_native_login(self):
         self.s.c['port']=0;server=Server(self.s);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         base='http://127.0.0.1:'+str(server.server_port)
@@ -197,6 +219,10 @@ class SecurityTests(unittest.TestCase):
             req=urllib.request.Request(base+path,data=wire,headers={'Content-Type':'application/json',**(headers or {})})
             return urllib.request.urlopen(req)
         try:
+            for path in ('/v1/public/status','/v1/device/jobs'):
+                with self.assertRaises(urllib.error.HTTPError) as exc:
+                    call(path,headers={'Authorization':'Bearer revoked'})
+                self.assertEqual(exc.exception.code,410);exc.exception.close()
             with call('/v2/auth/login',{'credential':self.credentials['B']['token']}) as res:
                 cookie=res.headers['Set-Cookie'];data=json.load(res)
             self.assertIn('HttpOnly; Secure; SameSite=Strict',cookie);self.assertNotIn('token',data)

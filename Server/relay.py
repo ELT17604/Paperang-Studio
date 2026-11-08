@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Paperang Studio relay: standard-library HTTP + SQLite, Python 3.10+."""
+"""Paperang Studio relay: HTTP + SQLite with Argon2id/RSA authentication, Python 3.10+."""
 import base64, binascii
 import argparse, contextlib, hashlib, hmac, ipaddress, json, os, re, secrets, signal, sqlite3, sys, threading, time, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -161,13 +161,15 @@ class Store:
         return dict(online=online,printerConnected=online and data.get('connected',False),busy=online and data.get('busy',False),automaticPrinting=online and data.get('relayAutomaticPrinting',data.get('automaticNetworkConsent',False)),lastSeen=row['seen'] if row else None,serverTime=time.time(),staleAfter=15)
     def prune(self,db,now):
         db.execute('DELETE FROM usage WHERE window<?',(int(now//3600)-48,))
+        db.execute("DELETE FROM jobs WHERE updated<? AND state NOT IN ('claimed','printing')",(now-self.c['retention_days']*86400,))
         if hasattr(self,'api'):
             db.execute('DELETE FROM job_events WHERE job_id NOT IN (SELECT id FROM jobs)')
             db.execute('DELETE FROM submission_ids WHERE job_id NOT IN (SELECT id FROM jobs)')
             db.execute('DELETE FROM audit_events WHERE at<?',(now-90*86400,))
             db.execute('DELETE FROM sessions WHERE expires<?',(now,))
             db.execute('DELETE FROM challenges WHERE expires<?',(now,))
-        db.execute("DELETE FROM jobs WHERE updated<? AND state NOT IN ('claimed','printing')",(now-self.c['retention_days']*86400,))
+        if hasattr(self,'api'):
+            db.execute("INSERT INTO job_events(job_id,at,state) SELECT id,?,'unknown' FROM jobs WHERE state IN ('claimed','printing') AND updated<?",(now,now-300))
         # A disconnected sender is never automatically retried: the paper outcome is uncertain.
         db.execute("UPDATE jobs SET state='unknown',detail='Device did not report completion; inspect paper before retrying',updated=? WHERE state IN ('claimed','printing') AND updated<?",(now,now-300))
     def submit(self,body,key,ip,headers):
@@ -339,6 +341,10 @@ class Store:
                                 if progress and old_progress and (progress['total']!=old_progress['total'] or progress['completed']<old_progress['completed']):progress=None
                                 db.execute("UPDATE jobs SET state=?,detail=?,updated=?,progress=COALESCE(?,progress),last_stage=CASE WHEN ?='printing' THEN 'printing' ELSE last_stage END WHERE id=?",(state,detail,now,compact(progress) if progress else None,state,identifier))
                             result=dict(id=identifier,state='confirmed' if row['state']=='confirmed' else state)
+                        if hasattr(self,'api'):
+                            state=db.execute('SELECT state FROM jobs WHERE id=?',(identifier,)).fetchone()[0]
+                            if state!=row['state']:
+                                db.execute('INSERT INTO job_events(job_id,at,state) VALUES(?,?,?)',(identifier,now,state))
                         db.execute('COMMIT')
                     except Exception:db.execute('ROLLBACK');raise
                 return 200,result
@@ -373,6 +379,8 @@ class Handler(BaseHTTPRequestHandler):
                 origin=urlsplit(self.headers['Origin'])
                 if origin.scheme not in ['http','https'] or origin.netloc!=self.headers.get('Host'):raise Problem(403,'Cross-origin requests are not allowed')
             if len(self.headers.get_all('Authorization',[]))>1 or len(self.headers.get_all('Host',[]))!=1:raise Problem(400,'Duplicate/missing authentication or Host header')
+            if self.path.startswith('/v1/'):
+                raise Problem(410,'relay_v1_retired_use_v2')
             key=None if self.path in ['/v2/auth/login','/v2/auth/anonymous','/v2/auth/challenge','/v2/auth/prove'] else self.server.store.api.auth.authenticate(self.headers.get('Authorization',''),self.headers.get('Cookie',''))
             if key and key.get('cookie') and method=='POST':
                 if not self.headers.get('Origin') or not hmac.compare_digest(self.headers.get('X-CSRF-Token',''),key['csrf']):raise Problem(403,'csrf_required')
@@ -393,7 +401,7 @@ class Handler(BaseHTTPRequestHandler):
             ip=self.server.store.client_ip(self.client_address[0],self.headers.get('X-Forwarded-For',''))
             status,data=self.server.store.route(method,self.path,body,key,ip,self.headers)
             extra={}
-            if self.path in ['/v2/auth/login','/v2/auth/anonymous'] and status<300 and not (self.headers.get('X-Paperang-Native')=='1' and not self.headers.get('Origin')):
+            if self.path in ['/v2/auth/login','/v2/auth/anonymous','/v2/auth/prove'] and status<300 and not (self.headers.get('X-Paperang-Native')=='1' and not self.headers.get('Origin')):
                 token=data.pop('token'); age=data.pop('maxAge')
                 extra['Set-Cookie']='psr_session='+token+'; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age='+str(age)
             elif self.path=='/v2/auth/logout':

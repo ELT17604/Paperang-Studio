@@ -183,8 +183,6 @@ class APIv2:
                 return 200,value
             if path.endswith('/confirm'): self.fail(403,'manual_confirmation_requires_C')
             status,result=s.route_legacy(method,path.replace('/v2/','/v1/',1),body,legacy,ip,headers)
-            if method=='POST' and re.search(r'/(claim|result|reject)$',path):
-                with s.connect() as db: db.execute('INSERT INTO job_events(job_id,at,state) VALUES(?,?,?)',(path.split('/')[4],time.time(),result.get('state','claimed')))
             return status,result
         confirm=re.fullmatch(r'/v2/admin/jobs/([a-f0-9-]{36,40})/confirm',path)
         if method=='POST' and confirm:

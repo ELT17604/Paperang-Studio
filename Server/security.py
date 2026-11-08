@@ -98,7 +98,7 @@ class Security:
                 key.update(session=True, browser_id=session['browser_id'], csrf=session['csrf'], cookie=not bool(authorization))
                 return key
             row = db.execute("SELECT id FROM credentials WHERE kind='token' AND secret_hash=?", (hashlib.sha256(token.encode()).hexdigest(),)).fetchone()
-        if row:
+        if row and authorization:
             return self.get(row['id'])
         self.fail(401, 'invalid_or_expired_credential')
 
