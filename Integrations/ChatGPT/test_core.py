@@ -49,6 +49,8 @@ class CoreTests(unittest.TestCase):
         def handler(request):
             assert request.headers.get("authorization") == "Bearer " + KEY
             events.append((request.method, request.url.path))
+            if request.url.path == "/v2/auth/me":
+                return httpx.Response(200, json={"role": "B"})
             if request.url.path == "/v2/public/status":
                 return httpx.Response(200, json={
                     "status": {"accepting": True},
@@ -68,13 +70,16 @@ class CoreTests(unittest.TestCase):
         result = asyncio.run(sender.submit({"text": "test note"}, request_id))
         self.assertTrue(result["accepted"])
         self.assertEqual(asyncio.run(sender.status(job_id))["state"], "sent")
-        self.assertEqual(events, [("GET", "/v2/public/status"),
-                                  ("POST", "/v2/jobs"), ("GET", "/v2/jobs/" + job_id)])
+        self.assertEqual(events, [("GET", "/v2/auth/me"), ("GET", "/v2/public/status"),
+                                  ("POST", "/v2/jobs"), ("GET", "/v2/auth/me"),
+                                  ("GET", "/v2/jobs/" + job_id)])
 
     def test_no_retry_on_timeout(self):
         events = []
         def handler(request):
             events.append(request.url.path)
+            if request.url.path == "/v2/auth/me":
+                return httpx.Response(200, json={"role": "B"})
             if request.method == "GET":
                 return httpx.Response(200, json={
                     "status": {"accepting": True},
@@ -84,7 +89,30 @@ class CoreTests(unittest.TestCase):
         sender = RelayClient("https://print.example", KEY, transport=httpx.MockTransport(handler))
         with self.assertRaisesRegex(PaperangError, "never create a new request_id"):
             asyncio.run(sender.submit({"text": "test"}, str(uuid.uuid4())))
-        self.assertEqual(events, ["/v2/public/status", "/v2/jobs"])
+        self.assertEqual(events, ["/v2/auth/me", "/v2/public/status", "/v2/jobs"])
+
+    def test_admin_and_device_key_roles_denied_before_post(self):
+        for role in ("C", "M"):
+            events = []
+            def handler(request):
+                events.append(request.url.path)
+                return httpx.Response(200, json={"role": role})
+            sender = RelayClient("https://print.example", KEY,
+                                 transport=httpx.MockTransport(handler))
+            with self.subTest(role=role), self.assertRaises(PaperangError):
+                asyncio.run(sender.submit({"text": "should not print"}, str(uuid.uuid4())))
+            self.assertEqual(events, ["/v2/auth/me"])
+
+    def test_a_cannot_read_status(self):
+        events = []
+        def handler(request):
+            events.append(request.url.path)
+            return httpx.Response(200, json={"role": "A"})
+        sender = RelayClient("https://print.example", KEY,
+                             transport=httpx.MockTransport(handler))
+        with self.assertRaises(PaperangError):
+            asyncio.run(sender.status(str(uuid.uuid4())))
+        self.assertEqual(events, ["/v2/auth/me"])
 
     def test_redirect_and_auth_rejected(self):
         for status in (302, 403):
