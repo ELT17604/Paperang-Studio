@@ -1,0 +1,31 @@
+# Version naming and compatibility policy
+
+[简体中文](VERSIONING.zh-CN.md) · [Feature implementation matrix](FEATURE-MATRIX.md) · [Release registry](../VERSIONS.json)
+
+Use **`vMAJOR.MINOR.PATCH-distribution[-note]`**, for example **`v0.2.3-winlite-fix1`**. Tags, release titles and documentation use the leading `v`; runtime strings and VERSION files may omit it. Distribution IDs are stable lowercase ASCII: `macclient`, `linuxrelayserver`, `winlite`, `winclient`, `linuxclient`. Do not introduce `win_lite` or mixed-case spellings in new releases.
+
+The numeric baseline identifies one product generation and its compatibility contract. Matching baselines mean the declared shared relay API, content and template schemas interoperate, with equivalent semantics for implemented common features. It does not mean a relay server has a printer UI or a tray-only client has every full-client tool. Scope differences must be explicit in the matrix; an unimplemented mandatory feature blocks a full-client parity claim.
+
+## Baseline and distribution revisions
+
+- **MAJOR** changes for a breaking shared contract or incompatible product generation.
+- **MINOR** changes for a coordinated new feature baseline. Implementations move to it only when their required features and interoperability checks pass.
+- **PATCH** changes for a shared baseline correction requiring coordination across distributions, even if backward compatible.
+- **`fixN`** identifies a distribution-only compatible correction or local improvement. Counters are local to each baseline/distribution and restart when the baseline changes. Never change API/schema semantics incompatibly under a fix note.
+- `alphaN`, `betaN`, `rcN` are optional single prerelease notes. No note means the initial stable distribution release. Compare baselines, distributions and numeric counters separately, not lexicographically.
+
+New tags are immutable. Existing names such as `0.2.3-fix1` and `0.2.3-win_lite` remain historical aliases; do not rewrite history or tags. [VERSIONS.json](../VERSIONS.json) records canonical names and actual runtime/source aliases. MacClient and LinuxRelayServer retain their deployed legacy runtime strings, mapped to canonical names in the registry; a Windows release does not silently rebuild or redeploy them. Planned distributions have no released version.
+
+## Baseline 0.2.3 contract
+
+Relay HTTP `v1`; Bearer roles; `text,raster1` negotiation; raster1 schema 1 and SHA-256; template JSON version 1; 576-dot/72-byte legacy P2 bitmaps; queued → claimed → printing → sent/unknown/rejected and separate manual `confirmed`. An ACK or `sent` never proves paper completion. Unknown/interrupted sends must not automatically replay. Runtime version labels are not protocol capability negotiation: use explicit API/schema/capability fields.
+
+Windows font substitution, startup facilities and reconnect scheduling may vary within this contract. Fonts need not be pixel-identical. Credential defaults, automatic paper consent and persistence differences must be documented as distribution behavior rather than assumed parity.
+
+## Release checklist
+
+1. Update that distribution's VERSION/runtime metadata, `VERSIONS.json`, changelog and bilingual guide. Retain the baseline for a compatible distribution fix.
+2. Update every changed feature's matrix status, exception reason, source and verification. Distinguish source review, simulation, hardware and user confirmation.
+3. Test client/server compatibility, template round trips, state transitions and no-replay behavior. Full clients must meet their required matrix rows; WinLite exclusions stay explicit.
+4. Run `python scripts/check-versions.py` and implementation tests. Verify packaging; exclude credentials, raw identifiers and build output; retain notices.
+5. Use a unique tag/artifact, e.g. `v0.2.3-winlite-fix1` and `PaperangStudio-v0.2.3-winlite-fix1-win-x64-lite.zip`. Never overwrite another distribution's release or imply a planned client exists.

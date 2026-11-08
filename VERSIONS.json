@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "baseline": "0.2.3",
+  "compatibility": {"relayApi": "v1", "contentTypes": ["text", "raster1"], "contentSchemaVersion": 1, "templateSchemaVersion": 1, "printerProfile": "legacy-p2-576-ble"},
+  "distributions": {
+    "macclient": {"name": "MacClient", "status": "implemented", "version": "v0.2.3-macclient-fix1", "runtimeVersion": "0.2.3-fix1", "versionSource": "VERSION"},
+    "linuxrelayserver": {"name": "LinuxRelayServer", "status": "implemented", "version": "v0.2.3-linuxrelayserver", "runtimeVersion": "0.2.3", "versionSource": "Server/relay.py"},
+    "winlite": {"name": "WinLite", "status": "implemented", "version": "v0.2.3-winlite-fix1", "runtimeVersion": "0.2.3-winlite-fix1", "versionSource": "Windows/VERSION"},
+    "winclient": {"name": "WinClient", "status": "planned", "version": null, "runtimeVersion": null, "versionSource": null},
+    "linuxclient": {"name": "LinuxClient", "status": "planned", "version": null, "runtimeVersion": null, "versionSource": null}
+  }
+}

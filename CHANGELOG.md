@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.3-winlite-fix1 — 2026-11-08 (Windows client)
+
+- Keep the tray label fixed at “开启自动打印”; indicate state with its check mark only. Add live status in settings and save/connect on the Connection tab.
+- Autosave the selected template/style and print options, flush on close, and restore them at launch without changing active-job layout snapshots.
+- Enable continuous recovery by default: after five retries, wait 60 seconds, try another five times and repeat until successful. Disconnect/quit cancels waiting immediately; optional opt-out retains the original stop behavior.
+- Repair enabled startup paths after upgrades, suppress settings on repeated background launch, serialize atomic local writes and coalesce UI refreshes.
+- Add persistence/migration, retry/cancellation, concurrency and 1,200-request outage checks. Short-term verification is not an indefinite stability or actual-reboot claim.
+- Add distribution version naming, the release registry and the cross-platform feature implementation matrix; preserve Mac/server runtime versions as documented legacy aliases.
+
 ## 0.2.3-win_lite — 2026-11-06 (Windows client)
 
 - Add native Windows tray-only relay reception, settings, encrypted credentials and pending-result recovery, optional sign-in startup and remembered-printer reconnection. The existing macOS defaults, server and webpage are unchanged.

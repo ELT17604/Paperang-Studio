@@ -1,4 +1,4 @@
-# Windows tray client · V0.2.3-win_lite
+# Windows tray client · V0.2.3-winlite-fix1
 
 [简体中文](WINDOWS.zh-CN.md) · [Source and build](../Windows/README.md) · [Documentation](README.md)
 
@@ -9,7 +9,7 @@ Native C#/.NET 10, WinForms and Windows BLE GATT. Requires Windows 10 2004 or Wi
 1. Extract to a stable directory and run `PaperangStudio.exe`. It starts in the tray without a main window.
 2. Double-click the tray icon, enter the existing relay root URL and a `psr_` **device** key. Submit/admin keys cannot receive device jobs.
 3. Turn on Bluetooth and the P2, scan, select your printer, then save and connect. Avoid simultaneous Mac/phone connections to the same printer.
-4. Closing settings keeps the app running. The tray provides status, pause/resume, disconnect/reconnect, settings and quit.
+4. Closing settings keeps the app running. The tray label “开启自动打印” stays fixed; a left check mark means enabled. Settings show live relay/printer status, and the Connection tab provides save/connect directly.
 5. Startup settings offer current-user Windows sign-in startup and automatic connection. Move the executable to its permanent location before enabling startup. If disabled by Windows Task Manager, re-enable it there.
 
 Unlike the full macOS workspace, this user-requested tray-only edition defaults to automatic connection and print consent after configuration. Both are configurable. The full macOS app's defaults remain unchanged. Pausing prevents new claims; buffered printer data cannot be recalled.
@@ -31,17 +31,21 @@ JSON retains original font names. Windows maps PingFang SC to Microsoft YaHei, M
 
 ## Relay and local persistence
 
+The current style, selected template and printing options autosave after a short debounce and flush on closing settings. They restore on the next launch/login without save/connect. Connection credentials change only through save/connect.
+
 The client polls and reports every two seconds, fetches full job details before claiming, validates raster1 geometry and SHA-256, and processes queued jobs in creation order. Requests include `text,raster1` capability negotiation and explicit Content-Length for the original relay's HTTP parser. Printing progress uses the existing partition-report format.
 
 Claim information is atomically persisted **before** any printer bytes. Successful sends persist `sent` before reporting. Interrupted claims recover as `unknown` and are never automatically printed again. Failed final reports retry reporting only. An outstanding result requires the same server and device key until resolved.
 
 Credentials, preferences, templates and pending results are encrypted with current-user Windows DPAPI in `%LOCALAPPDATA%\ELT\PaperangStudioWinLite`. No note body or plaintext credential log is retained. These files cannot be transferred to another Windows account for decryption.
 
-An initial relay failure permits five retry attempts, then requires explicit reconnection. The selected printer address is retried every 30 seconds; no other printer is selected automatically. Duplicate app launches open settings in the existing instance. This is a user-session app, not a service or sleep-prevention tool.
+Continuous reconnect defaults on, including migrated settings: after the initial five retries fail, wait 60 seconds, try another five times, and repeat until successful. Disable the option to retain the original stop behavior. Disconnect/quit cancels waiting immediately. The selected printer retries every 30 seconds. Repeated background launches remain silent; explicit repeated launches open settings. Enabled startup registrations repair their executable path after upgrades; user-disabled Windows startup approval is not overridden. This is a user-session app, not a service or sleep-prevention tool.
 
 The first Windows edition includes relay reception, tray settings and template editing. It does not include the macOS workspace, PTY, engineering writes, local HTTP API, administrator-key management or task-management window. `sent` is transport completion, not an automatic physical-paper confirmation.
 
 ## Build and verification
+
+Fix1 adds persistence/restart, old-setting defaults, exact one-minute cooldown configuration, cancellation and concurrent-start/stop checks. A 1,200-request offline stress test retained bounded managed memory with one request in flight. A 90-second live UI/relay observation showed private memory about 39–45 MB and handles falling overall; this is a short sample, not a guarantee of indefinite stability. Startup was verified by the registered quoted executable/`--background` command, silent duplicate launch and restored preferences; Windows was not rebooted.
 
 From the repository root:
 
@@ -55,7 +59,7 @@ python Windows/tests/relay_integration.py
 
 Python 3.10+ is needed only for the integration test, which runs the unmodified included relay with a simulated printer. It checks long-text detail retrieval, raster1, authentication, claims and final database states without using paper. Build output defaults outside the source tree, under sibling `PaperangStudio-Windows-Development/Release/`.
 
-The 39 checks cover CRC golden vectors, notification fragmentation, invalid CRC rejection, flow control, media/density guards, templates and non-recursive variables, exact image composition, interrupted-result recovery, report retry without reprinting, pause/heartbeats, Chinese rendering and DPAPI.
+The 51 checks cover CRC golden vectors, notification fragmentation, invalid CRC rejection, flow control, media/density guards, templates and non-recursive variables, exact image composition, interrupted-result recovery, report retry without reprinting, pause/heartbeats, Chinese rendering and DPAPI.
 
 On 2026-11-06, the actual Windows/P2 combination completed model/CRC handshake, FF01/FF03 subscriptions, density write/readback, Chinese raster printing and 150-row feed. The user confirmed complete paper output. Two subsequent disconnect/reconnect cycles also succeeded. Other adapters/firmware require their own validation.
 

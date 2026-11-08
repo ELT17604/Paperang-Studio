@@ -11,7 +11,7 @@ internal static class Program
         ApplicationConfiguration.Initialize();
         using var mutex = new Mutex(true, @"Local\ELT.PaperangStudio.WinLite", out bool first);
         using var showSettings = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\ELT.PaperangStudio.WinLite.Settings");
-        if (!first) { showSettings.Set(); return; }
+        if (!first) { if (!args.Contains("--background")) showSettings.Set(); return; }
         using var context = new TrayContext(showSettings, args.Contains("--settings"));
         Application.Run(context);
         mutex.ReleaseMutex();
@@ -33,6 +33,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly System.Windows.Forms.Timer refresh = new() { Interval = 1000 };
     private bool exiting;
     private string storageError = "";
+    private int updateQueued;
     public TrayContext(EventWaitHandle showSettings, bool openSettings)
     {
         dispatcher.CreateControl();
@@ -40,9 +41,11 @@ internal sealed class TrayContext : ApplicationContext
         engine.Changed += Update;
         try { settings = store.LoadSettings(); }
         catch { storageError = "本地凭证读取失败，请打开设置重新保存；未回报任务记录会保留"; }
+        try { StartupRegistration.RepairIfEnabled(); }
+        catch { storageError = "登录启动路径更新失败，请在设置中重新保存自启选项。"; }
         using var iconStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Paperang.AppIcon.ico")!;
-        tray = new NotifyIcon { Icon = new Icon(iconStream), Text = "Paperang Studio 0.2.3-win_lite", ContextMenuStrip = menu, Visible = true };
-        var title = new ToolStripMenuItem("Paperang Studio · V0.2.3-win_lite") { Enabled = false };
+        tray = new NotifyIcon { Icon = new Icon(iconStream), Text = "Paperang Studio " + AppVersion.Current, ContextMenuStrip = menu, Visible = true };
+        var title = new ToolStripMenuItem("Paperang Studio · V" + AppVersion.Current) { Enabled = false };
         foreach (var item in new[] { server, bluetooth, print }) item.Enabled = false;
         permission.Click += (_, _) => engine.SetAllowed(!engine.Allowed);
         connection.Click += async (_, _) => {
@@ -50,7 +53,7 @@ internal sealed class TrayContext : ApplicationContext
         };
         menu.Items.AddRange([title, new ToolStripSeparator(), server, bluetooth, print, new ToolStripSeparator(), permission, connection,
             new ToolStripMenuItem("设置…", null, (_, _) => ShowSettings()),
-            new ToolStripMenuItem("关于…", null, (_, _) => MessageBox.Show("Paperang Studio V0.2.3-win_lite\n© 2026 ELT Group\n\nWindows 原生托盘客户端 · BLE P2 · 在线传纸条\nCC BY-NC-SA 4.0 · 独立非官方项目\nvox@calx.cc", "关于 Paperang Studio", MessageBoxButtons.OK, MessageBoxIcon.Information)),
+            new ToolStripMenuItem("关于…", null, (_, _) => MessageBox.Show("Paperang Studio V" + AppVersion.Current + "\n© 2026 ELT Group\n\nWindows 原生托盘客户端 · BLE P2 · 在线传纸条\nCC BY-NC-SA 4.0 · 独立非官方项目\nvox@calx.cc", "关于 Paperang Studio", MessageBoxButtons.OK, MessageBoxIcon.Information)),
             new ToolStripSeparator(), new ToolStripMenuItem("退出", null, async (_, _) => await Quit())]);
         tray.DoubleClick += (_, _) => ShowSettings();
         tray.BalloonTipClicked += (_, _) => ShowSettings();
@@ -78,16 +81,21 @@ internal sealed class TrayContext : ApplicationContext
         if (exiting || dispatcher.IsDisposed) return;
         if (dispatcher.InvokeRequired) { try { dispatcher.BeginInvoke(action); } catch (InvalidOperationException) { } } else action();
     }
-    private void Update() => Dispatch(() => {
+    private void Update()
+    {
+        if (Interlocked.Exchange(ref updateQueued, 1) != 0) return;
+        Dispatch(() => {
+        Interlocked.Exchange(ref updateQueued, 0);
         server.Text = engine.Online ? $"中转：在线 · {engine.Queued} 项待处理" : engine.Message;
         bluetooth.Text = printer.Status;
         print.Text = engine.Busy ? $"打印：{engine.Progress:P0} · {engine.PrintMessage}" : engine.PrintMessage;
-        permission.Text = engine.Allowed ? "暂停自动打印" : "恢复自动打印";
+        permission.Text = "开启自动打印";
         permission.Checked = engine.Allowed;
         connection.Text = engine.Running ? "断开连接" : "重新连接";
         tray.Text = "Paperang Studio · " + (engine.Busy ? $"发送 {engine.Progress:P0}" : engine.Online ? engine.Allowed ? "在线 · 自动打印" : "在线 · 已暂停" : "中转未连接");
         form?.UpdateStatus();
-    });
+        });
+    }
     private void ShowSettings()
     {
         if (form is { IsDisposed: false }) { form.WindowState = FormWindowState.Normal; form.Show(); form.Activate(); return; }
@@ -105,6 +113,10 @@ internal sealed class TrayContext : ApplicationContext
             var next = settings with { Templates = templates, TemplateId = id, Style = "自定义" };
             foreach (var template in templates) template.Validate();
             store.SaveSettings(next); settings = next; engine.ApplyTemplates(templates, id);
+        }, value => {
+            var next = settings.WithPrintingFrom(value);
+            foreach (var template in next.Templates) template.Validate();
+            store.SaveSettings(next); settings = next; engine.ApplyPrintingPreferences(next);
         });
         form.Show();
     }
@@ -135,7 +147,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             Microsoft.Win32.SystemEvents.SessionEnding -= OnSessionEnding;
             Microsoft.Win32.SystemEvents.PowerModeChanged -= OnPowerModeChanged;
-            signal.Unregister(null); refresh.Dispose(); tray.Dispose(); menu.Dispose(); printer.Dispose(); dispatcher.Dispose();
+            signal.Unregister(null); refresh.Dispose(); tray.Icon?.Dispose(); tray.Dispose(); menu.Dispose(); printer.Dispose(); dispatcher.Dispose();
         }
         base.Dispose(disposing);
     }

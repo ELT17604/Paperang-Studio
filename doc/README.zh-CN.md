@@ -16,7 +16,7 @@
 
 ## 快速开始
 
-**Windows 版本：**已新增 [V0.2.3-win_lite 原生托盘客户端](WINDOWS.zh-CN.md)，兼容同一中转服务器与传统 BLE P2，包含与 Mac v1 JSON 兼容的图形化模板编辑、加密凭证保存和可选登录自启。[源码与构建](../Windows/README.md)。完整 macOS 版保持 0.2.3-fix1。
+**Windows 版本：**已新增 [v0.2.3-winlite-fix1 原生托盘客户端](WINDOWS.zh-CN.md)，兼容同一中转服务器与传统 BLE P2，包含与 Mac v1 JSON 兼容的图形化模板编辑、加密凭证保存和可选登录自启。[源码与构建](../Windows/README.md)。完整 macOS 版保持 0.2.3-fix1。
 
 ```sh
 ./scripts/build.sh
@@ -28,6 +28,8 @@ open '../PaperangStudio-Development/Release/Paperang Studio.app'
 默认浓度100、固定576点/72字节一行、批末送150行。576列两端及150行送纸已由用户实物确认。300 DPI是硬件标称值，不能靠软件改成其他物理DPI。适配范围以本台传统协议P2为准。
 
 ## 文档导航
+
+跨端发布统一遵循[版本命名规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)和[版本登记表](../VERSIONS.json)。当前 Windows 为 **v0.2.3-winlite-fix1**；Mac/服务器保留已部署的旧运行时版本作为兼容别名。
 
 | 文档 | 内容 |
 |---|---|

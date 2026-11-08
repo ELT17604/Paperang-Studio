@@ -14,6 +14,7 @@ public sealed record AppSettings
     public string PrinterName { get; init; } = "";
     public bool AutoConnect { get; init; } = true;
     public bool AutoAllowPrint { get; init; } = true;
+    public bool KeepReconnecting { get; init; } = true;
     public string Style { get; init; } = "便签";
     public int Density { get; init; } = 100;
     public int Feed { get; init; } = 150;
@@ -22,6 +23,11 @@ public sealed record AppSettings
     public bool IncludeId { get; init; }
     public List<RelayTemplate> Templates { get; init; } = RelayTemplate.Defaults();
     public string TemplateId { get; init; } = "";
+    public AppSettings WithPrintingFrom(AppSettings source) => this with {
+        Style = source.Style, Templates = source.Templates, TemplateId = source.TemplateId,
+        Density = source.Density, Feed = source.Feed, IncludeSender = source.IncludeSender,
+        IncludeTime = source.IncludeTime, IncludeId = source.IncludeId, AutoAllowPrint = source.AutoAllowPrint
+    };
     public Uri Validate()
     {
         if (!Uri.TryCreate(Server.Trim(), UriKind.Absolute, out var u) ||

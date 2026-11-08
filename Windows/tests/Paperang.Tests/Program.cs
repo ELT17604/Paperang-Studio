@@ -17,7 +17,15 @@ static class Tests
         try
         {
             if (args.Length > 0 && args[0] == "--ble") { await Ble(args.Contains("--print")); return; }
+            if (args.Length > 0 && args[0] == "--preferences")
+            {
+                var s = new LocalStore().LoadSettings();
+                var snapshot = JsonSerializer.Serialize(new { s.Style, s.TemplateId, s.Templates, s.Density, s.Feed, s.IncludeId, s.IncludeTime, s.IncludeSender });
+                Console.WriteLine(JsonSerializer.Serialize(new { version = AppVersion.Current, style = s.Style, templateCount = s.Templates.Count, printFingerprint = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(snapshot))), continuousReconnect = s.KeepReconnecting, startupEnabled = StartupRegistration.Enabled }));
+                return;
+            }
             if (args.Length == 2 && args[0] == "--live") { await Live(args[1]); return; }
+            if (args.Length > 0 && args[0] == "--minute-retry") { await MinuteRetry(); return; }
             Check(Wire.Crc(Encoding.ASCII.GetBytes("123456789")) == 0xcbf43926, "standard CRC32 vector");
             Check(Convert.ToHexString(Wire.Encode(24, [0x21, 0x95, 0x76, 0x35], 0x35769521)) == "0218000400219576351CDF442103", "handshake golden frame from independent Python zlib");
             var good = Wire.Encode(13, [8, 0]); var decoder = new FrameDecoder();
@@ -67,6 +75,8 @@ static class Tests
             try { new NoteRenderer().Render(Job with { Text = new string('汉', 10000) }, Settings); throw new Exception("long note cropped"); } catch (InvalidDataException) { count++; }
             TemplateCases();
             await EngineCases();
+            PersistenceCases();
+            await RetryCases();
             // Real DPAPI storage is isolated to a temporary name via the pure encryption round-trip helper test below.
             var protect = typeof(LocalStore).GetMethod("Protect", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
             byte[] secret = Encoding.UTF8.GetBytes("psr_not_plaintext");
@@ -75,6 +85,94 @@ static class Tests
             Console.WriteLine($"ALL PASSED: {count}");
         }
         catch (Exception e) { Console.Error.WriteLine(e); Environment.ExitCode = 1; }
+    }
+    private static async Task MinuteRetry()
+    {
+        var handler = new OutageHandler();
+        var engine = new RelayEngine(new FakePrinter(), new FakeRenderer(), new MemoryJournal(), s => new RelayClient(s, handler));
+        await engine.StartAsync(Settings with { PrinterAddress = "" });
+        await Until(() => engine.NextRetryAt != null, 20000);
+        int before = handler.Requests;
+        var watch = System.Diagnostics.Stopwatch.StartNew(); handler.FailuresLeft = -1;
+        await Until(() => engine.Online, 70000);
+        Check(watch.Elapsed.TotalSeconds >= 58 && before == 6, $"real 60 second cooldown recovers unattended after network restoration ({watch.Elapsed.TotalSeconds:F1}s)");
+        await engine.StopAsync();
+    }
+    private static void PersistenceCases()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "paperang-fix1-test-" + Guid.NewGuid());
+        try
+        {
+            var store = new LocalStore(directory);
+            var template = RelayTemplate.Preset("访客纪念") with { Name = "已保存的自定义模板" };
+            var value = Settings with { Style = "自定义", Templates = [template], TemplateId = template.Id, Density = 73, Feed = 127, IncludeId = true };
+            store.SaveSettings(value);
+            var restored = new LocalStore(directory).LoadSettings();
+            Check(restored.TemplateId == template.Id && restored.Style == "自定义" && restored.Templates[0].Name == template.Name && restored.Density == 73 && restored.Feed == 127, "process restart restores selected custom template and printing preferences");
+            Check(!Encoding.UTF8.GetString(File.ReadAllBytes(Path.Combine(directory, "settings.dat"))).Contains("psr_test"), "saved configuration contains no plaintext device key");
+            var changed = restored with { Style = "小票", Feed = 189 };
+            var merged = Settings.WithPrintingFrom(changed);
+            Check(merged.Server == Settings.Server && merged.DeviceKey == Settings.DeviceKey && merged.Feed == 189 && merged.TemplateId == template.Id, "print autosave preserves connection credentials and selected template");
+            var legacy = JsonSerializer.Deserialize<AppSettings>("{}", RelayClient.Json)!;
+            Check(legacy.KeepReconnecting && RelayTiming.Default.RetryCooldown == TimeSpan.FromMinutes(1), "old settings default to continuous reconnect and exact 60 second cooldown");
+            Parallel.For(0, 80, i => { store.SaveSettings(value with { Feed = i }); store.Save(new PendingResult("http://localhost/", "fixture", new string('a', 40), "fixture")); });
+            Check(store.LoadSettings().TemplateId == template.Id && store.Load()?.Claim == "fixture" && !Directory.GetFiles(directory, "*.tmp").Any(), "concurrent settings and claim writes are atomic and bounded");
+            Check(StartupRegistration.BuildCommand(Environment.ProcessPath!) == "\"" + Environment.ProcessPath + "\" --background", "startup command uses existing absolute quoted executable and background flag");
+        }
+        finally { Directory.Delete(directory, true); }
+    }
+    private static async Task RetryCases()
+    {
+        var fast = new RelayTiming(TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(40));
+        var handler = new OutageHandler { FailuresLeft = 11 };
+        var engine = new RelayEngine(new FakePrinter(), new FakeRenderer(), new MemoryJournal(), s => new RelayClient(s, handler), fast);
+        int cooldowns = 0; engine.Changed += () => { if (engine.NextRetryAt != null) cooldowns++; };
+        await engine.StartAsync(Settings with { PrinterAddress = "" }); await Until(() => engine.Online);
+        Check(handler.Requests >= 12 && cooldowns == 2, "six initial failures then five-attempt batches recover automatically after two cooldowns");
+        await engine.StopAsync();
+
+        handler = new OutageHandler();
+        engine = new(new FakePrinter(), new FakeRenderer(), new MemoryJournal(), s => new RelayClient(s, handler), fast);
+        await engine.StartAsync(Settings with { KeepReconnecting = false });
+        await Until(() => !engine.Running);
+        Check(handler.Requests == 6 && engine.NextRetryAt == null, "disabling continuous retry stops after original five retries");
+        await engine.StopAsync();
+
+        handler = new OutageHandler();
+        engine = new(new FakePrinter(), new FakeRenderer(), new MemoryJournal(), s => new RelayClient(s, handler), fast with { RetryCooldown = TimeSpan.FromMinutes(1) });
+        await engine.StartAsync(Settings); await Until(() => engine.NextRetryAt != null);
+        int requests = handler.Requests;
+        Check((engine.NextRetryAt!.Value - DateTimeOffset.UtcNow).TotalSeconds > 58, "production-length cooldown has no polling busy loop");
+        var watch = System.Diagnostics.Stopwatch.StartNew(); await engine.StopAsync();
+        Check(watch.Elapsed < TimeSpan.FromSeconds(1) && handler.Requests == requests, "stop cancels a one-minute cooldown immediately");
+
+        GC.Collect(); GC.WaitForPendingFinalizers(); long before = GC.GetTotalMemory(true);
+        handler = new OutageHandler();
+        engine = new(new FakePrinter(), new FakeRenderer(), new MemoryJournal(), s => new RelayClient(s, handler), new(TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(1)));
+        await engine.StartAsync(Settings with { PrinterAddress = "" }); await Until(() => handler.Requests >= 1200, 20000);
+        await engine.StopAsync();
+        long after = GC.GetTotalMemory(true);
+        Check(handler.MaxConcurrent == 1 && after - before < 16 * 1024 * 1024, $"1200 offline requests retain bounded memory and single-flight IO (delta {after - before} bytes)");
+        var tasks = Enumerable.Range(0, 12).Select(async i => { await engine.StartAsync(Settings with { PrinterAddress = "" }); await engine.StopAsync(); });
+        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(5));
+        Check(!engine.Running && handler.MaxConcurrent == 1, "overlapping start/stop requests finish without duplicate loops or deadlock");
+    }
+    sealed class OutageHandler : HttpMessageHandler
+    {
+        public int FailuresLeft = int.MaxValue, Requests, MaxConcurrent;
+        private int active;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            int now = Interlocked.Increment(ref active); MaxConcurrent = Math.Max(MaxConcurrent, now);
+            try
+            {
+                Interlocked.Increment(ref Requests);
+                if (Interlocked.Decrement(ref FailuresLeft) >= 0) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(request.RequestUri!.AbsolutePath.EndsWith("/jobs") ? "{\"jobs\":[]}" : "{}") });
+            }
+            finally { Interlocked.Decrement(ref active); }
+        }
+        protected override void Dispose(bool disposing) { }
     }
     private static async Task Ble(bool print)
     {

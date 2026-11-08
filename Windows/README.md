@@ -2,7 +2,9 @@
 
 [English guide](../doc/WINDOWS.md) · [简体中文](../doc/WINDOWS.zh-CN.md)
 
-**V0.2.3-win_lite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+**V0.2.3-winlite-fix1** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+
+Uses the shared [version policy](../doc/VERSIONING.md) and [feature implementation matrix](../doc/FEATURE-MATRIX.md). Fix1 adds automatic print-preference persistence, live connection status and default continuous 60-second retry cycles, and repairs enabled sign-in startup paths after upgrades.
 
 A native WinForms tray client for the existing Paperang relay and legacy BLE P2. Starts in the tray, with settings and the same v1 block-template model as the macOS client. Includes encrypted saved credentials, optional sign-in startup, remembered-printer reconnection, and automatic relay printing.
 

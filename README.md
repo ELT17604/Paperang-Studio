@@ -10,7 +10,9 @@ A native macOS app for Paperang P2: text and image printing, a physical paper te
 
 ## Features
 
-**Windows:** [V0.2.3-win_lite](Windows/README.md) is now available as a native tray-only client for the same relay and legacy BLE P2, including compatible block-template editing, encrypted saved credentials and optional sign-in startup. See the [Windows guide](doc/WINDOWS.md) / [简体中文](doc/WINDOWS.zh-CN.md). The full macOS application remains at 0.2.3-fix1.
+Cross-platform releases follow the [version naming policy](doc/VERSIONING.md), [feature implementation matrix](doc/FEATURE-MATRIX.md), and [release registry](VERSIONS.json). Current Windows release: **v0.2.3-winlite-fix1**; Mac/server legacy runtime labels remain unchanged.
+
+**Windows:** [v0.2.3-winlite-fix1](Windows/README.md) is now available as a native tray-only client for the same relay and legacy BLE P2, including compatible block-template editing, encrypted saved credentials and optional sign-in startup. See the [Windows guide](doc/WINDOWS.md) / [简体中文](doc/WINDOWS.zh-CN.md). The full macOS application remains at 0.2.3-fix1.
 
 - **Print workspace:** a shared final monochrome preview for text and images, with rotation, fitting, cropping, dithering, density, copies, paper feed, and reusable presets.
 - **Printer discovery:** Paperang-family candidates shown by default, with an option to show all nearby Bluetooth devices.
