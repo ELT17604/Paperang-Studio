@@ -1,5 +1,7 @@
 # Paperang Studio 使用说明
 
+> v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v1 和 BLE/模板记录仍独立有效。
+
 [English](USER-GUIDE.md) · [中文文档目录](INDEX.zh-CN.md)
 
 ## 第一次使用

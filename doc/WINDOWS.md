@@ -1,4 +1,6 @@
-# Windows tray client · V0.2.3-winlite-fix1
+# Windows tray client · V0.3.0-winlite
+
+> **v0.3.0:** [API v2 authentication](AUTH-v2.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Handoff](HANDOFF-v0.3.0.zh-CN.md). WinLite includes a C management panel; web receipts no longer grant content access.
 
 [简体中文](WINDOWS.zh-CN.md) · [Source and build](../Windows/README.md) · [Documentation](README.md)
 
@@ -33,7 +35,7 @@ JSON retains original font names. Windows maps PingFang SC to Microsoft YaHei, M
 
 The current style, selected template and printing options autosave after a short debounce and flush on closing settings. They restore on the next launch/login without save/connect. Connection credentials change only through save/connect.
 
-The client polls and reports every two seconds, fetches full job details before claiming, validates raster1 geometry and SHA-256, and processes queued jobs in creation order. Requests include `text,raster1` capability negotiation and explicit Content-Length for the original relay's HTTP parser. Printing progress uses the existing partition-report format.
+The client polls and reports every two seconds, claims and durably records uncertainty before fetching the active payload, validates raster1 geometry and SHA-256, and processes queued jobs in creation order. Requests include `text,raster1` capability negotiation and explicit Content-Length for the original relay's HTTP parser. Printing progress uses the existing partition-report format.
 
 Claim information is atomically persisted **before** any printer bytes. Successful sends persist `sent` before reporting. Interrupted claims recover as `unknown` and are never automatically printed again. Failed final reports retry reporting only. An outstanding result requires the same server and device key until resolved.
 
@@ -57,7 +59,7 @@ python Windows/tests/relay_integration.py
 ./Windows/scripts/build.ps1 -SelfContained
 ```
 
-Python 3.10+ is needed only for the integration test, which runs the unmodified included relay with a simulated printer. It checks long-text detail retrieval, raster1, authentication, claims and final database states without using paper. Build output defaults outside the source tree, under sibling `PaperangStudio-Windows-Development/Release/`.
+Python 3.10+ with Server/requirements.txt is needed only for the integration test, which runs the included v0.3.0 relay with a simulated printer. It checks long-text detail retrieval, raster1, authentication, claims and final database states without using paper. Build output defaults outside the source tree, under sibling `PaperangStudio-Windows-Development/Release/`.
 
 The 51 checks cover CRC golden vectors, notification fragmentation, invalid CRC rejection, flow control, media/density guards, templates and non-recursive variables, exact image composition, interrupted-result recovery, report retry without reprinting, pause/heartbeats, Chinese rendering and DPAPI.
 
@@ -77,3 +79,7 @@ The diagnostic uses the saved selected address, validates two reconnections, and
 Research compared [paperang-p2-lib](https://github.com/mdj2812/paperang-p2-lib), [paperang-p1-connect](https://github.com/Orangray-MDJX/paperang-p1-connect), and Microsoft's [GATT write API](https://learn.microsoft.com/en-us/uwp/api/windows.devices.bluetooth.genericattributeprofile.gattcharacteristic.writevaluewithresultasync). The implementation preserves this repository's verified 576-dot legacy BLE protocol, not classic SPP or the P1 A5 protocol. See the [protocol record](PROTOCOL.md).
 
 © 2026 ELT Group. Retains the repository [license](../LICENSE), [NOTICE](../NOTICE), original icon, and independent-project statement. This is the Windows adaptation of macOS revision `b1788b07aacb8c0cff7f86a884e58fb4ad8afb32`.
+
+## C management panel
+
+Settings → Management provides C/passphrase/private-file login, credential creation/rename/rotation/revocation, identities and browser sessions, trusted public keys, complete historical JSON records with readable text/image tabs, user-ID filtering, streaming JSONL export and manual paper confirmation. A ten-minute local timeout locks management; the M background loop continues. New owner files get user-only ACLs. The relay and all participants must upgrade to v0.3.0.

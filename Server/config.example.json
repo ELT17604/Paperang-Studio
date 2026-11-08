@@ -12,5 +12,8 @@
   "queue_limit": 200,
   "retention_days": 7,
   "trusted_proxies": [],
-  "device_id": "p2"
+  "device_id": "p2",
+  "session_days": 180,
+  "global_hourly_limit": 6000,
+  "global_hourly_chars": 6000000
 }

@@ -31,7 +31,7 @@ public sealed record RelayBlock
             ["ip"] = Meta("ip"), ["ua"] = Meta("userAgent"), ["device"] = browser
         };
         return Kind switch {
-            "正文" => fields["text"], "投稿身份" => "senderBlock: " + fields["sender"], "时间" => fields["time"],
+            "正文" => fields["text"], "投稿身份" => "投稿身份：" + fields["sender"], "时间" => fields["time"],
             "任务编号" => "#" + id, "IP" => "IP: " + fields["ip"], "UA" => "UA: " + fields["ua"],
             "浏览器信息" => browser, "分隔线" => "────────────────────────",
             _ => Regex.Replace(Text, @"\{\{(text|sender|id|time|ip|ua|device)\}\}", match => fields[match.Groups[1].Value])

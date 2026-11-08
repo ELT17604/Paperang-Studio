@@ -1,8 +1,10 @@
 # Paperang Studio for Windows
 
+> v0.3.0 uses [relay API v2](../doc/AUTH-v2.md). Settings → 管理 opens the native C panel for keys, identities, sessions, history and JSONL export. Keep the background M token separate.
+
 [English guide](../doc/WINDOWS.md) · [简体中文](../doc/WINDOWS.zh-CN.md)
 
-**V0.2.3-winlite-fix1** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+**V0.3.0-winlite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
 
 Uses the shared [version policy](../doc/VERSIONING.md) and [feature implementation matrix](../doc/FEATURE-MATRIX.md). Fix1 adds automatic print-preference persistence, live connection status and default continuous 60-second retry cycles, and repairs enabled sign-in startup paths after upgrades.
 

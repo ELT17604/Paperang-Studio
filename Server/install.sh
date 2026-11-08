@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install from a local checkout; no remote script execution or Python packages.
+# Install from a local checkout; dedicated venv for authentication dependencies.
 set -euo pipefail
 SOURCE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PORT=8177 BIND=127.0.0.1 ANON_MAX=500 ANON_JOBS=5 ANON_CHARS=2000 AUTH_MAX=10000 AUTH_JOBS=60 AUTH_CHARS=60000
@@ -95,7 +95,9 @@ command -v systemctl >/dev/null || { echo 'systemd is required.' >&2;exit 1; }
 [[ -f "$SOURCE/relay.py" && -d "$SOURCE/web" ]] || { echo 'Keep installer beside relay.py and web/.' >&2;exit 1; }
 getent passwd paperang-relay >/dev/null || useradd --system --user-group --home-dir "$STATE" --shell /usr/sbin/nologin paperang-relay
 install -d -m 0755 "$PREFIX" "$PREFIX/web"
-install -m 0644 "$SOURCE/relay.py" "$PREFIX/relay.py"
+install -m 0644 "$SOURCE/relay.py" "$SOURCE/security.py" "$SOURCE/api_v2.py" "$SOURCE/requirements.txt" "$PREFIX/"
+python3 -m venv "$PREFIX/venv"
+"$PREFIX/venv/bin/python" -m pip install -r "$PREFIX/requirements.txt"
 install -m 0644 "$SOURCE/web/"* "$PREFIX/web/"
 install -d -m 0750 -o paperang-relay -g paperang-relay "$STATE"
 install -d -m 0750 -o root -g paperang-relay "$(dirname -- "$CONFIG")"
@@ -111,8 +113,8 @@ fi
 if [[ ! -f "$STATE/.bootstrapped" ]];then
  umask 077
  CREDS="$STATE/initial-credentials.jsonl"
- for role in admin device submit;do
-  python3 "$PREFIX/relay.py" --config "$CONFIG" key-add --role "$role" --name "initial-$role" >> "$CREDS"
+ for role in C M B;do
+  "$PREFIX/venv/bin/python" "$PREFIX/relay.py" --config "$CONFIG" key-add --role "$role" --name "initial-$role" >> "$CREDS"
  done
  touch "$STATE/.bootstrapped"
  chown -R paperang-relay:paperang-relay "$STATE"
@@ -128,7 +130,7 @@ Type=simple
 User=paperang-relay
 Group=paperang-relay
 UMask=0077
-ExecStart=/usr/bin/python3 $PREFIX/relay.py --config $CONFIG serve
+ExecStart=$PREFIX/venv/bin/python $PREFIX/relay.py --config $CONFIG serve
 WorkingDirectory=$PREFIX
 Restart=on-failure
 RestartSec=3

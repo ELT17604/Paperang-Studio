@@ -1,5 +1,9 @@
 # 变更记录
 
+## v0.3.0 — 2026-11-08
+
+中转 API v2，A/B/C/M 分级、稳定身份、Argon2id 口令、持久安全 Cookie、RSA 私钥挑战、WinLite/SwiftUI 原生 C 管理和筛选历史 JSONL 导出；同步执行器、Keychain/DPAPI 待回报恢复与 RelaySkill。旧中转 v1 关闭，本地 Mac v1 不变。Windows 已测试，Mac/Linux 原生验证待接手。[升级记录](UPGRADE-v0.3.0.zh-CN.md)。
+
 ## v0.2.3-relayskill — 2026-11-08（独立技能发行版）
 
 - 新增平行发行版 `Skills/paperang-relay-print`：文字/点阵提交、中文排版、图片变换/抖动、预览与有界回执追踪。

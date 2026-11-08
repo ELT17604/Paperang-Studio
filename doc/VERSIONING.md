@@ -1,5 +1,7 @@
 # Version naming and compatibility policy
 
+> **0.x policy approved for v0.3.0:** a coordinated MINOR baseline may break the relay contract before 1.0.0. All participants must upgrade together. MAJOR breaking rules apply from 1.0.0; fix notes never break contracts. Current baseline is 0.3.0/API v2; the 0.2.3 section below is historical.
+
 [简体中文](VERSIONING.zh-CN.md) · [Feature implementation matrix](FEATURE-MATRIX.md) · [Release registry](../VERSIONS.json)
 
 Use **`vMAJOR.MINOR.PATCH-distribution[-note]`**, for example **`v0.2.3-winlite-fix1`**. Tags, release titles and documentation use the leading `v`; runtime strings and VERSION files may omit it. Distribution IDs are stable lowercase ASCII: `macclient`, `linuxrelayserver`, `winlite`, `relayskill`, `winclient`, `linuxclient`. Do not introduce `win_lite` or mixed-case spellings in new releases.

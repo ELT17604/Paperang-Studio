@@ -12,10 +12,16 @@ static class Tests
     static async Task Until(Func<bool> condition, int ms = 12000) { var end = DateTime.UtcNow.AddMilliseconds(ms); while (!condition()) { if (DateTime.UtcNow > end) throw new TimeoutException("Test condition timed out"); await Task.Delay(20); } }
     static AppSettings Settings => new() { Server = "http://127.0.0.1:8177", DeviceKey = "psr_test", PrinterAddress = "112233445566" };
     static RelayJob Job => new() { Id = new string('a', 40), Text = "Hello 你好，纸条！", Created = 1793894400 };
+    [STAThread]
     static async Task Main(string[] args)
     {
         try
         {
+            if (args.Length > 0 && args[0] == "--admin-ui") {
+                System.Windows.Forms.Application.EnableVisualStyles();
+                using var form = new AdminForm(Settings); System.Windows.Forms.Application.Run(form); return;
+            }
+            if (args.Length == 2 && args[0] == "--admin-test") { await AdminTest(args[1]); return; }
             if (args.Length > 0 && args[0] == "--ble") { await Ble(args.Contains("--print")); return; }
             if (args.Length > 0 && args[0] == "--preferences")
             {
@@ -85,6 +91,32 @@ static class Tests
             Console.WriteLine($"ALL PASSED: {count}");
         }
         catch (Exception e) { Console.Error.WriteLine(e); Environment.ExitCode = 1; }
+    }
+    private static async Task AdminTest(string path)
+    {
+        var config = JsonDocument.Parse(await File.ReadAllTextAsync(path)).RootElement;
+        var settings = Settings with { Server = config.GetProperty("server").GetString()!, DeviceKey = config.GetProperty("key").GetString()! };
+        using var login = new RelayClient(settings);
+        var session = await login.RequestAsync(HttpMethod.Post, "v2/auth/login", new { credential = settings.DeviceKey }, default,
+            new Dictionary<string,string> { ["X-Paperang-Native"] = "1" });
+        using var owner = new RelayClient(settings with { DeviceKey = session.GetProperty("token").GetString()! });
+        Check((await owner.Get("v2/auth/me", default)).GetProperty("role").GetString() == "C", "Windows C native login, session token validation and permissions");
+        var created = await owner.Post("v2/admin/keys", new { name = "Windows integration", role = "B", kind = "passphrase" }, default);
+        var uid = created.GetProperty("user_id").GetString();
+        var id = created.GetProperty("id").GetString();
+        var rotated = await owner.Post($"v2/admin/keys/{id}/rotate", new { }, default);
+        Check(rotated.GetProperty("user_id").GetString() == uid, "Windows credential rotation preserves stable user identity");
+        using var rsa = RSA.Create(3072);
+        var pub = await owner.Post("v2/admin/public-keys", new { name = "Windows RSA owner", public_key = rsa.ExportSubjectPublicKeyInfoPem() }, default);
+        var challenge = await login.Post("v2/auth/challenge", new { id = pub.GetProperty("id").GetString() }, default);
+        var signature = rsa.SignData(Encoding.UTF8.GetBytes(challenge.GetProperty("message").GetString()!), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+        var proof = await login.Post("v2/auth/prove", new { challenge = challenge.GetProperty("challenge").GetString(), signature = Convert.ToBase64String(signature) }, default);
+        Check(proof.GetProperty("role").GetString() == "C", "Windows RSA-PSS signature interoperates with Python verification");
+        var page = await owner.Post("v2/admin/jobs/export", new { user_id = "" }, default);
+        Check(page.GetProperty("jobs").GetArrayLength() == 2 && page.GetProperty("jobs")[0].TryGetProperty("metadata", out _), "Windows C export returns text/image jobs and delivery metadata");
+        string privateFile = Path.Combine(Path.GetTempPath(), "paperang-acl-" + Guid.NewGuid() + ".json");
+        try { AdminForm.WritePrivate(privateFile, "fixture"); Check(File.ReadAllText(privateFile) == "fixture" && new FileInfo(privateFile).GetAccessControl().AreAccessRulesProtected, "Windows owner file disables inherited ACL before writing secret"); }
+        finally { File.Delete(privateFile); }
     }
     private static async Task MinuteRetry()
     {
@@ -310,7 +342,11 @@ static class Tests
                 if (state == "sent" && FailResults-- > 0) return new(HttpStatusCode.ServiceUnavailable);
                 State = state; if (state == "sent") Sent++; if (state == "unknown") Unknown++; if (state == "printing") PrintingReports++;
             }
-            else if (p == "/v1/device/jobs") result = new { jobs = new[] { job with { State = State } } };
+            else if (p == "/v2/device/jobs") result = new { jobs = new[] { job with { State = State, Text = "", Metadata = [], Truncated = true } } };
+            else if (p == "/v2/device/jobs/" + job.Id) {
+                HeadersValid &= Claims > 0 && req.Headers.TryGetValues("X-Job-Claim", out var claims) && claims.Single() == "claim";
+                result = job with { State = State };
+            }
             return new(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(result, RelayClient.Json)) };
         }
         protected override void Dispose(bool disposing) { } // factory reuses the fixture

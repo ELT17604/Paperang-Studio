@@ -21,14 +21,15 @@ struct RelayManagedKey:Identifiable {let id:String;var name:String;let role:Stri
 struct RelayFlight {let serverID:String;let claim:String;var localID:UUID?;var outcome:String?}
 
 extension Lab {
- func relayRequest(_ method:String,_ path:String,_ body:[String:Any]?=nil, credential:String?=nil) async throws -> [String:Any] {
+ func relayRequest(_ method:String,_ path:String,_ body:[String:Any]?=nil, credential:String?=nil, claim:String?=nil) async throws -> [String:Any] {
   guard let base=relayEndpoint else{throw PrintFailure("请先连接中转服务器")}
   let session=relaySession
   var req=URLRequest(url:base.appendingPathComponent(path));req.httpMethod=method;req.timeoutInterval=4
+  if let claim{req.setValue(claim,forHTTPHeaderField:"X-Job-Claim")}
   req.setValue("text,raster1",forHTTPHeaderField:"X-Paperang-Content-Types")
   req.cachePolicy = .reloadIgnoringLocalCacheData;req.setValue("Bearer "+(credential ?? relayCredential),forHTTPHeaderField:"Authorization")
   if let body{req.setValue("application/json",forHTTPHeaderField:"Content-Type");req.httpBody=try JSONSerialization.data(withJSONObject:body)}
-  let (data,response)=try await URLSession.shared.data(for:req)
+  let (data,response)=try await RelayTransport.data(for:req)
   guard !Task.isCancelled,session==relaySession else{throw CancellationError()}
   guard data.count<=1_048_576,let http=response as? HTTPURLResponse,let object=(try? JSONSerialization.jsonObject(with:data)) as? [String:Any] else{throw PrintFailure("服务器返回无效数据")}
   guard (200...299).contains(http.statusCode) else{throw PrintFailure("中转HTTP \(http.statusCode)：\(object["error"] as? String ?? "请求失败")")}
@@ -40,6 +41,14 @@ extension Lab {
   relayKey=relayKey.trimmingCharacters(in:.whitespacesAndNewlines)
   guard relayKey.hasPrefix("psr_"),relayKey.utf8.count<=256 else{relayMessage="请输入设备密钥（psr_开头），不是投稿或管理密钥";return}
   if relayFlight != nil && (relayEndpoint != url || relayCredential != relayKey){relayMessage="上一任务尚待回报，请保持同一服务器和设备密钥";return}
+  do {
+   if relayFlight==nil,let pending=try RelayVault.read("pending",as:RelaySavedClaim.self){
+    guard pending.server==url.absoluteString,pending.fingerprint==Self.relayFingerprint(relayKey) else{throw PrintFailure("有待回报任务，请使用原服务器和 M 凭证")}
+    relayFlight=RelayFlight(serverID:pending.job,claim:pending.claim,localID:nil,outcome:pending.state)
+    relayEndpoint=url;relayCredential=relayKey
+   }
+   try RelayVault.save("connection",RelaySavedConnection(server:url.absoluteString,credential:relayKey))
+  }catch{relayMessage=error.localizedDescription;return}
   relaySession=UUID();relayOnline=false;relayFailures=0;relayLastSeen=nil;relayManagedKeys=[];relayCreatedToken="";relayEndpoint=url;relayCredential=relayKey;relayRunning=true;relayMessage="正在连接…";relayAutoPrint=trayMode ? !trayPrintPaused:relayDefaultAutoPrint
   let session=relaySession
   relayTask=Task{
@@ -49,7 +58,10 @@ extension Lab {
     catch {guard !Task.isCancelled,self.relaySession==session else{break};self.relayOnline=false
      let exhausted=health.failed();self.relayFailures=health.retries
      self.relayMessage="连接不可用 · 重连 \(self.relayFailures)/5 · \(error.localizedDescription)"
-     if exhausted {self.stopRelay();self.relayMessage="连续5次重连失败，已断开："+error.localizedDescription;self.relayWarning=true;break}
+     if exhausted {
+      if self.relayKeepReconnecting {self.relayMessage="本轮失败，等待一分钟后继续重连";do{try await Task.sleep(for:.seconds(60))}catch{break};health=RelayHealth();_ = health.failed();continue}
+      self.stopRelay();self.relayMessage="连续5次重连失败，已断开："+error.localizedDescription;self.relayWarning=true;break
+     }
     }
     do{try await Task.sleep(for:.seconds(2))}catch{break}
    }
@@ -57,36 +69,42 @@ extension Lab {
   }
  }
  func stopRelay(){relayAutoPrint=false;relayOnline=false;relayRunning=false;relayTask?.cancel();relayTask=nil;relaySession=UUID()
-  if var flight=relayFlight{if let id=flight.localID,jobs.first(where:{$0.id==id})?.status=="发送中"{stopJob()};if let id=flight.localID,jobs.first(where:{$0.id==id})?.status.hasPrefix("已发送")==true{flight.outcome="sent"}else{flight.outcome="unknown"};relayFlight=flight}
+  if var flight=relayFlight{if let id=flight.localID,jobs.first(where:{$0.id==id})?.status=="发送中"{stopJob()};if let id=flight.localID,jobs.first(where:{$0.id==id})?.status.hasPrefix("已发送")==true{flight.outcome="sent"}else{flight.outcome="unknown"};relayFlight=flight;try? persistRelayFlight()}
   relayMessage="已断开中转；发送结果不确定的任务不会自动重打"
+ }
+ static func relayFingerprint(_ key:String)->String {SHA256.hash(data:Data(key.utf8)).map{String(format:"%02x",$0)}.joined()}
+ func persistRelayFlight()throws {
+  guard let flight=relayFlight,let endpoint=relayEndpoint else{return}
+  try RelayVault.save("pending",RelaySavedClaim(server:endpoint.absoluteString,fingerprint:Self.relayFingerprint(relayCredential),job:flight.serverID,claim:flight.claim,state:flight.outcome ?? "unknown"))
  }
  func relayFlush() async throws {
   guard !relayFlushing,var flight=relayFlight else{return}
   relayFlushing=true;defer{relayFlushing=false}
   if flight.outcome==nil,let localID=flight.localID{
-   if let job=jobs.first(where:{$0.id==localID}){if job.status=="发送中"{_ = try await relayRequest("POST","v1/device/jobs/\(flight.serverID)/result",["claim":flight.claim,"state":"printing","detail":jobStatus]);return};flight.outcome=job.status.hasPrefix("已发送") ? "sent":"unknown"}else{flight.outcome="unknown"}
+   if let job=jobs.first(where:{$0.id==localID}){if job.status=="发送中"{_ = try await relayRequest("POST","v2/device/jobs/\(flight.serverID)/result",["claim":flight.claim,"state":"printing","detail":jobStatus]);return};flight.outcome=job.status.hasPrefix("已发送") ? "sent":"unknown"}else{flight.outcome="unknown"}
    relayFlight=flight
   }
   guard let outcome=flight.outcome else{return}
-  _ = try await relayRequest("POST","v1/device/jobs/\(flight.serverID)/result",["claim":flight.claim,"state":outcome,"detail":outcome=="sent" ? "Data sent; physical output not independently confirmed":"Inspect paper before any manual retry"])
-  relayFlight=nil
+  try persistRelayFlight()
+  _ = try await relayRequest("POST","v2/device/jobs/\(flight.serverID)/result",["claim":flight.claim,"state":outcome,"detail":outcome=="sent" ? "Data sent; physical output not independently confirmed":"Inspect paper before any manual retry"])
+  try RelayVault.remove("pending");relayFlight=nil
  }
  func relayTick() async throws {
   guard relayRunning else{return}
   if !relayMutating{try await relayFlush()}
-  _ = try await relayRequest("POST","v1/device/status",["status":statusObject()])
+  _ = try await relayRequest("POST","v2/device/status",["status":statusObject()])
   relayOnline=true;relayLastSeen=Date()
   guard relayRunning,!relayMutating else{return}
-  let result=try await relayRequest("GET","v1/device/jobs")
+  let result=try await relayRequest("GET","v2/device/jobs")
   guard relayRunning else{return}
-  relayJobs=(result["jobs"] as? [[String:Any]] ?? []).compactMap{row in guard var job=RelayJob.decode(row) else{return nil};if let cached=relayDetailCache[job.id]{job.text=cached.text;job.content=cached.content;job.hasFullText=true};return job}
-  let ids=Set(relayJobs.map(\.id));relayDetailCache=relayDetailCache.filter{ids.contains($0.key)}
+  relayJobs=(result["jobs"] as? [[String:Any]] ?? []).compactMap(RelayJob.decode)
+  relayDetailCache.removeAll()
   if !relayJobs.contains(where:{$0.id==relaySelection}){relaySelection=relayJobs.first?.id ?? ""}
   relayMessage="中转已连接 · 待处理 \(relayJobs.filter{$0.state=="queued"}.count) / 最近 \(relayJobs.count) 项 · 每2秒上报/刷新"
   if relayAutoPrint,networkPrintAllowed,ready,!busy,relayFlight==nil,let job=relayJobs.filter({$0.state=="queued"}).min(by:{$0.created<$1.created}){await printRelay(job)}
  }
  var relayPreviewSignature:String {(selectedRelayJob?.layoutSignature ?? relaySelection)+relayStyle+String(relayDensity)+String(relayFeed)+[relayIncludeText,relayIncludeSender,relayIncludeTime,relayIncludeID,relayIncludeIP,relayIncludeUA,relayIncludeDevice].map{String($0)}.joined()+currentRelayTemplate.layoutSignature}
- func abandonRelayReport(){guard !relayMutating else{return};if let id=relayFlight?.localID,jobs.first(where:{$0.id==id})?.status=="发送中"{return};relayFlight=nil;relayMessage="已清除本地结果关联，不会重新打印旧任务"}
+ func abandonRelayReport(){guard !relayMutating else{return};if let id=relayFlight?.localID,jobs.first(where:{$0.id==id})?.status=="发送中"{return};do{try RelayVault.remove("pending")}catch{relayMessage=error.localizedDescription;return};relayFlight=nil;relayMessage="已清除本地结果关联，不会重新打印旧任务"}
  var selectedRelayJob:RelayJob? {relayJobs.first{$0.id==relaySelection}}
  func relayDocument(_ job:RelayJob)->String {
   let date=ISO8601DateFormatter().string(from:job.created)
@@ -137,10 +155,11 @@ extension Lab {
   guard relayRunning,relayOnline,!relayMutating,relayFlight==nil,ready,!busy,networkPrintAllowed,job.state=="queued" else{relayMessage="请连接P2、开启侧栏全局耗纸并等待当前任务完成";return}
   relayMutating=true;defer{relayMutating=false}
   do{
-   let job=try await relayFullJob(job);let s=relayPrintSettings();let r=try relayRaster(job,settings:s)
-   let result=try await relayRequest("POST","v1/device/jobs/\(job.id)/claim",[:]);guard let claim=result["claim"] as? String else{throw PrintFailure("缺少任务认领凭据")}
+   let result=try await relayRequest("POST","v2/device/jobs/\(job.id)/claim",[:]);guard let claim=result["claim"] as? String else{throw PrintFailure("缺少任务认领凭据")}
    relayFlight=RelayFlight(serverID:job.id,claim:claim,localID:nil,outcome:nil)
-   _ = try await relayRequest("POST","v1/device/jobs/\(job.id)/result",["claim":claim,"state":"printing"])
+   try persistRelayFlight()
+   let full=try await relayFullJob(job);let s=relayPrintSettings();let r=try relayRaster(full,settings:s)
+   _ = try await relayRequest("POST","v2/device/jobs/\(job.id)/result",["claim":claim,"state":"printing"])
    guard relayRunning,networkPrintAllowed,ready,!busy else{throw PrintFailure("本地打印条件已改变，任务不会重发")}
    let id=try submitRaster(r,settings:s,title:"远程 · "+job.sender)
    relayFlight?.localID=id;if let i=relayJobs.firstIndex(where:{$0.id==job.id}){relayJobs[i].state="printing"};relayMessage="远程任务已提交；完成后回报中转"
@@ -150,14 +169,21 @@ extension Lab {
   }
  }
  func rejectRelay(){guard let job=selectedRelayJob,job.state=="queued",relayRunning,!relayMutating else{return};relayMutating=true
-  Task{defer{self.relayMutating=false};do{_ = try await self.relayRequest("POST","v1/device/jobs/\(job.id)/reject",[:]);if let i=self.relayJobs.firstIndex(where:{$0.id==job.id}){self.relayJobs[i].state="rejected"};self.relayMessage="已拒绝任务"}catch{self.relayMessage=error.localizedDescription}}
+  Task{defer{self.relayMutating=false};do{_ = try await self.relayRequest("POST","v2/device/jobs/\(job.id)/reject",[:]);if let i=self.relayJobs.firstIndex(where:{$0.id==job.id}){self.relayJobs[i].state="rejected"};self.relayMessage="已拒绝任务"}catch{self.relayMessage=error.localizedDescription}}
  }
 }
 extension Lab {
  var relayVisibleJobs:[RelayJob] {relayJobs.filter{job in (relayFilter=="全部" || (relayFilter=="待处理" && job.state=="queued") || (relayFilter=="进行中" && ["claimed","printing"].contains(job.state)) || (relayFilter=="已发送" && ["sent","confirmed"].contains(job.state)) || (relayFilter=="异常" && job.state=="unknown") || (relayFilter=="已拒绝" && job.state=="rejected")) && (relaySearch.isEmpty || (job.id+job.shortID+job.sender+job.text).localizedCaseInsensitiveContains(relaySearch))}.sorted{$0.created>$1.created}}
  func relayFullJob(_ job:RelayJob) async throws ->RelayJob {
-  if job.hasFullText{return job}
-  let result=try await relayRequest("GET","v1/device/jobs/\(job.id)")
+  let result:[String:Any]
+  if let flight=relayFlight,flight.serverID==job.id {
+   result=try await relayRequest("GET","v2/device/jobs/\(job.id)",claim:flight.claim)
+  } else {
+   guard !relayAdminKey.isEmpty else{throw PrintFailure("预览完整内容需要 C 管理权限；自动打印会在认领后读取正文")}
+   let page=try await relayRequest("POST","v2/admin/jobs/search",["job_id":job.id],credential:relayAdminKey)
+   guard let row=(page["jobs"] as? [[String:Any]])?.first(where:{$0["id"] as? String==job.id}) else{throw PrintFailure("找不到任务")}
+   result=row
+  }
   guard let full=RelayJob.decode(result),full.id==job.id,full.hasFullText else{throw PrintFailure("无法获取完整任务正文，已阻止打印摘要")}
   relayDetailCache[job.id]=full
   if let i=relayJobs.firstIndex(where:{$0.id==job.id}){relayJobs[i].text=full.text;relayJobs[i].hasFullText=true;relayJobs[i].content=full.content}
@@ -169,6 +195,6 @@ extension Lab {
 
 extension Lab {
  func confirmRelayOutput(){guard let job=selectedRelayJob,job.state=="sent",relayOnline,!relayMutating else{return};relayMutating=true
-  Task{defer{self.relayMutating=false};do{_ = try await self.relayRequest("POST","v1/device/jobs/\(job.id)/confirm",[:]);if let i=self.relayJobs.firstIndex(where:{$0.id==job.id}){self.relayJobs[i].state="confirmed"};self.relayMessage="已记录人工纸面确认"}catch{self.relayMessage=error.localizedDescription}}
+  Task{defer{self.relayMutating=false};do{_ = try await self.relayRequest("POST","v2/admin/jobs/\(job.id)/confirm",[:],credential:self.relayAdminKey);if let i=self.relayJobs.firstIndex(where:{$0.id==job.id}){self.relayJobs[i].state="confirmed"};self.relayMessage="已记录人工纸面确认"}catch{self.relayMessage=error.localizedDescription}}
  }
 }

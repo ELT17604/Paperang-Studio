@@ -1,5 +1,7 @@
 # Windows porting notes
 
+> v0.3.0: historical observations/screenshots below remain recorded evidence. Current relay authentication, history access, dependencies and validation status are defined by [API v2](AUTH-v2.md), [upgrade](UPGRADE-v0.3.0.zh-CN.md) and [matrix](FEATURE-MATRIX.md). Local API v1 and BLE/template records are separate contracts.
+
 [简体中文](WINDOWS-PORTING.zh-CN.md) · [Windows guide](WINDOWS.md)
 
 The Windows adaptation is based on macOS revision `b1788b07aacb8c0cff7f86a884e58fb4ad8afb32`. It adds `Windows/` without replacing the Swift/C targets, original server, API clients or icon assets.

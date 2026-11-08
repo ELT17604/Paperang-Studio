@@ -1,5 +1,7 @@
 # 远程任务列表与图形化样式编辑器
 
+> v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v1 和 BLE/模板记录仍独立有效。
+
 [English](LAYOUT-EDITOR.md) · [中文文档目录](INDEX.zh-CN.md)
 
 ## 任务列表与短编号

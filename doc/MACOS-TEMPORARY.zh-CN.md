@@ -1,5 +1,7 @@
 # macOS 终端临时体验
 
+> v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v1 和 BLE/模板记录仍独立有效。
+
 [English](../Server/macOS-Temporary/README.md) · [服务端说明](REMOTE-PRINTING.zh-CN.md)
 
 项目中已新增`Server/macOS-Temporary/`。在项目根目录的终端运行：
@@ -61,4 +63,4 @@ bash Server/macOS-Temporary/run.sh --help
 
 保持终端开启；Ctrl-C或正常关闭终端（SIGHUP）即停止并清理临时数据库/密钥。不注册launchd/systemd服务，不会后台常驻。重新启动后使用全新密钥，原收件箱不保留；强制kill可能残留系统临时目录。
 
-Ubuntu持久化安装仍使用`sudo bash Server/install.sh`，其`--prefix`、`--config`、`--state-dir`等安装专用参数不能传给macOS临时入口。[服务端总说明](../Server/README.md#available-parameters)列出完整参数及适用模式。
+Ubuntu持久化安装仍使用`sudo bash Server/install.sh`，其`--prefix`、`--config`、`--state-dir`等安装专用参数不能传给macOS临时入口。[服务端总说明](../Server/README.md#parameters)列出完整参数及适用模式。

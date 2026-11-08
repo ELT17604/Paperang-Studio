@@ -18,7 +18,7 @@ Use `scripts/relay_print.py` with Python 3.10+. Text-only jobs, status and recei
 
 Use `--server`, `PAPERANG_RELAY_URL`, or a configured endpoint. With none set on Windows, the helper reads only the endpoint from current-user DPAPI-protected WinLite settings. It never repurposes the device key for submission. Use HTTPS except loopback or explicit `--allow-http`.
 
-Use a **submit** key through `PAPERANG_RELAY_SUBMIT_KEY` or `--key-file` (raw token or keygen JSON with `token`), never command arguments or skill files. Without a key, anonymous submission must be permitted by public policy. Device keys cannot submit; admin keys are unnecessary. Do not create/discover credentials automatically. Ask for a submit-key file/environment variable only when anonymous policy requires one.
+Use an **A or B random key** through `PAPERANG_RELAY_SUBMIT_KEY` or `--key-file` (raw token or JSON with role A/B and token). API v2 requires an identity: this helper does not borrow browser cookies or receiver M credentials, and does not discover/create credentials. A only receives inbox acceptance; B also reads its own identity’s status. C is unnecessary. Browser passphrases belong in the native/web login flow, not this helper.
 
 ## Prepare, submit, track
 
@@ -30,7 +30,7 @@ $printerHelper = "$env:USERPROFILE/.codex/skills/paperang-relay-print/scripts/re
 & $printerPython $printerHelper status
 & $printerPython $printerHelper prepare --text-file C:/path/note.txt --mode raster --font-size 26 --margin 16 --align left --output C:/path/job.json --preview C:/path/preview.png
 & $printerPython $printerHelper submit --job C:/path/job.json --receipt C:/path/receipt.json --confirm-print
-& $printerPython $printerHelper wait --receipt C:/path/receipt.json --timeout 120
+& $printerPython $printerHelper --server https://your-relay.example wait --receipt C:/path/receipt.json --timeout 120
 ```
 
 - Submit preflights policy, capability, image hash/size, body limit and per-job allowance. Default: refuse if the receiver is offline, disconnected or automatic printing is off. `--queue-if-offline` requires a request permitting the note to wait in the inbox.
@@ -38,4 +38,8 @@ $printerHelper = "$env:USERPROFILE/.codex/skills/paperang-relay-print/scripts/re
 - Use a **new receipt path** for each intended submission. An exclusive attempt record is written before POST. Do not delete/overwrite it to retry. A timeout may mean acceptance: **never automatically resend POST**. Existing attempt paths are refused. `--copies N` (1–20) creates separate intended submissions/receipts and stops at the first failure without replaying earlier copies.
 - Wait/status only read state. Polling is bounded; continue a timed-out wait with the same receipt instead of submitting again. `sent` means transport completed, **not paper confirmed**; `confirmed` is a separate manual state. Report queued/unknown/unavailable accurately. Never confirm paper on the user's behalf.
 
-Keep job JSON, previews, configuration and receipt capabilities outside published source/skill files. Receipts are capabilities, not public IDs. Files use user-only POSIX permissions or the Windows user's inherited profile permissions; they are not a credential vault. The helper never logs keys, receipt tokens, bodies or base64. No server/client source modification or background service is required.
+Keep job JSON, previews, configuration and attempt records outside published source/skill files. Attempt files contain IDs and acceptance/status-readable flags, no bearer receipt secrets. Files use user-only POSIX permissions or the Windows user's inherited profile permissions; they are not a credential vault. The helper never logs keys, receipt tokens, bodies or base64. No server/client source modification or background service is required.
+
+## v0.3.0 contract
+
+The helper uses relay API v2; relay v1 is retired. Public status only advertises inbox acceptance/capabilities, not printer readiness. An accepted A job must not be polled; report acceptance without claiming print success. B wait requires the same identity’s key and the explicit matching server. Density/feed/template remain receiver-owned. A timeout is uncertain; never automatically submit again.

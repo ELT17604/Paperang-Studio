@@ -81,9 +81,9 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
                     if (printing is { IsCompleted: true }) { await printing.ConfigureAwait(false); printing = null; }
                     if (!Busy) await FlushAsync(relay, ct).ConfigureAwait(false);
                     if (Busy && pending is { State: "unknown" } flight)
-                        await relay.Post($"v1/device/jobs/{flight.JobId}/result", new { claim = flight.Claim, state = "printing", detail = printer.PartitionDetail }, ct).ConfigureAwait(false);
-                    await relay.Post("v1/device/status", new { status = Status() }, ct).ConfigureAwait(false);
-                    var response = await relay.Get("v1/device/jobs", ct).ConfigureAwait(false);
+                        await relay.Post($"v2/device/jobs/{flight.JobId}/result", new { claim = flight.Claim, state = "printing", detail = printer.PartitionDetail }, ct).ConfigureAwait(false);
+                    await relay.Post("v2/device/status", new { status = Status() }, ct).ConfigureAwait(false);
+                    var response = await relay.Get("v2/device/jobs", ct).ConfigureAwait(false);
                     var jobs = response.GetProperty("jobs").Deserialize<RelayJob[]>(RelayClient.Json) ?? [];
                     foreach (var j in jobs) j.Validate();
                     Online = true; failures = 0; Retries = 0; attemptLimit = 6; NextRetryAt = null;
@@ -144,22 +144,19 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
         var jobSettings = settings;
         try
         {
-            if (job.Truncated || job.Content is { } c && !c.TryGetProperty("data", out _))
-            {
-                var full = (await relay.Get("v1/device/jobs/" + job.Id, ct).ConfigureAwait(false)).Deserialize<RelayJob>(RelayClient.Json)?.Validate();
-                if (full == null || full.Id != job.Id || full.Truncated) throw new InvalidDataException("未取得完整任务，禁止打印摘要");
-                job = full;
-            }
-            var raster = renderer.Render(job, jobSettings).Validate();
             if (!allowed || ct.IsCancellationRequested) return;
             JsonElement claim;
-            try { claim = await relay.Post($"v1/device/jobs/{job.Id}/claim", new { }, ct).ConfigureAwait(false); }
+            try { claim = await relay.Post($"v2/device/jobs/{job.Id}/claim", new { }, ct).ConfigureAwait(false); }
             catch (RelayHttpException e) when (e.Status == 409) { return; }
             string token = claim.GetProperty("claim").GetString() ?? throw new InvalidDataException("缺少认领凭据");
             pending = new(settings.Validate().AbsoluteUri, Fingerprint(settings.DeviceKey), job.Id, token);
-            // Persist unknown BEFORE allowing any physical write.
+            // Persist uncertainty before fetching/rendering the claimed payload.
             journal.Save(pending);
-            await relay.Post($"v1/device/jobs/{job.Id}/result", new { claim = token, state = "printing" }, ct).ConfigureAwait(false);
+            var full = (await relay.RequestAsync(HttpMethod.Get, "v2/device/jobs/" + job.Id, null, ct,
+                new Dictionary<string,string> { ["X-Job-Claim"] = token }).ConfigureAwait(false)).Deserialize<RelayJob>(RelayClient.Json)?.Validate();
+            if (full == null || full.Id != job.Id || full.Truncated) throw new InvalidDataException("未取得完整任务，禁止打印摘要");
+            var raster = renderer.Render(full, jobSettings).Validate();
+            await relay.Post($"v2/device/jobs/{job.Id}/result", new { claim = token, state = "printing" }, ct).ConfigureAwait(false);
             if (!allowed) { PrintMessage = "领取后已暂停，任务按不确定结果回报，不会重打"; return; }
             printing = PrintAsync(raster, jobSettings, ct);
         }
@@ -191,14 +188,14 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
     private async Task FlushAsync(RelayClient relay, CancellationToken ct)
     {
         if (pending == null) return;
-        await relay.Post($"v1/device/jobs/{pending.JobId}/result", new {
+        await relay.Post($"v2/device/jobs/{pending.JobId}/result", new {
             claim = pending.Claim, state = pending.State,
             detail = pending.State == "sent" ? "Data sent; physical output not independently confirmed" : "Inspect paper before any manual retry"
         }, ct).ConfigureAwait(false);
         journal.Save(null); pending = null;
     }
     public object Status() => new {
-        appVersion = AppVersion.Current, apiVersion = "v1", trayMode = true,
+        appVersion = AppVersion.Current, apiVersion = "v2", trayMode = true,
         networkPrintAllowed = allowed, automaticNetworkConsent = allowed,
         relayAutomaticPrinting = allowed, relayContentTypes = new[] { "text", "raster1" },
         connected = printer.Ready, busy = Busy, printer = settings.PrinterName,

@@ -8,6 +8,7 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (args.Contains("--version")) { Console.WriteLine(AppVersion.Current); return; }
         ApplicationConfiguration.Initialize();
         using var mutex = new Mutex(true, @"Local\ELT.PaperangStudio.WinLite", out bool first);
         using var showSettings = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\ELT.PaperangStudio.WinLite.Settings");

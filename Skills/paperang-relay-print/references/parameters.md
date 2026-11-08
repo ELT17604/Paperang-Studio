@@ -46,13 +46,13 @@ relay_print.py prepare --image C:/work/photo.png --fit contain --max-height 800 
 relay_print.py prepare --image C:/work/label.png --fit cover --height 300 --threshold 150 --output C:/work/job.json --preview C:/work/preview.png
 relay_print.py submit --job C:/work/job.json --receipt C:/work/receipt.json --confirm-print
 relay_print.py submit --job C:/work/job.json --receipt C:/work/copies.json --copies 2 --confirm-print
-relay_print.py wait --receipt C:/work/copies.001.json --timeout 120
+relay_print.py --server https://example.com wait --receipt C:/work/copies.001.json --timeout 120
 relay_print.py status
 relay_print.py configure --server-url https://example.com --submit-key-file C:/private/submit.keys.json
 ```
 
-Configure stores only endpoint and key-file path, never the key. No configuration is needed if the saved Windows endpoint and anonymous policy suffice. Default config: `%LOCALAPPDATA%/ELT/PaperangRelaySkill/config.json` or `~/.config/paperang-relay-print/config.json`. `PAPERANG_RELAY_URL` and `PAPERANG_RELAY_SUBMIT_KEY` can override configuration.
+Configure stores only endpoint and key-file path, never the key. An A/B random key is required; a saved Windows endpoint alone does not authorize submission. Default config: `%LOCALAPPDATA%/ELT/PaperangRelaySkill/config.json` or `~/.config/paperang-relay-print/config.json`. `PAPERANG_RELAY_URL` and `PAPERANG_RELAY_SUBMIT_KEY` can override configuration.
 
 Quota units are **text characters + raster rows**, not image bytes. Public policy gives the actual per-job and hourly allowances; anonymous default 500 units is often too short for large photos. Supply a submit key or reduce size, rather than bypassing quota with extra anonymous jobs.
 
-Each receipt file contains its server and receipt capability. Wait supports queued/claimed/printing/sent/confirmed/unknown/rejected. A bounded wait ending while queued is not failure or permission to resubmit. No POST is retried automatically, including 429 and timeouts.
+Each attempt file contains server, job IDs and acceptance/status-readable flags, not a bearer receipt. A cannot wait for status; B wait requires its matching identity key. Wait supports queued/claimed/printing/sent/confirmed/unknown/rejected. A bounded wait ending while queued is not failure or permission to resubmit. No POST is retried automatically, including 429 and timeouts.

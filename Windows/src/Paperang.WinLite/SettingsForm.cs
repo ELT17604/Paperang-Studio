@@ -50,10 +50,18 @@ internal sealed class SettingsForm : Form
         var connection = Page("连接");
         var printing = Page("打印");
         var general = Page("启动与状态");
-        tabs.TabPages.AddRange([connection.Page, printing.Page, general.Page]);
+        var management = Page("管理");
+        var openAdmin = new Button { Text = "打开图形化管理面板…", AutoSize = true };
+        openAdmin.Click += (_, _) => {
+            try { using var form = new AdminForm(initial); form.ShowDialog(this); }
+            catch { feedback.Text = "请先保存有效的服务器连接设置。"; }
+        };
+        Add(management.Body, "C 权限管理", openAdmin);
+        Add(management.Body, "", Hint("管理 A/B/C/M 凭证、身份、浏览器会话、公钥和完整任务历史；支持按用户 ID 筛选及 JSONL 导出。\n可使用 C 密钥、口令或本地所有者私钥登录；后台打印仍使用独立 M 凭证。"));
+        tabs.TabPages.AddRange([connection.Page, printing.Page, general.Page, management.Page]);
         root.Controls.Add(tabs);
         Add(connection.Body, "中转服务器根地址", url);
-        Add(connection.Body, "设备密钥（psr_ 开头）", key);
+        Add(connection.Body, "M 设备执行密钥（psr_ 开头）", key);
         var show = new CheckBox { Text = "显示密钥", AutoSize = true }; show.CheckedChanged += (_, _) => key.UseSystemPasswordChar = !show.Checked;
         Add(connection.Body, "", show); Add(connection.Body, "", http);
         Add(connection.Body, "本地 P2 打印机", printers);

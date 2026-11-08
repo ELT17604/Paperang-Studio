@@ -1,10 +1,12 @@
 <p align="center"><img src="../assets/AppIcon.png" width="160" alt="Paperang Studio logo"></p>
 
+> **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。
+
 # Paperang Studio
 
 [English](../README.md) · [中文文档目录](INDEX.zh-CN.md)
 
-原生 macOS 喵喵机 P2 打印工作台、协议调试器、实体纸带终端与本机 HTTP API。SwiftUI + CoreBluetooth，无第三方运行库。当前版本 **0.2.3-fix1**，需要 macOS 14+、Swift 6 工具链（Xcode 16+）。项目为非官方工具。
+原生 macOS 喵喵机 P2 打印工作台、协议调试器、实体纸带终端与本机 HTTP API。SwiftUI + CoreBluetooth，无第三方运行库。当前版本 **0.3.0-macclient**，需要 macOS 14+、Swift 6 工具链（Xcode 16+）。项目为非官方工具。
 
 - 文字与图片共用最终黑白位图预览；旋转、适配/裁切、阈值和抖动、浓度、份数、送纸及传输参数可调，支持预设。
 - 设备列表默认仅显示名称匹配 Paperang / Miaomiaoji / 喵喵机的候选；“展示全部蓝牙设备”恢复完整扫描列表。名称筛选不是设备身份认证，连接后仍校验协议及型号。
@@ -16,7 +18,7 @@
 
 ## 快速开始
 
-**Windows 版本：**已新增 [v0.2.3-winlite-fix1 原生托盘客户端](WINDOWS.zh-CN.md)，兼容同一中转服务器与传统 BLE P2，包含与 Mac v1 JSON 兼容的图形化模板编辑、加密凭证保存和可选登录自启。[源码与构建](../Windows/README.md)。完整 macOS 版保持 0.2.3-fix1。
+**Windows 版本：**已新增 [v0.3.0-winlite 原生托盘客户端](WINDOWS.zh-CN.md)，兼容同一中转服务器与传统 BLE P2，包含与 Mac v1 JSON 兼容的图形化模板编辑、加密凭证保存和可选登录自启。[源码与构建](../Windows/README.md)。macOS 源码已同步，原生编译与实机验证待完成。
 
 ```sh
 ./scripts/build.sh
@@ -29,7 +31,7 @@ open '../PaperangStudio-Development/Release/Paperang Studio.app'
 
 ## 文档导航
 
-跨端发布统一遵循[版本命名规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)和[版本登记表](../VERSIONS.json)。当前 Windows 为 **v0.2.3-winlite-fix1**；Mac/服务器保留已部署的旧运行时版本作为兼容别名。
+跨端发布统一遵循[版本命名规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)和[版本登记表](../VERSIONS.json)。当前 Windows 为 **v0.3.0-winlite**；中转统一升级为 API v2，旧客户端必须协调升级。
 
 | 文档 | 内容 |
 |---|---|
@@ -65,3 +67,9 @@ Paperang Studio is an independent, unofficial project and is not affiliated with
 [三个相关项目的可借鉴内容与限制](RELATED-PROJECTS.zh-CN.md)
 
 v0.2.3 新增[菜单栏托盘模式](TRAY-MODE.zh-CN.md)，可保留蓝牙和网络监听并自动处理网络打印。
+
+## v0.3.0
+
+- [身份和权限 / Authentication](AUTH-v2.zh-CN.md) · [API contract](AUTH-v2.md)
+- [升级 / 回滚与发布记录](UPGRADE-v0.3.0.zh-CN.md)
+- [Mac / Linux Agent 完整接手 Prompt](HANDOFF-v0.3.0.zh-CN.md)

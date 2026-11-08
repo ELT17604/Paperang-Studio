@@ -5,7 +5,7 @@ import argparse, contextlib, hashlib, hmac, ipaddress, json, os, re, secrets, si
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-APP_VERSION = '0.2.3'
+APP_VERSION = '0.3.0'
 
 JOB_PATTERN = r'(?:[a-f0-9]{40}|[a-f0-9-]{36})'
 SHORT_JOB_PATTERN = r'(?:[A-Fa-f0-9]{12}|[A-Fa-f0-9]{4}(?:-[A-Fa-f0-9]{4}){2})'
@@ -22,7 +22,7 @@ def transport_progress(detail):
 DEFAULTS = dict(bind='127.0.0.1', port=8177, database='relay.sqlite3', allow_anonymous=True,
     anonymous_max_length=500, anonymous_hourly_limit=5, anonymous_hourly_chars=2000,
     authenticated_max_length=10000, authenticated_hourly_limit=60, authenticated_hourly_chars=60000,
-    queue_limit=200, retention_days=7, trusted_proxies=[], device_id='p2')
+    queue_limit=200, retention_days=7, global_hourly_limit=6000, global_hourly_chars=6000000, trusted_proxies=[], device_id='p2')
 
 def digest(token): return hashlib.sha256(token.encode()).hexdigest()
 def compact(value): return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
@@ -36,7 +36,7 @@ class Store:
         self.c = {**DEFAULTS, **config}
         if not valid_device(self.c['device_id']): raise ValueError('Invalid device_id')
         for field in ['port','anonymous_max_length','anonymous_hourly_limit','anonymous_hourly_chars',
-                      'authenticated_max_length','authenticated_hourly_limit','authenticated_hourly_chars','queue_limit','retention_days']:
+                      'authenticated_max_length','authenticated_hourly_limit','authenticated_hourly_chars','queue_limit','retention_days','global_hourly_limit','global_hourly_chars']:
             n=self.c[field]
             if type(n) is not int or n<1: raise ValueError('Invalid '+field)
         if self.c['port']>65535 or max(self.c['anonymous_max_length'],self.c['authenticated_max_length'])>10000:
@@ -72,6 +72,9 @@ class Store:
                 conn.execute('COMMIT')
             except Exception:conn.execute('ROLLBACK');raise
         os.chmod(db,0o600)
+        self.submit_lock=threading.Lock()
+        from api_v2 import APIv2
+        self.api=APIv2(self,Problem)
     def short_id(self,db):
         while True:
             value=secrets.token_hex(6).upper()
@@ -86,6 +89,10 @@ class Store:
         if not isinstance(token,str) or not re.fullmatch(r'psr_[A-Za-z0-9_-]{40,100}',token):raise ValueError('Invalid key material')
         identifier=str(uuid.uuid4())
         with self.connect() as db: db.execute('INSERT INTO keys(id,name,role,device,hash,created) VALUES(?,?,?,?,?,?)',(identifier,name,role,device,digest(token),time.time()))
+        if hasattr(self,'api'):
+            with self.connect() as db:
+                db.execute('INSERT INTO identities VALUES(?,?,0,0,?)',(identifier,name,time.time()))
+                db.execute('INSERT INTO credentials VALUES(?,?,?,?,?,?,NULL,0,?)',(identifier,identifier,{'submit':'B','admin':'C','device':'M'}[role],device,'token',digest(token),time.time()))
         return dict(id=identifier,name=name,role=role,device=device,token=token)
     def key_revoke(self,identifier,actor=None,allow_lockout=False):
         if actor and identifier==actor['id']:
@@ -154,13 +161,19 @@ class Store:
         return dict(online=online,printerConnected=online and data.get('connected',False),busy=online and data.get('busy',False),automaticPrinting=online and data.get('relayAutomaticPrinting',data.get('automaticNetworkConsent',False)),lastSeen=row['seen'] if row else None,serverTime=time.time(),staleAfter=15)
     def prune(self,db,now):
         db.execute('DELETE FROM usage WHERE window<?',(int(now//3600)-48,))
+        if hasattr(self,'api'):
+            db.execute('DELETE FROM job_events WHERE job_id NOT IN (SELECT id FROM jobs)')
+            db.execute('DELETE FROM submission_ids WHERE job_id NOT IN (SELECT id FROM jobs)')
+            db.execute('DELETE FROM audit_events WHERE at<?',(now-90*86400,))
+            db.execute('DELETE FROM sessions WHERE expires<?',(now,))
+            db.execute('DELETE FROM challenges WHERE expires<?',(now,))
         db.execute("DELETE FROM jobs WHERE updated<? AND state NOT IN ('claimed','printing')",(now-self.c['retention_days']*86400,))
         # A disconnected sender is never automatically retried: the paper outcome is uncertain.
         db.execute("UPDATE jobs SET state='unknown',detail='Device did not report completion; inspect paper before retrying',updated=? WHERE state IN ('claimed','printing') AND updated<?",(now,now-300))
     def submit(self,body,key,ip,headers):
         if key: self.require(key,['submit','admin'])
         if not key and not self.c['allow_anonymous']: raise Problem(403,'Anonymous submissions are disabled')
-        text=body.get('text','');limit=self.c['authenticated_max_length' if key else 'anonymous_max_length']
+        text=body.get('text','');limit=self.c['anonymous_max_length' if not key or key.get('anonymous') else 'authenticated_max_length']
         content,payload,rows=self.content(body,limit)
         if not isinstance(text,str) or (not text.strip() and content is None) or len(text)+rows>limit: raise Problem(400,f'Provide text or a raster; caption characters plus raster rows must not exceed {limit}')
         if any(ord(v)<32 and v not in '\n\r\t' for v in text): raise Problem(400,'Control characters are not accepted')
@@ -170,9 +183,10 @@ class Store:
         # Browser descriptions are user-supplied, not verified device identities.
         safe={k:str(browser[k])[:160] for k in ['timezone','screen','platform','language'] if k in browser and isinstance(browser[k],(str,int,float))}
         meta=dict(ip=ip,userAgent=headers.get('User-Agent','')[:512],language=headers.get('Accept-Language','')[:160],
-                  clientHints=headers.get('Sec-CH-UA','')[:300],browser=safe,identity=key['name'] if key else 'Anonymous',authenticated=bool(key))
+                  clientHints=headers.get('Sec-CH-UA','')[:300],browser=safe,identity=key['name'] if key else 'Anonymous',authenticated=bool(key and not key.get('anonymous')))
+        if key and key.get('anonymous'):meta={k:meta[k] for k in ('ip','userAgent','identity','authenticated')}
         now=time.time();window=int(now//3600);reset=(window+1)*3600
-        prefix='authenticated' if key else 'anonymous';maxjobs=self.c[prefix+'_hourly_limit'];maxchars=self.c[prefix+'_hourly_chars']
+        prefix='anonymous' if not key or key.get('anonymous') else 'authenticated';maxjobs=self.c[prefix+'_hourly_limit'];maxchars=self.c[prefix+'_hourly_chars']
         identifier=hashlib.sha256(time.time_ns().to_bytes(8,'big')+secrets.token_bytes(32)).hexdigest()[:40];receipt=secrets.token_urlsafe(32)
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -187,6 +201,12 @@ class Store:
                 short=self.short_id(db)
                 db.execute('INSERT INTO jobs(id,device,text,meta,state,receipt,created,updated,short_id,submit_key,content_meta,payload) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
                            (identifier,target,text,compact(meta),'queued',digest(receipt),now,now,short,key['id'] if key else None,compact(content) if content else None,payload))
+                if key and key.get('user_id'):
+                    db.execute('UPDATE jobs SET user_id=?,browser_id=?,credential_id=? WHERE id=?',(key['user_id'],key.get('browser_id'),key['id'],identifier))
+                    db.execute('INSERT INTO submission_ids VALUES(?,?,?)',(key['user_id'],key['request_id'],identifier))
+                    db.execute('INSERT INTO job_events(job_id,at,state) VALUES(?,?,?)',(identifier,now,'queued'))
+                    for bucket in ['user:'+key['user_id'],'credential:'+key['id'],'global']:
+                        db.execute('INSERT INTO usage VALUES(?,?,1,?) ON CONFLICT(ip,window) DO UPDATE SET jobs=jobs+1,chars=chars+excluded.chars',(bucket,window,len(text)+rows))
                 db.execute('COMMIT')
             except Exception:db.execute('ROLLBACK');raise
         return dict(id=identifier,shortID=short,receipt=receipt,state='queued',resetAt=reset)
@@ -218,6 +238,8 @@ class Store:
             result.pop('id');result.pop('detail')
         return result
     def route(self,method,path,body,key,ip,headers):
+        return self.api.route(method,path,body,key,ip,headers)
+    def route_legacy(self,method,path,body,key,ip,headers):
         now=time.time()
         if method=='GET' and path=='/v1/public/status':return 200,dict(version=APP_VERSION,status=self.public_status(),policy=self.policies(),capabilities=dict(partitionProgress='transport',shortIDLookup=True,contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840))
         if method=='POST' and path=='/v1/jobs':return 202,self.submit(body,key,ip,headers)
@@ -301,7 +323,10 @@ class Store:
                             claim=body.get('claim','');state=body.get('state')
                             if not isinstance(claim,str) or row['claim_key']!=key['id'] or not hmac.compare_digest(row['claim_hash'] or '',digest(claim)):raise Problem(403,'Invalid claim')
                             if state not in ['printing','sent','unknown','rejected']:raise Problem(400,'Invalid result state')
-                            if row['state'] in ['sent','confirmed','unknown','rejected']:
+                            if row['state']=='unknown' and state=='sent':
+                                # A late durable transport report is not a physical retry.
+                                db.execute("UPDATE jobs SET state='sent',detail='Late transport completion; paper not independently confirmed',updated=? WHERE id=?",(now,identifier))
+                            elif row['state'] in ['sent','confirmed','unknown','rejected']:
                                 if row['state']!=state and not (row['state']=='confirmed' and state=='sent'):raise Problem(409,'Final state cannot change')
                             else:
                                 detail=str(body.get('detail',''))[:500]
@@ -348,14 +373,16 @@ class Handler(BaseHTTPRequestHandler):
                 origin=urlsplit(self.headers['Origin'])
                 if origin.scheme not in ['http','https'] or origin.netloc!=self.headers.get('Host'):raise Problem(403,'Cross-origin requests are not allowed')
             if len(self.headers.get_all('Authorization',[]))>1 or len(self.headers.get_all('Host',[]))!=1:raise Problem(400,'Duplicate/missing authentication or Host header')
-            key=self.server.store.authenticate(self.headers.get('Authorization',''))
+            key=None if self.path in ['/v2/auth/login','/v2/auth/anonymous','/v2/auth/challenge','/v2/auth/prove'] else self.server.store.api.auth.authenticate(self.headers.get('Authorization',''),self.headers.get('Cookie',''))
+            if key and key.get('cookie') and method=='POST':
+                if not self.headers.get('Origin') or not hmac.compare_digest(self.headers.get('X-CSRF-Token',''),key['csrf']):raise Problem(403,'csrf_required')
             body={}
             if method=='POST':
                 lengths=self.headers.get_all('Content-Length',[])
                 if len(lengths)!=1 or self.headers.get('Transfer-Encoding'):raise Problem(400,'One Content-Length is required; chunked is not supported')
                 try:length=int(lengths[0])
                 except ValueError:raise Problem(400,'Invalid Content-Length')
-                limit=163840 if self.path=='/v1/jobs' else 65536
+                limit=163840 if self.path=='/v2/jobs' else 65536
                 if length<0 or length>limit:raise Problem(413,'Request body exceeds '+str(limit)+' bytes')
                 if self.headers.get('Content-Type','').split(';')[0]!='application/json':raise Problem(415,'Expected application/json')
                 raw=self.rfile.read(length)
@@ -365,7 +392,13 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(body,dict):raise Problem(400,'Expected JSON object')
             ip=self.server.store.client_ip(self.client_address[0],self.headers.get('X-Forwarded-For',''))
             status,data=self.server.store.route(method,self.path,body,key,ip,self.headers)
-            self.send(status,data)
+            extra={}
+            if self.path in ['/v2/auth/login','/v2/auth/anonymous'] and status<300 and not (self.headers.get('X-Paperang-Native')=='1' and not self.headers.get('Origin')):
+                token=data.pop('token'); age=data.pop('maxAge')
+                extra['Set-Cookie']='psr_session='+token+'; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age='+str(age)
+            elif self.path=='/v2/auth/logout':
+                extra['Set-Cookie']='psr_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0'
+            self.send(status,data,extra=extra)
         except Problem as e:self.send(e.status,dict(error=e.message,**e.extra),extra={'Retry-After':e.extra['retryAfter']} if 'retryAfter' in e.extra else {})
         except (TimeoutError,ConnectionError):self.close_connection=True
         except Exception as exc:
@@ -388,11 +421,13 @@ class Server(ThreadingHTTPServer):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--config',required=True)
     sub=parser.add_subparsers(dest='action',required=True);sub.add_parser('serve')
-    add=sub.add_parser('key-add');add.add_argument('--name',required=True);add.add_argument('--role',choices=['admin','device','submit'],required=True);add.add_argument('--device')
+    add=sub.add_parser('key-add');add.add_argument('--name',required=True);add.add_argument('--role',choices=['admin','device','submit','A','B','C','M'],required=True);add.add_argument('--device')
     imp=sub.add_parser('key-import');imp.add_argument('--file',required=True)
+    pub=sub.add_parser('trust-public-key');pub.add_argument('--name',required=True);pub.add_argument('--file',required=True)
     sub.add_parser('key-list');rev=sub.add_parser('key-revoke');rev.add_argument('id');rev.add_argument('--allow-lockout',action='store_true',help='Explicit local emergency override for revoking the last or connected key')
     args=parser.parse_args();config=json.loads(Path(args.config).read_text());store=Store(config)
-    if args.action=='key-add':print(compact(store.key_add(args.name,args.role,args.device or store.c['device_id'])))
+    if args.action=='key-add':print(compact(store.api.auth.create(args.name,{'admin':'C','device':'M','submit':'B'}.get(args.role,args.role),args.device or store.c['device_id'])))
+    elif args.action=='trust-public-key':print(compact(store.api.auth.public_key_add(args.name,Path(args.file).read_text())))
     elif args.action=='key-import':
         source=Path(args.file)
         if source.stat().st_size>131072:raise ValueError('Key file too large')
@@ -403,9 +438,9 @@ def main():
             added=store.key_add(item.get('name'),item.get('role'),item.get('device',store.c['device_id']),item.get('token'))
             print(compact({k:v for k,v in added.items() if k!='token'}))
     elif args.action=='key-list':
-        with store.connect() as db:print(json.dumps([dict(r) for r in db.execute('SELECT id,name,role,device,revoked,created FROM keys ORDER BY created')],indent=2))
+        with store.connect() as db:print(json.dumps([dict(r) for r in db.execute('SELECT c.id,i.name,c.role,c.device,c.kind,c.revoked,c.created FROM credentials c JOIN identities i ON i.id=c.user_id ORDER BY c.created')],indent=2))
     elif args.action=='key-revoke':
-        try:store.key_revoke(args.id,allow_lockout=args.allow_lockout)
+        try:store.api.auth.revoke(args.id,{'id':'local-cli'})
         except Problem as e:raise SystemExit(e.message)
         print('Key revoked')
     else:

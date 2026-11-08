@@ -1,6 +1,7 @@
 """Offline protocol/rendering tests. Never connects to a real printer."""
 import contextlib
 import io
+import os
 import json
 from pathlib import Path
 import tempfile
@@ -28,14 +29,14 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def do_GET(self):
-        if self.path == '/v1/public/status':
+        if self.path == '/v2/public/status':
             self.reply({'policy': {'allow_anonymous': True, 'anonymous_max_length': 500, 'anonymous_hourly_chars': 2000, 'authenticated_max_length': 10000, 'authenticated_hourly_chars': 60000},
-                        'status': {'online': self.online, 'printerConnected': self.online, 'automaticPrinting': self.online}, 'capabilities': {'contentTypes': ['text', 'raster1']}})
-        elif self.path.startswith('/v1/jobs/'):
-            assert self.headers.get('X-Job-Receipt') == 'fixture-receipt'
+                        'status': {'accepting': self.online}, 'capabilities': {'contentTypes': ['text', 'raster1']}})
+        elif self.path.startswith('/v2/jobs/'):
+            assert self.headers.get('Authorization') == 'Bearer psr_'+'a'*43
             self.reply({'id': 'a' * 40, 'state': 'sent'})
         else:
-            self.send_response(302); self.send_header('Location', '/v1/public/status'); self.end_headers()
+            self.send_response(302); self.send_header('Location', '/v2/public/status'); self.end_headers()
 
     def do_POST(self):
         Handler.posts += 1
@@ -44,7 +45,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.response_mode == 'lost':
             self.reply({'error': 'upstream unavailable'}, 503)
         else:
-            self.reply({'id': 'a' * 40, 'shortID': 'A1B2C3D4E5F6', 'receipt': 'fixture-receipt', 'state': 'queued'}, 202)
+            self.reply({'id': 'a' * 40, 'shortID': 'A1B2C3D4E5F6', 'accepted': True, 'statusReadable': True}, 202)
 
 
 class Tests(unittest.TestCase):
@@ -59,12 +60,13 @@ class Tests(unittest.TestCase):
         cls.server.shutdown(); cls.server.server_close()
 
     def setUp(self):
+        self.env = patch.dict(os.environ, {"PAPERANG_RELAY_SUBMIT_KEY":"psr_"+"a"*43}); self.env.start()
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         Handler.posts = 0; Handler.online = True; Handler.response_mode = 'ok'
 
     def tearDown(self):
-        self.temp.cleanup()
+        self.env.stop(); self.temp.cleanup()
 
     def command(self, *args):
         with contextlib.redirect_stdout(io.StringIO()) as output:
@@ -118,33 +120,33 @@ class Tests(unittest.TestCase):
             rp.validate_job({'content': content})
 
     def test_exclusive_submit_and_receipt(self):
-        receipt = self.root / 'receipt.json'; client = rp.Client(self.url)
+        receipt = self.root / 'receipt.json'; client = rp.Client(self.url, 'psr_'+'a'*43)
         result = rp.submit(client, {'text': 'test'}, receipt)
-        self.assertEqual(result['state'], 'queued'); self.assertNotIn('receipt', result)
-        self.assertEqual(Handler.posts, 1); self.assertEqual(Handler.body, {'text': 'test'})
+        self.assertTrue(result['accepted']); self.assertNotIn('receipt', result)
+        self.assertEqual(Handler.posts, 1); self.assertEqual(Handler.body['text'], 'test'); self.assertIn('request_id',Handler.body)
         with self.assertRaises(rp.PrintError):
             rp.submit(client, {'text': 'test'}, receipt)
         self.assertEqual(Handler.posts, 1)
-        out = self.command('wait', '--receipt', str(receipt), '--timeout', '1')[0]
+        out = self.command('--server', self.url, 'wait', '--receipt', str(receipt), '--timeout', '1')[0]
         self.assertEqual(out['state'], 'sent'); self.assertFalse(out['physicalPaperConfirmed'])
 
     def test_ambiguous_error_never_retried(self):
         Handler.response_mode = 'lost'; receipt = self.root / 'uncertain.json'
         with self.assertRaises(rp.PrintError):
-            rp.submit(rp.Client(self.url), {'text': 'test'}, receipt)
+            rp.submit(rp.Client(self.url, 'psr_'+'a'*43), {'text': 'test'}, receipt)
         self.assertEqual(Handler.posts, 1); self.assertEqual(rp.read_json(receipt)['state'], 'submitting')
         with self.assertRaises(rp.PrintError):
-            rp.submit(rp.Client(self.url), {'text': 'test'}, receipt)
+            rp.submit(rp.Client(self.url, 'psr_'+'a'*43), {'text': 'test'}, receipt)
         self.assertEqual(Handler.posts, 1)
 
     def test_offline_and_quota_preflight(self):
         receipt = self.root / 'receipt.json'; Handler.online = False
         with self.assertRaises(rp.PrintError):
-            rp.submit(rp.Client(self.url), {'text': 'test'}, receipt)
+            rp.submit(rp.Client(self.url, 'psr_'+'a'*43), {'text': 'test'}, receipt)
         self.assertEqual(Handler.posts, 0); self.assertFalse(receipt.exists())
         Handler.online = True
         with self.assertRaises(rp.PrintError):
-            rp.submit(rp.Client(self.url), {'text': 'a' * 501}, receipt)
+            rp.submit(rp.Client(self.url, 'psr_'+'a'*43), {'text': 'a' * 10001}, receipt)
         self.assertEqual(Handler.posts, 0)
 
     def test_requested_copies_and_authorization(self):

@@ -1,5 +1,7 @@
 # Remote rich media and drawing
 
+> v0.3.0: historical observations/screenshots below remain recorded evidence. Current relay authentication, history access, dependencies and validation status are defined by [API v2](AUTH-v2.md), [upgrade](UPGRADE-v0.3.0.zh-CN.md) and [matrix](FEATURE-MATRIX.md). Local API v1 and BLE/template records are separate contracts.
+
 [简体中文](RICH-MEDIA.zh-CN.md) · [Remote printing](REMOTE-PRINTING.md)
 
 ## Implemented

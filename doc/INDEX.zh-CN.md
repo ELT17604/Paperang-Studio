@@ -29,3 +29,11 @@
 - [远程绘图与富媒体 API](RICH-MEDIA.zh-CN.md)
 
 - [菜单栏托盘模式](TRAY-MODE.zh-CN.md)
+
+## v0.3.0
+
+- [身份和权限 / Authentication](AUTH-v2.zh-CN.md) · [API contract](AUTH-v2.md)
+- [升级 / 回滚与发布记录](UPGRADE-v0.3.0.zh-CN.md)
+- [Mac / Linux Agent 完整接手 Prompt](HANDOFF-v0.3.0.zh-CN.md)
+
+- [v0.3.0 validation record](VALIDATION-v0.3.0.md) · [Documentation audit](DOCUMENTATION-AUDIT-v0.3.0.md)

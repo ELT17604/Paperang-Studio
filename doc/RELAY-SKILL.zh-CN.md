@@ -1,4 +1,6 @@
-# RelaySkill · v0.2.3-relayskill
+# RelaySkill · v0.3.0-relayskill
+
+> **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。
 
 [English](RELAY-SKILL.md) · [技能入口](../Skills/paperang-relay-print/SKILL.md) · [版本规则](VERSIONING.zh-CN.md) · [功能矩阵](FEATURE-MATRIX.zh-CN.md)
 
@@ -22,9 +24,9 @@ Python 3.10+；状态、回执和原生文字提交只需标准库，文字/图�
 
 ## 凭证与兼容
 
-服务器地址来自参数、`PAPERANG_RELAY_URL` 或配置；Windows 可以只读取当前用户加密 WinLite 配置中的地址，绝不拿设备密钥投稿。使用环境变量/私有文件提供投稿密钥，或在允许时匿名投稿；配置保存路径而非密钥，原始回执作为访问能力妥善保管。
+服务器地址来自参数、`PAPERANG_RELAY_URL` 或配置；Windows 可以只读取当前用户加密 WinLite 配置中的地址，绝不拿设备密钥投稿。使用环境变量/私有文件提供 A/B 随机密钥；不借用浏览器匿名 Cookie。配置保存路径而非密钥，尝试记录保存编号和受理/查询权限标志，不再是秘密访问能力。
 
-沿用 0.2.3 基线、HTTP v1、raster1 schema 1、原配额与状态语义。独立版本由 [VERSIONS.json](../VERSIONS.json)、VERSION 与 `--version` 对齐；不修改已部署 Mac/服务器/WinLite 运行时版本。
+使用 0.3.0 基线、HTTP v2，raster1 schema 1 不变。独立版本由 [VERSIONS.json](../VERSIONS.json)、VERSION 与 `--version` 对齐；全端源码版本协调更新；部署按各平台验证后执行。
 
 ## 验证与打包
 
@@ -37,4 +39,6 @@ python Skills/paperang-relay-print/scripts/relay_print.py --version
 
 12 项检查涵盖中文排版、位/行顺序、透明合成、旋转/抖动、错误摘要/未知参数拒绝、源文件保护、配额/离线、回执、明确份数、权限隔离及防重复提交。原中转 HTTP/SQLite 联调用模拟打印机验证文字/图片/说明、认领和最终回执；另验证真实服务只读状态，测试套件不会连接实物打印机。
 
-可打包为 `PaperangStudio-v0.2.3-relayskill.zip`，排除缓存、运行时、凭证和生成任务，并保留仓库 CC BY-NC-SA 4.0 及 ELT Group 署名。
+可打包为 `PaperangStudio-v0.3.0-relayskill.zip`，排除缓存、运行时、凭证和生成任务，并保留仓库 CC BY-NC-SA 4.0 及 ELT Group 署名。
+
+当前版本更正：RelaySkill 使用 API v2，必须提供 A/B 随机密钥，不借用网页匿名 Cookie；A 只受理，B 才可用同身份密钥查询状态。旧 receipt 不再是能力凭证。

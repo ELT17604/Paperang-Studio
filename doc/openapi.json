@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Paperang Studio Local API",
-    "version": "0.2.3-fix1",
-    "description": "Paperang Studio 0.2.3-fix1 authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project.",
+    "version": "0.3.0",
+    "description": "Paperang Studio 0.2.3-fix1 authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project. This is the Mac local HTTP API v1. Relay API v2 is documented separately in doc/AUTH-v2.md.",
     "contact": {
       "name": "ELT Group",
       "email": "vox@calx.cc"

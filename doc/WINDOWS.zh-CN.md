@@ -1,4 +1,6 @@
-# Paperang Studio · V0.2.3-winlite-fix1
+# Paperang Studio · V0.3.0-winlite
+
+> **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。
 
 [English](WINDOWS.md) · [Windows 源码](../Windows/README.md)
 
@@ -38,7 +40,7 @@ Paperang P2 的 Windows 原生轻量托盘客户端。基于 ELT Group 的 [Pape
 - 凭证、偏好、模板与未回报记录通过当前 Windows 用户 **DPAPI** 加密，原子写入 `%LOCALAPPDATA%\ELT\PaperangStudioWinLite`，不保存纸条正文或明文密钥日志。不要将这两个 `.dat` 文件当作跨用户备份；只能由原 Windows 用户解密。
 - 重复前台启动唤起已有实例设置，重复 --background 启动保持静默。关闭设置继续驻留；退出、注销、关机、睡眠会影响通信，不是系统服务或防休眠工具。
 
-`sent` 表示发送完成，仍需核对纸面；不会自动声称已人工确认。第一版范围为中转托盘接收与模板编辑；macOS 的主工作台、PTY、工程写入、本地 HTTP API 和管理员密钥管理未移植。原服务器、投稿网页无需修改。
+`sent` 表示发送完成，仍需核对纸面；不会自动声称已人工确认。本版提供托盘接收、模板编辑和完整 C 图形化管理；macOS 的主工作台、PTY、工程写入、本地 HTTP API 不在 Lite 范围。服务器、网页和参与客户端必须一同升级到 v0.3.0。
 
 当前版本的统一命名与跨端范围见[版本规则](VERSIONING.zh-CN.md)、[功能实现矩阵](FEATURE-MATRIX.zh-CN.md)。
 
@@ -65,3 +67,7 @@ python Windows/tests/relay_integration.py
 测试覆盖协议黄金向量、分片/CRC/流控、开盖/缺纸/浓度拦截、任务领取与结果重报、重启未知结果、暂停与心跳、中文渲染、模板变量与图片合成、预览/打印一致性和 DPAPI。2026-11-06 已在当前 Windows 与实体 P2 上完成连接、中文打印、150 行送纸及连续两次重连，用户确认纸面完整；其他蓝牙适配器仍需各自验证。研究和移植对应关系见 [移植记录](WINDOWS-PORTING.zh-CN.md)。
 
 © 2026 ELT Group · vox@calx.cc。沿用 [CC BY-NC-SA 4.0](../LICENSE)，保留 [NOTICE](../NOTICE)。独立非官方工程，与 Paperang 及其关联公司无隶属关系。此目录中的 Windows 移植属于修改版本。
+
+## C 图形化管理
+
+设置→管理：支持 C 密钥/口令/私钥登录、凭证创建/展示名称/轮换/吊销、身份与浏览器会话、公钥、完整历史与正文/图片选项卡、唯一用户筛选、分批 JSONL 导出和人工纸面确认。管理会话十分钟后自动锁定，不影响后台 M 打印。Owner 文件写入前设置仅当前用户 ACL。

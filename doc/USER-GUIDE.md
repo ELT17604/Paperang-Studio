@@ -1,5 +1,7 @@
 # User guide
 
+> v0.3.0: historical observations/screenshots below remain recorded evidence. Current relay authentication, history access, dependencies and validation status are defined by [API v2](AUTH-v2.md), [upgrade](UPGRADE-v0.3.0.zh-CN.md) and [matrix](FEATURE-MATRIX.md). Local API v1 and BLE/template records are separate contracts.
+
 [Documentation](README.md) · [简体中文](USER-GUIDE.zh-CN.md)
 
 ## First connection

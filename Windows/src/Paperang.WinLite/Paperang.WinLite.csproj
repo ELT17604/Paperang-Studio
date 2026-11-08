@@ -8,7 +8,7 @@
     <ApplicationIcon>../../../assets/AppIcon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>PaperangStudio</AssemblyName>
-    <Version>0.2.3</Version><InformationalVersion>0.2.3-winlite-fix1</InformationalVersion>
+    <Version>0.3.0</Version><InformationalVersion>0.3.0-winlite</InformationalVersion>
     <Copyright>© 2026 ELT Group</Copyright>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../Paperang.Core/Paperang.Core.csproj" /></ItemGroup>

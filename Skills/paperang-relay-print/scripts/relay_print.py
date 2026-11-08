@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Paperang relay sender. No POST retries; no client-side thermal overrides."""
+import uuid
 import argparse
 import base64
 import ctypes
@@ -18,11 +19,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-__version__ = '0.2.3-relayskill'
+__version__ = '0.3.0-relayskill'
 
 
 class PrintError(Exception):
-    pass
+    def __init__(self, message, status=None):
+        super().__init__(message); self.status = status
 
 
 def emit(value):
@@ -119,7 +121,7 @@ def connection(args, server=None):
         key = p.read_text(encoding='utf-8-sig').strip()
         if key.startswith('{'):
             obj = json.loads(key)
-            if obj.get('role') not in (None, 'submit'):
+            if obj.get('role') not in (None, 'submit', 'A', 'B'):
                 raise PrintError('A submit key is required, not a device/admin key')
             key = obj.get('token', '')
     if key and not re.fullmatch(r'psr_[A-Za-z0-9_-]{40,100}', key):
@@ -139,10 +141,10 @@ class Client:
 
     def request(self, method, path, body=None, receipt=None):
         wire = None if body is None else json.dumps(body, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
-        headers = {'Accept': 'application/json', 'Cache-Control': 'no-store', 'User-Agent': 'PaperangStudio-RelayPrint/0.2.3'}
+        headers = {'Accept': 'application/json', 'Cache-Control': 'no-store', 'User-Agent': 'PaperangStudio-RelayPrint/0.3.0'}
         if wire is not None:
             headers.update({'Content-Type': 'application/json', 'Content-Length': str(len(wire))})
-        if self.key and method == 'POST':
+        if self.key:
             headers['Authorization'] = 'Bearer ' + self.key
         if receipt:
             headers['X-Job-Receipt'] = receipt
@@ -159,7 +161,7 @@ class Client:
         except urllib.error.HTTPError as exc:
             suffix = ('; check submit-key permissions' if method == 'POST' else '; check public API access and proxy policy') if exc.code in (401, 403) else ('; do not retry submission automatically' if method == 'POST' else '; status read failed')
             code = exc.code; exc.close()
-            raise PrintError(f'Relay HTTP {code}' + suffix) from None
+            raise PrintError(f'Relay HTTP {code}' + suffix, status=code) from None
         except (urllib.error.URLError, TimeoutError, OSError):
             note = 'a POST may have been accepted, do not resend' if method == 'POST' else 'this read did not submit a print job'
             raise PrintError('Relay request unavailable or timed out; ' + note) from None
@@ -306,32 +308,33 @@ def render(args, text):
 
 def submit(client, job, receipt_path, queue=False):
     units = validate_job(job)
-    public = client.request('GET', 'v1/public/status')
+    public = client.request('GET', 'v2/public/status')
     policy = public['policy']; status = public['status']
-    if not client.key and not policy.get('allow_anonymous'):
-        raise PrintError('Anonymous submissions disabled; configure a submit-key file or environment variable')
+    if not client.key:
+        raise PrintError('API v2 requires an A or B key; browser anonymous credentials are not borrowed')
     prefix = 'authenticated' if client.key else 'anonymous'
     if units > policy[prefix + '_max_length'] or units > policy[prefix + '_hourly_chars']:
         raise PrintError(f'Job uses {units} units, exceeding policy; reduce size or use an authorized submit key')
     if job.get('content') and ('raster1' not in public.get('capabilities', {}).get('contentTypes', []) or public.get('capabilities', {}).get('contentSchemaVersion', 1) != 1):
         raise PrintError('Relay does not advertise raster1 support')
-    if not queue and not (status.get('online') and status.get('printerConnected') and status.get('automaticPrinting')):
+    if not status.get('accepting'):
         raise PrintError('Receiver is offline/disconnected/paused; queue only when the user permits waiting')
-    record = {'server': client.server, 'state': 'submitting', 'created': time.time(), 'jobSha256': hashlib.sha256(json.dumps(job, sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
+    record = {'server': client.server, 'state': 'submitting', 'created': time.time(), 'request_id': str(uuid.uuid4()), 'jobSha256': hashlib.sha256(json.dumps(job, sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
     try:
         save_json(receipt_path, record, exclusive=True)
     except FileExistsError:
         raise PrintError('Receipt/attempt path already exists; inspect it, never overwrite to resend') from None
     try:
-        result = client.request('POST', 'v1/jobs', job)
-        if not re.fullmatch(r'(?:[a-f0-9]{40}|[a-f0-9-]{36})', result.get('id', '')) or not isinstance(result.get('receipt'), str) or not 1 <= len(result['receipt']) <= 150:
+        result = client.request('POST', 'v2/jobs', {**job, 'request_id': record['request_id']})
+        if not re.fullmatch(r'(?:[a-f0-9]{40}|[a-f0-9-]{36})', result.get('id', '')) or result.get('accepted') is not True:
             raise PrintError('Invalid submission receipt; outcome is uncertain, do not resend')
-        record.update({k: result[k] for k in ('id', 'shortID', 'receipt', 'state') if k in result})
+        record['state'] = 'accepted'
+        record.update({k: result[k] for k in ('id', 'shortID', 'accepted', 'statusReadable') if k in result})
         save_json(receipt_path, record)
     except Exception:
         # The pre-POST record remains even if the relay accepted a response we lost.
         raise
-    return {k: record[k] for k in ('id', 'shortID', 'state') if k in record} | {'receiptFile': str(Path(receipt_path).resolve())}
+    return {k: record[k] for k in ('id', 'shortID', 'accepted', 'statusReadable') if k in record} | {'receiptFile': str(Path(receipt_path).resolve())}
 
 
 def ranged(cast, low, high):
@@ -409,7 +412,7 @@ def main(argv=None):
         units = validate_job(job); output = save_json(args.output, job)
         emit({'prepared': output, 'type': 'raster1' if 'content' in job else 'text', 'units': units, 'preview': str(Path(args.preview).resolve()) if args.preview else None}); return
     if args.command == 'status':
-        result = connection(args).request('GET', 'v1/public/status')
+        result = connection(args).request('GET', 'v2/public/status')
         emit({k: result[k] for k in ('version', 'status', 'policy', 'capabilities') if k in result}); return
     if args.command == 'submit':
         if not args.confirm_print:
@@ -425,17 +428,21 @@ def main(argv=None):
             emit(submit(client, job, p, args.queue_if_offline))
         return
     record = read_json(args.receipt, 65536)
-    if not re.fullmatch(r'(?:[a-f0-9]{40}|[a-f0-9-]{36})', record.get('id', '')) or not isinstance(record.get('receipt'), str) or not 1 <= len(record['receipt']) <= 150:
+    if not re.fullmatch(r'(?:[a-f0-9]{40}|[a-f0-9-]{36})', record.get('id', '')):
         raise PrintError('No usable receipt: submission may be uncertain; do not resend')
-    client = Client(validate_server(record.get('server'), args.allow_http))
+    client = connection(args)
+    if client.server != validate_server(record.get('server'), args.allow_http):
+        raise PrintError('Receipt server differs from configured server')
+    if not record.get('statusReadable'):
+        raise PrintError('A permission: accepted by inbox, delivery status is forbidden')
     end = time.monotonic() + args.timeout; state = None
     while True:
         remaining = end - time.monotonic()
         try:
-            row = client.request('GET', 'v1/jobs/' + record['id'], receipt=record['receipt'])
+            row = client.request('GET', 'v2/jobs/' + record['id'])
             state = row.get('state')
-        except PrintError:
-            if remaining <= 0:
+        except PrintError as exc:
+            if exc.status in (401,403,404) or remaining <= 0:
                 raise
         if state in ('sent', 'confirmed', 'unknown', 'rejected') or time.monotonic() >= end:
             emit({'id': record['id'], 'state': state or 'unavailable', 'physicalPaperConfirmed': state == 'confirmed', 'timedOut': state not in ('sent', 'confirmed', 'unknown', 'rejected')}); return

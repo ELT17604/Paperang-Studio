@@ -10,7 +10,8 @@ extension Content {
   Text(lab.relayMessage).font(.caption).textSelection(.enabled)
   if !lab.relayOnline,!lab.relayJobs.isEmpty{Text("下方为上次成功刷新时的任务快照，当前状态未经服务器确认。").font(.caption).foregroundStyle(.orange)}
   if lab.relayFlight != nil,!lab.busy{Button("放弃未回报结果（不会重打）",action:lab.abandonRelayReport).disabled(lab.relayMutating)}
-  Text("连接后每2秒上报状态和采样字段。自动打印偏好可保存，但仍需本次运行的全局耗纸开关。密钥仅在内存中保存。").font(.caption).foregroundStyle(.secondary)
+  Toggle("持续重连：本轮失败后等待一分钟再试",isOn:$lab.relayKeepReconnecting)
+  Text("连接后每2秒上报。M 凭证和待回报记录保存在 Keychain；正文在认领后读取。历史与预览需要 C 管理登录。").font(.caption).foregroundStyle(.secondary)
   relayKeyManager
   Divider()
   HStack{Picker("本地样式",selection:$lab.relayStyle){ForEach(["便签","小票","复古电传","访客纪念","自定义"],id:\.self){Text($0)}}
@@ -24,7 +25,7 @@ extension Content {
   List(selection:Binding<String?>(get:{lab.relaySelection.isEmpty ? nil:lab.relaySelection},set:{lab.relaySelection=$0 ?? ""})){
    ForEach(lab.relayVisibleJobs){job in HStack(alignment:.top){VStack(alignment:.leading,spacing:4){Text("#"+job.printableID).font(.system(.caption,design:.monospaced));Text(job.sender+" · "+String(job.text.prefix(70))).lineLimit(1)};Spacer();VStack(alignment:.trailing,spacing:4){Text(job.stateLabel).foregroundStyle(job.stateColor);Text(job.created,style:.time).font(.caption).foregroundStyle(.secondary)}}.padding(.vertical,5).tag(job.id)}
   }.frame(minHeight:180,idealHeight:220,maxHeight:260)
-  if lab.relayVisibleJobs.isEmpty{Text("当前没有匹配任务；连接后会保留最近任务与状态供查阅。").foregroundStyle(.secondary)}
+  if lab.relayVisibleJobs.isEmpty{Text("当前没有待处理任务；完整历史请使用 C 管理面板。").foregroundStyle(.secondary)}
   if let job=lab.selectedRelayJob{
    GroupBox("任务详情"){VStack(alignment:.leading,spacing:8){HStack{Text("#"+job.printableID).font(.headline.monospaced()).textSelection(.enabled);Text(job.stateLabel).foregroundStyle(job.stateColor);Spacer();Text(job.created,format:.dateTime).font(.caption)}
     DisclosureGroup("完整内部ID"){Text(job.id).font(.system(.caption,design:.monospaced)).textSelection(.enabled)}

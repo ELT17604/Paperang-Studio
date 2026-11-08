@@ -1,13 +1,63 @@
 {
   "schemaVersion": 1,
-  "baseline": "0.2.3",
-  "compatibility": {"relayApi": "v1", "contentTypes": ["text", "raster1"], "contentSchemaVersion": 1, "templateSchemaVersion": 1, "printerProfile": "legacy-p2-576-ble"},
+  "baseline": "0.3.0",
+  "compatibility": {
+    "relayApi": "v2",
+    "contentTypes": [
+      "text",
+      "raster1"
+    ],
+    "contentSchemaVersion": 1,
+    "templateSchemaVersion": 1,
+    "printerProfile": "legacy-p2-576-ble"
+  },
   "distributions": {
-    "macclient": {"name": "MacClient", "status": "implemented", "version": "v0.2.3-macclient-fix1", "runtimeVersion": "0.2.3-fix1", "versionSource": "VERSION"},
-    "linuxrelayserver": {"name": "LinuxRelayServer", "status": "implemented", "version": "v0.2.3-linuxrelayserver", "runtimeVersion": "0.2.3", "versionSource": "Server/relay.py"},
-    "winlite": {"name": "WinLite", "status": "implemented", "version": "v0.2.3-winlite-fix1", "runtimeVersion": "0.2.3-winlite-fix1", "versionSource": "Windows/VERSION"},
-    "relayskill": {"name": "RelaySkill", "status": "implemented", "version": "v0.2.3-relayskill", "runtimeVersion": "0.2.3-relayskill", "versionSource": "Skills/paperang-relay-print/VERSION"},
-    "winclient": {"name": "WinClient", "status": "planned", "version": null, "runtimeVersion": null, "versionSource": null},
-    "linuxclient": {"name": "LinuxClient", "status": "planned", "version": null, "runtimeVersion": null, "versionSource": null}
-  }
+    "macclient": {
+      "name": "MacClient",
+      "status": "implemented",
+      "version": "v0.3.0-macclient",
+      "runtimeVersion": "0.3.0-macclient",
+      "versionSource": "VERSION",
+      "verification": "Source updated; native macOS validation pending"
+    },
+    "linuxrelayserver": {
+      "name": "LinuxRelayServer",
+      "status": "implemented",
+      "version": "v0.3.0-linuxrelayserver",
+      "runtimeVersion": "0.3.0",
+      "versionSource": "Server/relay.py",
+      "verification": "Local HTTP/SQLite security tested on Windows; Linux deployment pending"
+    },
+    "winlite": {
+      "name": "WinLite",
+      "status": "implemented",
+      "version": "v0.3.0-winlite",
+      "runtimeVersion": "0.3.0-winlite",
+      "versionSource": "Windows/VERSION",
+      "verification": "Windows build, regression and local API v2 integration validated"
+    },
+    "relayskill": {
+      "name": "RelaySkill",
+      "status": "implemented",
+      "version": "v0.3.0-relayskill",
+      "runtimeVersion": "0.3.0-relayskill",
+      "versionSource": "Skills/paperang-relay-print/VERSION",
+      "verification": "Local protocol and rendering tests validated"
+    },
+    "winclient": {
+      "name": "WinClient",
+      "status": "planned",
+      "version": null,
+      "runtimeVersion": null,
+      "versionSource": null
+    },
+    "linuxclient": {
+      "name": "LinuxClient",
+      "status": "planned",
+      "version": null,
+      "runtimeVersion": null,
+      "versionSource": null
+    }
+  },
+  "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together."
 }

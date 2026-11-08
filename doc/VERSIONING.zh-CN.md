@@ -1,5 +1,7 @@
 # 版本命名与兼容规则
 
+> **本次确认的 0.x 规则：**1.0.0 前，协调的 MINOR 升级允许改变共同合同；本次 0.3.0 中转 API v2 必须全端一起升级。fix 后缀不得破坏合同。1.0.0 起，破坏性改动提升 MAJOR。下方 0.2.3 合同为历史记录。
+
 [English](VERSIONING.md) · [功能实现矩阵](FEATURE-MATRIX.zh-CN.md) · [版本登记表](../VERSIONS.json)
 
 统一格式：**`v主版本.次版本.修订号-distribution[-note]`**，例如 **`v0.2.3-winlite-fix1`**。标签、发布标题、文档使用 `v`；运行时字符串及 VERSION 可省略 `v`。发行版标识固定为小写：`macclient`、`linuxrelayserver`、`winlite`、`relayskill`、`winclient`、`linuxclient`，新版本不再使用 `win_lite` 或大小写变体。

@@ -26,7 +26,7 @@ def main():
         print(json.dumps(config,indent=2));return
     with tempfile.TemporaryDirectory(prefix='paperang-relay-') as directory:
         config['database']=directory+'/relay.sqlite3';store=Store(config)
-        credentials=[store.key_add('temporary-'+role,role,config['device_id']) for role in ['admin','device','submit']]
+        credentials=[store.api.auth.create('temporary-'+role,role,config['device_id']) for role in ['C','M','B']]
         path=Path(directory)/'credentials.keys.json';path.write_text(json.dumps(credentials,indent=2));path.chmod(0o600)
         try:server=Server(store)
         except OSError as e:raise SystemExit(f'Cannot listen: {e}. Choose another --port.')

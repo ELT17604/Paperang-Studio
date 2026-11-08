@@ -17,12 +17,13 @@ public sealed class RelayClient : IDisposable
         http.DefaultRequestHeaders.Add("X-Paperang-Content-Types", "text,raster1");
         http.DefaultRequestHeaders.CacheControl = new() { NoCache = true, NoStore = true };
     }
-    public async Task<JsonElement> RequestAsync(HttpMethod method, string path, object? body, CancellationToken ct)
+    public async Task<JsonElement> RequestAsync(HttpMethod method, string path, object? body, CancellationToken ct, IReadOnlyDictionary<string,string>? headers = null)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
         deadline.CancelAfter(TimeSpan.FromSeconds(4));
         ct = deadline.Token;
         using var req = new HttpRequestMessage(method, path);
+        if (headers != null) foreach (var item in headers) req.Headers.Add(item.Key, item.Value);
         if (body != null)
         {
             // Upstream explicitly rejects Transfer-Encoding: chunked.

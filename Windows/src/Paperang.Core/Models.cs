@@ -34,7 +34,7 @@ public sealed record AppSettings
             !string.IsNullOrEmpty(u.UserInfo) || !string.IsNullOrEmpty(u.Query) || !string.IsNullOrEmpty(u.Fragment) ||
             u.AbsolutePath != "/" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.IsLoopback || AllowHttp))))
             throw new ArgumentException("请输入服务器根地址；公网 HTTP 需显式允许");
-        if (!DeviceKey.StartsWith("psr_", StringComparison.Ordinal) || DeviceKey.Length > 256 || DeviceKey.Any(char.IsWhiteSpace))
+        if (!(DeviceKey.StartsWith("psr_", StringComparison.Ordinal) || DeviceKey.StartsWith("pss_", StringComparison.Ordinal)) || DeviceKey.Length > 256 || DeviceKey.Any(char.IsWhiteSpace))
             throw new ArgumentException("请输入 psr_ 开头的设备密钥");
         if (Density is < 0 or > 100 || Feed is < 0 or > 2000 || !new[] { "便签", "小票", "复古电传", "访客纪念", "自定义" }.Contains(Style))
             throw new ArgumentException("打印设置超出范围");

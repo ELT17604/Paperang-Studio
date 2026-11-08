@@ -1,18 +1,20 @@
 <p align="center"><img src="assets/AppIcon.png" width="160" alt="Paperang Studio logo"></p>
 
+> **v0.3.0 coordinated source release:** [Authentication](doc/AUTH-v2.md), [upgrade and validation boundaries](doc/UPGRADE-v0.3.0.zh-CN.md), [complete macOS/Linux agent prompts](doc/HANDOFF-v0.3.0.zh-CN.md). Native Windows validation is complete; macOS build/Linux deployment remain target-platform work. The Windows tray settings now include a graphical C management panel.
+
 # Paperang Studio
 
 [English](README.md) · [简体中文](doc/README.zh-CN.md)
 
 A native macOS app for Paperang P2: text and image printing, a physical paper terminal, protocol debugging, and a local HTTP API. Built with SwiftUI and CoreBluetooth, with no third-party runtime dependencies.
 
-**Version 0.2.3-fix1** · macOS 14+ · Swift 6 toolchain / Xcode 16+
+**Version 0.3.0-macclient** · macOS 14+ · Swift 6 toolchain / Xcode 16+
 
 ## Features
 
-Cross-platform releases follow the [version naming policy](doc/VERSIONING.md), [feature implementation matrix](doc/FEATURE-MATRIX.md), and [release registry](VERSIONS.json). Current Windows release: **v0.2.3-winlite-fix1**; Mac/server legacy runtime labels remain unchanged.
+Cross-platform releases follow the [version naming policy](doc/VERSIONING.md), [feature implementation matrix](doc/FEATURE-MATRIX.md), and [release registry](VERSIONS.json). Current Windows release: **v0.3.0-winlite**; The relay now uses API v2; all relay participants must upgrade together.
 
-**Windows:** [v0.2.3-winlite-fix1](Windows/README.md) is now available as a native tray-only client for the same relay and legacy BLE P2, including compatible block-template editing, encrypted saved credentials and optional sign-in startup. See the [Windows guide](doc/WINDOWS.md) / [简体中文](doc/WINDOWS.zh-CN.md). The full macOS application remains at 0.2.3-fix1.
+**Windows:** [v0.3.0-winlite](Windows/README.md) is now available as a native tray-only client for the same relay and legacy BLE P2, including compatible block-template editing, encrypted saved credentials and optional sign-in startup. See the [Windows guide](doc/WINDOWS.md) / [简体中文](doc/WINDOWS.zh-CN.md). macOS source is updated; native macOS validation is pending.
 
 - **Print workspace:** a shared final monochrome preview for text and images, with rotation, fitting, cropping, dithering, density, copies, paper feed, and reusable presets.
 - **Printer discovery:** Paperang-family candidates shown by default, with an option to show all nearby Bluetooth devices.

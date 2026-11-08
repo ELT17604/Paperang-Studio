@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.0 — 2026-11-08
+
+Coordinated API v2 identity/authentication update, A/B/C/M permissions, persistent browser sessions, RSA owner files, native WinLite/SwiftUI C administration, filtered JSONL history/export and migration safeguards. RelaySkill upgraded; local Mac API v1 retained. Windows tested; native Mac/Linux deployment validation pending. [Complete upgrade record](doc/UPGRADE-v0.3.0.zh-CN.md).
+
 ## v0.2.3-relayskill — 2026-11-08 (independent skill distribution)
 
 - Add `Skills/paperang-relay-print` as a peer distribution: native text and print-ready raster1 submission, CJK typography, image transforms/dithering, previews and bounded receipt tracking.

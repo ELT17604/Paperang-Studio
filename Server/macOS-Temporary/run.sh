@@ -16,6 +16,7 @@ else
   if [[ -n $candidate ]] && supported "$candidate";then PYTHON="$candidate";break;fi
  done
 fi
-[[ -n $PYTHON ]] || { echo 'Python 3.10+ is required. Install Python, or set PAPERANG_PYTHON to its executable path. No pip dependencies are needed.' >&2;exit 1; }
+[[ -n $PYTHON ]] || { echo 'Python 3.10+ is required. Install Python, or set PAPERANG_PYTHON to its executable path. Install Server/requirements.txt into a dedicated venv.' >&2;exit 1; }
+"$PYTHON" -c 'import argon2, cryptography' 2>/dev/null || { echo 'Install Server/requirements.txt in a venv and set PAPERANG_PYTHON to its python.' >&2;exit 1; }
 # exec keeps Python in the foreground: Ctrl-C/SIGHUP reaches the actual server.
 exec "$PYTHON" "$SERVER/run.py" "$@"

@@ -1,4 +1,6 @@
-# RelaySkill · v0.2.3-relayskill
+# RelaySkill · v0.3.0-relayskill
+
+> **v0.3.0:** [API v2 authentication](AUTH-v2.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Handoff](HANDOFF-v0.3.0.zh-CN.md). WinLite includes a C management panel; web receipts no longer grant content access.
 
 [简体中文](RELAY-SKILL.zh-CN.md) · [Skill entrypoint](../Skills/paperang-relay-print/SKILL.md) · [Version policy](VERSIONING.md) · [Feature matrix](FEATURE-MATRIX.md)
 
@@ -22,9 +24,9 @@ Thermal density, feed and the active client template are **receiver-local settin
 
 ## Credentials and compatibility
 
-Use `--server`, `PAPERANG_RELAY_URL` or configured endpoint. Windows can reuse only the endpoint from current-user encrypted WinLite settings. It never uses the saved device key as a submit key. Use an authorized submit key via environment or private key-file path, or anonymous access when server policy permits it. Configuration stores paths, not key material. Keep receipt capabilities private.
+Use `--server`, `PAPERANG_RELAY_URL` or configured endpoint. Windows can reuse only the endpoint from current-user encrypted WinLite settings. It never uses the saved device key as a submit key. Use an A/B random key via environment or private key-file path. Browser anonymous sessions are not reused. Configuration stores paths, not key material. Attempt files hold IDs and permission flags; keep private print artifacts outside the repository.
 
-Baseline 0.2.3, relay API v1, raster1 schema 1 and existing quota/state semantics are unchanged. [VERSIONS.json](../VERSIONS.json) records the independent release, and `--version` agrees with its VERSION file. Existing Mac/server/WinLite runtime labels remain untouched.
+Baseline 0.3.0 uses relay API v2; raster1 schema 1 remains. A is acceptance-only; B can wait using its matching identity key. [VERSIONS.json](../VERSIONS.json) records the independent release, and `--version` agrees with its VERSION file. All implemented distributions have coordinated 0.3.0 source versions.
 
 ## Verification and packaging
 
@@ -37,4 +39,4 @@ python Skills/paperang-relay-print/scripts/relay_print.py --version
 
 Twelve checks cover CJK rendering, exact bit/row order, transparency, rotation/dithering, corruption/unsupported settings, input protection, quota/offline checks, receipts, intended copies, role separation and no duplicate replay. Original relay HTTP/SQLite integration validated text, image/caption, claims and final receipt tracking using a simulated printer. Read-only live status was also verified; the test suite never contacts a real printer.
 
-Package the skill folder as `PaperangStudio-v0.2.3-relayskill.zip`, excluding caches, runtimes, credentials and generated jobs. Retain the repository's CC BY-NC-SA 4.0 license and ELT Group attribution when distributing it.
+Package the skill folder as `PaperangStudio-v0.3.0-relayskill.zip`, excluding caches, runtimes, credentials and generated jobs. Retain the repository's CC BY-NC-SA 4.0 license and ELT Group attribution when distributing it.
