@@ -186,7 +186,9 @@ class Store:
         safe={k:str(browser[k])[:160] for k in ['timezone','screen','platform','language'] if k in browser and isinstance(browser[k],(str,int,float))}
         meta=dict(ip=ip,userAgent=headers.get('User-Agent','')[:512],language=headers.get('Accept-Language','')[:160],
                   clientHints=headers.get('Sec-CH-UA','')[:300],browser=safe,identity=key['name'] if key else 'Anonymous',authenticated=bool(key and not key.get('anonymous')))
-        if key and key.get('anonymous'):meta={k:meta[k] for k in ('ip','userAgent','identity','authenticated')}
+        if key and key.get('anonymous'):
+            meta={k:meta[k] for k in ('ip','userAgent','language','identity','authenticated')}
+            meta['browser']={k:safe[k] for k in ('language','platform') if k in safe}
         now=time.time();window=int(now//3600);reset=(window+1)*3600
         prefix='anonymous' if not key or key.get('anonymous') else 'authenticated';maxjobs=self.c[prefix+'_hourly_limit'];maxchars=self.c[prefix+'_hourly_chars']
         identifier=hashlib.sha256(time.time_ns().to_bytes(8,'big')+secrets.token_bytes(32)).hexdigest()[:40];receipt=secrets.token_urlsafe(32)

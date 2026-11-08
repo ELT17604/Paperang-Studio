@@ -32,3 +32,6 @@ Linux: isolated security/HTTPS/browser/max-raster/restart tests and production m
 ## v0.3.1 correction
 
 Anonymous browser sessions track their own fixed progress only; ordinary A tokens stay submit-only. WinLite defaults to a paired owner private file, with renewable proof sessions for C management and device-scoped execution. IP/UA are restored to active rendering metadata. Server regression: 25 tests; Windows regression: 51 checks plus native owner integration. Historical Linux v0.3.0 deployment evidence remains separate from the new owner cutover.
+
+
+See [v0.3.1 live validation and browser metadata follow-up](VALIDATION-v0.3.1.zh-CN.md) for verified deployment scope and remaining platform checks.

@@ -26,3 +26,6 @@ C 的普通 bearer/口令仍不能作为设备执行凭据；只有已证明的 
 Server/test_security.py 覆盖匿名本身份与他人隔离、无内容状态、IP/UA 渲染白名单、所有者执行、旧 C/M 撤销、活动任务阻止切换；Windows 集成测试覆盖原生证明、配置文件鉴权、同公钥管理/执行、稳定 journal 指纹。Linux 分支原有的 Cookie、防旧路由旁路和事务事件修正一并保留。
 
 生产配对、旧凭证撤销和本机运行状态应以本次实际操作记录为准，不能仅凭本文件宣称已经完成。
+
+
+See [v0.3.1 live validation and browser metadata follow-up](VALIDATION-v0.3.1.zh-CN.md) for verified deployment scope and remaining platform checks.

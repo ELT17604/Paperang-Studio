@@ -57,7 +57,7 @@ internal sealed class SettingsForm : Form
             catch { feedback.Text = "请先保存有效的服务器连接设置。"; }
         };
         Add(management.Body, "C 权限管理", openAdmin);
-        Add(management.Body, "", Hint("管理 A/B/C/M 凭证、身份、浏览器会话、公钥和完整任务历史；支持按用户 ID 筛选及 JSONL 导出。\n可使用 C 密钥、口令或本地所有者私钥登录；后台打印仍使用独立 M 凭证。"));
+        Add(management.Body, "", Hint("管理 A/B/C/M 凭证、身份、浏览器会话、公钥和完整任务历史；支持按用户 ID 筛选及 JSONL 导出。\n使用本地所有者私钥登录；后台连接和管理使用同一已证明的公钥身份。"));
         tabs.TabPages.AddRange([connection.Page, printing.Page, general.Page, management.Page]);
         root.Controls.Add(tabs);
         Add(connection.Body, "中转服务器根地址", url);

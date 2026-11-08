@@ -47,7 +47,7 @@ internal sealed class AdminForm : Form
         }
         Add(login, "私钥文件登录…", PrivateLogin); Add(login, "生成私钥…", GenerateKey);
         root.Controls.Add(login);
-        root.Controls.Add(new Label { Text = "管理凭证仅保留在窗口内存。打印后台继续使用独立 M 凭证。导出文件含私人任务内容，请自行保管。", AutoSize = true });
+        root.Controls.Add(new Label { Text = "后台打印与管理使用同一本地所有者私钥身份；短期会话仅保留在内存。导出文件含私人任务内容，请自行保管。", AutoSize = true });
         view.Items.AddRange(["凭证", "身份", "浏览器会话", "任务历史", "审计记录"]); view.SelectedIndex = 0;
         role.Items.AddRange(["A", "B", "C", "M"]); role.SelectedIndex = 0;
         kind.Items.AddRange(["token", "passphrase"]); kind.SelectedIndex = 0;
@@ -79,7 +79,7 @@ internal sealed class AdminForm : Form
         FormClosed += (_, _) => { lifetime.Cancel(); client?.Dispose(); sessionTimer.Dispose(); credential.Clear(); phrase.Clear(); ClearDetails(); rows.Clear(); lifetime.Dispose(); };
         Shown += async (_, _) => { if (File.Exists(settings.OwnerKeyFile)) await Work(() => LoginOwnerFile(settings.OwnerKeyFile)); };
         sessionTimer.Tick += (_, _) => Lock();
-        message.Text = "请使用 C 凭证，或已在服务器登记的所有者私钥。首次登记可在服务器执行 trust-public-key。";
+        message.Text = "请选择已配对的所有者私钥。旧 M 密钥无管理权限；首次登记在服务器执行 trust-public-key。";
     }
     private async Task Work(Func<Task> action)
     {

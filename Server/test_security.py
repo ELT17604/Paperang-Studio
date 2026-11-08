@@ -98,7 +98,7 @@ class SecurityTests(unittest.TestCase):
         self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M')
         claim=self.route('POST','/v2/device/jobs/'+job['id']+'/claim','M')['claim']
         full=self.route('GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})
-        self.assertIn('中文',full['text']);self.assertEqual(set(full['metadata']),{'identity','authenticated','ip','userAgent','language'})
+        self.assertIn('中文',full['text']);self.assertEqual(set(full['metadata']),{'identity','authenticated','ip','userAgent','language','browser'})
         self.blocked(403,'POST','/v2/jobs','M',dict(text='x',request_id=str(uuid.uuid4())))
         self.route('POST','/v2/device/jobs/'+job['id']+'/result','M',dict(claim=claim,state='sent'))
         self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})
@@ -211,10 +211,16 @@ class SecurityTests(unittest.TestCase):
     def test_anonymous_limits_and_minimal_metadata(self):
         result=self.route('POST','/v2/auth/anonymous',body={'browser_id':'psb_'+uuid.uuid4().hex})
         self.keys['anon']=self.auth.authenticate('Bearer '+result['token'])
-        for _ in range(5):self.submit('anon')
+        first=self.route('POST','/v2/jobs','anon',dict(text='browser fields',request_id=str(uuid.uuid4()),browser=dict(language='zh-CN',platform='Windows',timezone='discard',screen='discard',secret='discard')),headers={'User-Agent':'Firefox/132.0'})
+        claim=self.route('POST','/v2/device/jobs/'+first['id']+'/claim','M')['claim']
+        payload=self.route('GET','/v2/device/jobs/'+first['id'],'M',headers={'X-Job-Claim':claim})
+        self.assertEqual(payload['metadata']['browser'],dict(language='zh-CN',platform='Windows'))
+        self.assertEqual(payload['metadata']['userAgent'],'Firefox/132.0')
+        self.assertNotIn('metadata',self.route('GET','/v2/jobs/'+first['id'],'anon'))
+        for _ in range(4):self.submit('anon')
         self.blocked(429,'POST','/v2/jobs','anon',dict(text='sixth',request_id=str(uuid.uuid4())))
         job=self.route('POST','/v2/admin/jobs/search','C')['jobs'][0]
-        self.assertEqual(set(job['metadata']),{'ip','userAgent','identity','authenticated'})
+        self.assertEqual(set(job['metadata']),{'ip','userAgent','language','browser','identity','authenticated'})
         self.assertFalse(job['metadata']['authenticated'])
 
     def test_legacy_migration_backup_mapping_and_repeat(self):

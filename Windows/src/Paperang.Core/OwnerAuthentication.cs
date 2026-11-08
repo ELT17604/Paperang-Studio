@@ -8,6 +8,7 @@ namespace Paperang.Core;
 public sealed class OwnerAuthentication(string path, Uri server) : IDisposable
 {
     private readonly SemaphoreSlim gate = new(1, 1);
+    private volatile bool disposed;
     private string token = "";
     private DateTimeOffset expires;
     public static JsonElement Read(string path, Uri server)
@@ -29,9 +30,11 @@ public sealed class OwnerAuthentication(string path, Uri server) : IDisposable
     }
     public async Task<string> GetTokenAsync(HttpClient http, CancellationToken ct)
     {
+        ObjectDisposedException.ThrowIf(disposed, this);
         await gate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
+            ObjectDisposedException.ThrowIf(disposed, this);
             if (token.Length > 0 && DateTimeOffset.UtcNow < expires) return token;
             var key = Read(path, server);
             using var rsa = RSA.Create(); rsa.ImportFromPem(key.GetProperty("privateKeyPem").GetString());
@@ -62,5 +65,5 @@ public sealed class OwnerAuthentication(string path, Uri server) : IDisposable
         }
         finally { gate.Release(); }
     }
-    public void Dispose() { token = ""; gate.Dispose(); }
+    public void Dispose() { disposed = true; token = ""; } // No native wait handle is allocated; an in-flight cancellation must still release this managed gate.
 }

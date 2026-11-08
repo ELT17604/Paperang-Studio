@@ -123,6 +123,16 @@ static class Tests
             await nativeOwner.Post("v2/device/status", new { status = new { connected = true } }, default);
             Check((await nativeOwner.Get("v2/device/jobs", default)).GetProperty("jobs").ValueKind == JsonValueKind.Array, "same proven owner identity accesses scoped execution and management");
             Check(RelayEngine.CredentialFingerprint(ownerSettings) == RelayEngine.CredentialFingerprint(ownerSettings), "owner journal affinity uses stable public key identity");
+            var blockedHandler = new BlockedAuthentication();
+            using var blockedHttp = new HttpClient(blockedHandler) { BaseAddress = settings.Validate() };
+            using var cancellation = new CancellationTokenSource();
+            var authenticator = new OwnerAuthentication(ownerFile, settings.Validate());
+            var signing = authenticator.GetTokenAsync(blockedHttp, cancellation.Token);
+            await Until(() => blockedHandler.Started);
+            authenticator.Dispose(); cancellation.Cancel();
+            try { await signing; throw new Exception("cancelled authentication completed"); }
+            catch (OperationCanceledException) { Check(true, "closing owner client during authentication cancels without disposed-gate fault"); }
+
         } finally { File.Delete(ownerFile); }
         string privateFile = Path.Combine(Path.GetTempPath(), "paperang-acl-" + Guid.NewGuid() + ".json");
         try { AdminForm.WritePrivate(privateFile, "fixture"); Check(File.ReadAllText(privateFile) == "fixture" && new FileInfo(privateFile).GetAccessControl().AreAccessRulesProtected, "Windows owner file disables inherited ACL before writing secret"); }
@@ -253,6 +263,11 @@ static class Tests
         using var document = JsonDocument.Parse(json);
         Check(document.RootElement.GetProperty("blocks")[0].GetProperty("font").GetString() == "PingFang SC" && roundtrip.Blocks.Count == 4, "Swift Codable v1 template keys and fonts preserved");
         var job = TemplateEditor.SampleJob("{{ip}} — 中文说明", true);
+        var browserBlock = new RelayBlock { Kind = "浏览器信息" };
+        var anonymousJob = job with { Metadata = new() { ["userAgent"] = JsonSerializer.SerializeToElement("Firefox/132.0"), ["language"] = JsonSerializer.SerializeToElement("zh-CN") } };
+        Check(browserBlock.Value(anonymousJob) == "Firefox/132.0 · language=zh-CN", "anonymous browser block falls back to delivered UA and language on older relays");
+        Check(browserBlock.Value(job).Contains("platform=Sample device"), "structured browser metadata remains preferred");
+        Check(browserBlock.Value(job with { Metadata = new() }) == "浏览器信息未提供", "missing browser data is explicit rather than an empty block");
         var block = new RelayBlock { Kind = "自定义文字", Text = "{{text}} / {{id}} / {{sender}}" };
         Check(block.Value(job).StartsWith("{{ip}} — 中文说明 / A1B2-C3D4-E5F6 / Sample visitor"), "template variables expand once; visitor text never expanded recursively");
         template = template with { Blocks = [new RelayBlock { Kind = "标题", Text = "TEST", Gap = 5 }, new RelayBlock { Kind = "正文", Margin = 0, Gap = 7 }, new RelayBlock { Kind = "投稿身份", Gap = 9 }] };
@@ -323,6 +338,12 @@ static class Tests
         await Until(() => printer.Prints == 2 && journal.Value == null, 20000);
         await engine.StopAsync();
         Check(printer.Prints == 2, "original Python relay: text and raster1 end-to-end");
+    }
+    sealed class BlockedAuthentication : HttpMessageHandler
+    {
+        public bool Started;
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        { Started = true; await Task.Delay(Timeout.Infinite, ct); return new(HttpStatusCode.OK); }
     }
     sealed class MemoryJournal : IJournal { public PendingResult? Value; public PendingResult? Load() => Value; public void Save(PendingResult? v) => Value = v; }
     sealed class FakeRenderer : IRasterizer { public Raster Render(RelayJob j, AppSettings s) => new(1, new byte[72]); }

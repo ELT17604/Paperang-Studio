@@ -25,6 +25,15 @@ public sealed record RelayBlock
         if (id.Length == 12) id = $"{id[..4]}-{id[4..8]}-{id[8..]}";
         string browser = job.Metadata.TryGetValue("browser", out var b) && b.ValueKind == JsonValueKind.Object
             ? string.Join(" · ", b.EnumerateObject().OrderBy(x => x.Name, StringComparer.Ordinal).Select(x => x.Name + "=" + x.Value.ToString())) : "";
+        // Older relays omit browser metadata for anonymous submissions. Use only
+        // information already delivered with the claim; never invent device data.
+        if (string.IsNullOrWhiteSpace(browser))
+        {
+            var ua = Meta("userAgent");
+            var language = Meta("language");
+            browser = string.Join(" · ", new[] { ua == "unknown" ? "" : ua, language == "unknown" ? "" : "language=" + language }.Where(x => x.Length > 0));
+            if (browser.Length == 0) browser = "浏览器信息未提供";
+        }
         var fields = new Dictionary<string, string> {
             ["text"] = job.Text, ["sender"] = job.Sender, ["id"] = id,
             ["time"] = DateTimeOffset.UnixEpoch.AddSeconds(job.Created).ToString("yyyy-MM-ddTHH:mm:ssZ"),

@@ -26,7 +26,7 @@
       "version": "v0.3.1-linuxrelayserver",
       "runtimeVersion": "0.3.1",
       "versionSource": "Server/relay.py",
-      "verification": "0.3.0 Linux deployment verified; 0.3.1 local regression passed, owner cutover pending"
+      "verification": "0.3.1 Linux operator tests (25) and live owner cutover verified; subsequent browser metadata/helper fixes locally tested, deployment pending"
     },
     "winlite": {
       "name": "WinLite",

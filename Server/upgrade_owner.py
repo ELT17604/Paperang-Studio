@@ -27,6 +27,11 @@ def main():
     p.add_argument('--service',default='paperang-relay.service')
     a=p.parse_args()
     if os.name!='posix' or os.geteuid()!=0:raise SystemExit('Run as root on the existing Linux relay host')
+    import fcntl
+    lock_fd=os.open('/run/paperang-owner-upgrade.lock',os.O_CREAT|os.O_RDWR,0o600)
+    try:fcntl.flock(lock_fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    except BlockingIOError:
+        os.close(lock_fd);raise SystemExit('Another owner cutover is still running; do not start a second updater')
     if not re.fullmatch(r'[a-f0-9]{40}',a.commit) or not re.fullmatch(r'[a-f0-9]{64}',a.archive_sha256):raise SystemExit('Invalid pinned revision/hash')
     if not re.fullmatch(r'paperang-relay(?:\.service)?',a.service):raise SystemExit('Unexpected service')
     uuid.UUID(a.credential_id)
@@ -95,7 +100,10 @@ def main():
             if row==('publickey',0) and retired:break
             time.sleep(2)
         else:raise SystemExit('Timed out waiting for Windows proof and retirement; service remains paused, backup at '+str(backup))
-        config.write_bytes(original)
+        resumed=json.loads(original)
+        # A repeated, already-proven cutover must not preserve a previous cutover's pause.
+        if resumed.pop('execution_paused',None) is not None:config.write_text(json.dumps(resumed,indent=2)+'\n')
+        else:config.write_bytes(original)
         run(['systemctl','restart',a.service])
         for folder in {database.parent,config.parent,source}:
             for name in ('initial-credentials.jsonl','initial-credentials.keys.json','credentials.keys.json','recovered-credentials.keys.json'):
@@ -103,6 +111,7 @@ def main():
                 if candidate.is_file() and not candidate.is_symlink():candidate.unlink()
         print('SUCCESS: owner paired, old credentials revoked, known legacy credential exports removed; execution resumed.',flush=True)
         print('Private rollback backup: '+str(backup),flush=True)
+    os.close(lock_fd)
 
 
 if __name__=='__main__':main()

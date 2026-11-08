@@ -193,7 +193,7 @@ class APIv2:
                 if not row or row['state'] not in ('claimed','printing') or row['updated']<time.time()-300 or row['claim_key']!=key['id'] or not claim or not __import__('hmac').compare_digest(row['claim_hash'] or '',hashlib.sha256(claim.encode()).hexdigest()): self.fail(403,'active_claim_required')
                 value=s.job(row)
                 # Render fields only. No arbitrary browser metadata or full delivery record.
-                meta=value['metadata']; value['metadata']={k:meta[k] for k in ('identity','authenticated','ip','userAgent','language') if k in meta}
+                meta=value['metadata']; value['metadata']={k:meta[k] for k in ('identity','authenticated','ip','userAgent','language','browser') if k in meta}
                 return 200,value
             if path.endswith('/confirm'): self.fail(403,'manual_confirmation_requires_C')
             status,result=s.route_legacy(method,path.replace('/v2/','/v1/',1),body,legacy,ip,headers)

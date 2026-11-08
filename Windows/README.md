@@ -6,7 +6,7 @@
 
 [English guide](../doc/WINDOWS.md) · [简体中文](../doc/WINDOWS.zh-CN.md)
 
-**V0.3.0-winlite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+**V0.3.1-winlite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
 
 Uses the shared [version policy](../doc/VERSIONING.md) and [feature implementation matrix](../doc/FEATURE-MATRIX.md). Fix1 adds automatic print-preference persistence, live connection status and default continuous 60-second retry cycles, and repairs enabled sign-in startup paths after upgrades.
 
@@ -21,7 +21,7 @@ dotnet run --project Windows/tests/Paperang.Tests -c Release
 
 Run these commands from the repository root. Publish output defaults to the sibling `PaperangStudio-Windows-Development/Release/` directory; set `PAPERANG_WIN_WORK_DIR` to override it. The `lite` package shares the installed .NET runtime; `-SelfContained` produces the larger portable package. Both use the original repository icon and license notices.
 
-Double-click the tray icon, enter a relay root URL and **device** key, scan and select your P2, then save and connect. The original relay/webpage require no changes. Closing settings keeps the client running. Use the tray menu to pause new jobs, reconnect, or quit. Automatic connection/printing are Windows-specific user-requested defaults; the macOS defaults are unchanged.
+Double-click the tray icon, enter a relay root URL and select the paired **owner private file**, scan and select your P2, then save and connect. Requires the compatible v0.3.1 relay; the private key stays on this computer. Closing settings keeps the client running. Use the tray menu to pause new jobs, reconnect, or quit. Automatic connection/printing are Windows-specific user-requested defaults; the macOS defaults are unchanged.
 
 Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. See the [guide](../doc/WINDOWS.md) for template compatibility, privacy, recovery, limitations, and real-device verification.
 
