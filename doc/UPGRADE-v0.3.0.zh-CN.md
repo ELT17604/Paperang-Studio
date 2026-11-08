@@ -48,3 +48,5 @@ RelaySkill 的测试另需 Pillow：`python Skills/paperang-relay-print/scripts/
 本次不修改生产服务器、不自动替换正在工作的旧托盘进程、不声称已在 Mac/Linux 原生测试、不创建未验证的 Mac/Linux 二进制。应用级正文加密、CSV/独立附件目录导出不是本版功能。私钥采用 RSA-PSS，替代计划草案中的 Ed25519，以保持 Windows 无额外加密运行时。新 Owner 文件为敏感私钥，备份不进入 Git。
 
 Linux 原生隔离验证与生产迁移边界见 [验证记录](LINUX-v0.3.0-VALIDATION.md)。现有 admin/device/submit 密钥迁移为 C/M/B；旧 v1 客户端须升级。生产回滚必须同时恢复数据库、代码及含 venv 路径的 systemd 定义。
+
+Linux补充验收：源771c14c17326已完成目标Ubuntu主机迁移、非root systemd冷重启与公网HTTPS复核；原生接收端/纸面仍待验证。备份须同时保存DB、代码版本与旧unit，不能把迁移后DB直接交给旧代码。

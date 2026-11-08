@@ -27,4 +27,4 @@ Windows evidence: regression suite (51 checks), Chinese GDI/template rendering, 
 
 Previous physical P2 Chinese print and two reconnects were user-confirmed on 2026-11-06. This update does not claim a new physical paper confirmation, actual Windows reboot, indefinite resource stability, Mac native compilation, or Linux production deployment. Those require target-platform evidence. No planned full client is represented as released. Future features must update this matrix and shared contract before claiming parity.
 
-Linux: isolated security/HTTPS/browser/max-raster/restart tests passed; production systemd/migration and native receiver/paper checks remain pending. See [Linux validation](LINUX-v0.3.0-VALIDATION.md).
+Linux: isolated security/HTTPS/browser/max-raster/restart tests and production migration/systemd/public HTTPS checks passed; native receiver/paper checks remain pending. See [Linux validation](LINUX-v0.3.0-VALIDATION.md).

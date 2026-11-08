@@ -137,4 +137,4 @@ Licensed under [CC BY-NC-SA 4.0](LICENSE): credit ELT Group, use it non-commerci
 
 Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any related companies or affiliates. All third-party names and trademarks belong to their respective owners. Referenced third-party materials retain their own licenses.
 
-Linux security and migration preparation: [validation record](doc/LINUX-v0.3.0-VALIDATION.md). Production/native receiver/paper checks remain explicitly pending there.
+Linux security and migration preparation: [validation record](doc/LINUX-v0.3.0-VALIDATION.md). Production migration/systemd/HTTPS checks passed; native receiver/paper checks remain pending there.

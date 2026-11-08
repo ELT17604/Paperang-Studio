@@ -26,7 +26,7 @@
       "version": "v0.3.0-linuxrelayserver",
       "runtimeVersion": "0.3.0",
       "versionSource": "Server/relay.py",
-      "verification": "Local HTTP/SQLite security tested on Windows; Linux deployment pending"
+      "verification": "Ubuntu 24.04/Python 3.12 security and HTTPS browser tests; production migration, systemd cold restart and public HTTPS verified; native receiver/paper/extended soak pending"
     },
     "winlite": {
       "name": "WinLite",

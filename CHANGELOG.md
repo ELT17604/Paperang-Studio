@@ -89,3 +89,5 @@ Native print workspace, image preview/rendering, presets, and tasks. The user ph
 ## 0.1
 
 Verified legacy P2 BLE handshake, read-only fields, raw raster printing, feed, and engineering tools.
+
+Linux Relay v0.3.0: enforce session-only cookies and browser owner-proof cookies; retire v1 before authentication; bound job history to state transitions; validate Ubuntu migration, cold restart and public HTTPS. Native receiver/paper/extended soak remain pending.

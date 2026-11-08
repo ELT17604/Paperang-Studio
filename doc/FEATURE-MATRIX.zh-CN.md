@@ -16,4 +16,6 @@
 
 WinLite 继续不提供完整工作台、终端或本机 API；这些是 Lite 范围差异。它现在提供完整 C 管理功能。应用级正文加密、CSV 与独立附件目录导出未实现；本版 JSONL 内含正文、metadata、事件和 raster1 base64。
 
-过往纸面证据：2026-11-06 用户确认中文完整出纸，两次 BLE 重连。新版本本机模拟传输/实际 HTTP 验证不等于新纸面确认；未进行 Windows 实际重启、无限期稳定性、Mac 原生编译或 Linux 生产部署。所有平台接手要求见 [handoff](HANDOFF-v0.3.0.zh-CN.md)。
+过往纸面证据：2026-11-06 用户确认中文完整出纸，两次 BLE 重连。新版本本机模拟传输/实际 HTTP 验证不等于新纸面确认；未进行 Windows 实际重启、无限期稳定性或 Mac 原生编译。所有平台接手要求见 [handoff](HANDOFF-v0.3.0.zh-CN.md)。
+
+Linux补充：Ubuntu 24.04/Python 3.12 的22项安全/HTTP/SQLite测试、隔离及公网Chromium HTTPS登录刷新、最大raster和重启验证通过。生产源771c14c17326已迁移并完成非root systemd冷重启、公网HTTPS、旧v1退役与部署哈希验证。原生v2接收端、真实出纸与长期无人值守仍待验收。首次安装公网探测失败的原始记录保留，后续复核通过。见[Linux验证记录](LINUX-v0.3.0-VALIDATION.md)。
