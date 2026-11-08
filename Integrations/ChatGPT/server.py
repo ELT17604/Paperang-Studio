@@ -1,81 +1,71 @@
 #!/usr/bin/env python3
-"""Paperang Studio ChatGPT MCP adapter (experimental, local backend only).
+"""Local-only Streamable HTTP MCP tools for Paperang Studio Relay API v2.
 
-This is NOT an authentication gateway. Keep it on loopback and place an
-OAuth-capable HTTPS MCP gateway in front of it before remote installation.
+Requires a separate authenticated HTTPS/OAuth gateway for remote access.
+Do not bind directly to 0.0.0.0 or expose the endpoint publicly.
 """
-from __future__ import annotations
-
+import ipaddress
 import os
 
-from bridge import BridgeError, RelayBridge
+from mcp.server.fastmcp import FastMCP
+from core import PaperangError, configured_client, validated_job
 
-try:
-    from mcp.server.fastmcp import FastMCP
-except ImportError:
-    raise SystemExit("Install optional MCP runtime: pip install -r requirements.txt")
+HOST = os.environ.get("PAPERANG_MCP_HOST", "127.0.0.1")
+PORT = int(os.environ.get("PAPERANG_MCP_PORT", "8188"))
+# This service holds a single sender key and has no inbound user authentication.
+# Prevent accidental public exposure even if the environment is misconfigured.
+if not ipaddress.ip_address(HOST).is_loopback:
+    raise RuntimeError("MCP backend must bind to a loopback IP; configure an authenticated gateway")
+if not 1 <= PORT <= 65535:
+    raise RuntimeError("Invalid PAPERANG_MCP_PORT")
 
-APP_VERSION = "0.3.0-chatgpt-dev"
-HOST = "127.0.0.1"
-PORT = 8188
-
-# Publicly exposed Streamable HTTP without authorization is unsafe: this
-# server deliberately always binds to loopback.
 mcp = FastMCP("Paperang Studio", host=HOST, port=PORT)
-
-
-def client() -> RelayBridge:
-    endpoint = os.environ.get("PAPERANG_RELAY_URL", "")
-    key = os.environ.get("PAPERANG_RELAY_SUBMIT_KEY", "")
-    return RelayBridge(endpoint, key)
 
 
 @mcp.tool()
 async def relay_capabilities() -> dict:
-    """Read relay policy, payload limits and capabilities.
+    """Read Relay v2 acceptance policy and supported content formats.
 
-    Public status does not establish real-time Bluetooth/paper readiness.
+    Public acceptance does not prove receiver online, printer connected, or paper present.
     """
-    return await client().capabilities()
+    return await configured_client().capabilities()
 
 
 @mcp.tool()
 async def print_text(text: str, request_id: str) -> dict:
-    """Submit ONE explicitly user-authorized note for real physical printing.
+    """Print one explicitly authorized text note (physical paper side effect).
 
-    Consumes paper. Do not invoke after mere preview/layout requests.
-    request_id is a canonical UUID for one intentional print; preserve it
-    across an uncertain timeout. Never create a new UUID to retry.
-    Accepted means queued at relay, NOT actually printed.
+    Call only after the user explicitly requests printing this exact content.
+    request_id is one canonical UUID for this intended print. On an uncertain
+    timeout NEVER create a new UUID or automatically submit again. One copy only.
+    Receiver controls density, feed and layout.
     """
-    return await client().submit_text(text, request_id)
+    return await configured_client().submit({"text": text}, request_id)
 
 
 @mcp.tool()
-async def print_raster1(data: str, height: int, request_id: str,
-                        caption: str = "", sha256: str = "") -> dict:
-    """Print a user-authorized pre-rendered one-bit raster; ONE physical copy.
+async def print_raster1(content: dict, request_id: str, caption: str = "") -> dict:
+    """Print one explicitly authorized RelaySkill-compatible 576-dot raster1.
 
-    Advanced: packed 576px rows, MSB-first, black=1, base64 of 72*height
-    bytes; SHA-256 optional. 1..1400 rows subject to relay quota/receiver
-    footer. This tool does NOT convert images or change physical density,
-    feed, template, or BLE settings. No automatic retries.
+    content is the exact 'content' object from RelaySkill's prepare output.
+    Images must be rendered by a trusted sender into raster1 schema 1; raw
+    URLs and arbitrary filesystem paths are intentionally unsupported.
+    A caption is optional and uses the receiver template. No auto-resubmit.
     """
-    return await client().submit_raster(data, height, request_id, caption, sha256)
+    job, _ = validated_job(caption, content)
+    return await configured_client().submit(job, request_id)
 
 
 @mcp.tool()
 async def print_status(job_id: str) -> dict:
-    """Read job state (B only; A credential returns 403).
+    """Read own job status (requires B sender key; A gets HTTP 403).
 
-    Use a full UUID or 12-hex short ID. sent means transport completion,
-    not physical-paper confirmation; only C can manually confirm.
+    'accepted' means queued by relay; 'sent' is transport completion only;
+    'confirmed' is manual paper confirmation. Never infer paper from 'sent'.
     """
-    return await client().status(job_id)
+    return await configured_client().status(job_id)
 
 
 if __name__ == "__main__":
-    # Fail closed before listening if the relay or token is misconfigured.
-    client()
-    # RelayBridge constructor validates without making a print request.
+    configured_client()  # Validate endpoint/token before accepting requests.
     mcp.run(transport="streamable-http")
