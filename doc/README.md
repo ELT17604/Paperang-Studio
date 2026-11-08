@@ -9,7 +9,7 @@ All default documentation pages are in English. Each guide links to its Chinese 
 | Project overview | [README](../README.md) | [项目介绍](README.zh-CN.md) |
 | User guide | [User guide](USER-GUIDE.md) | [使用说明](USER-GUIDE.zh-CN.md) |
 | Windows tray client | [Windows guide](WINDOWS.md) | [Windows 使用说明](WINDOWS.zh-CN.md) |
-| Relay print skill | [RelaySkill](RELAY-SKILL.md) | [中转打印技能](RELAY-SKILL.zh-CN.md) |
+| ChatGPT integration (experimental) | [ChatGPT](CHATGPT.md) | [ChatGPT 集成](CHATGPT.zh-CN.md) |\n| Relay print skill | [RelaySkill](RELAY-SKILL.md) | [中转打印技能](RELAY-SKILL.zh-CN.md) |
 | Windows porting | [Porting notes](WINDOWS-PORTING.md) | [Windows 移植记录](WINDOWS-PORTING.zh-CN.md) |
 | Version naming and compatibility | [Version policy](VERSIONING.md) | [版本命名与兼容规则](VERSIONING.zh-CN.md) |
 | Cross-platform feature parity | [Implementation matrix](FEATURE-MATRIX.md) | [版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md) |
