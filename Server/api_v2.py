@@ -88,17 +88,21 @@ class APIv2:
             return 200,self.state(row)
         if path.startswith('/v2/admin/'):
             a.require(key,['C'])
+            limit=body.get('limit',100)
+            if type(limit) is not int or not 1<=limit<=100: self.fail(400,'invalid_page_size')
+            hidden=body.get('hide_revoked',False)
+            if type(hidden) is not bool: self.fail(400,'invalid_hide_revoked')
             if method=='POST' and path in ('/v2/admin/keys/search','/v2/admin/identities/search','/v2/admin/sessions/search'):
                 before=body.get('before',1e20)
                 if type(before) not in (int,float): self.fail(400,'invalid_cursor')
                 collection=path.split('/')[3]
                 with s.connect() as db:
                     if collection=='keys':
-                        rows=db.execute('SELECT c.rowid AS cursor,c.id,c.user_id,i.name,c.role,c.device,c.kind,c.revoked,c.created FROM credentials c JOIN identities i ON i.id=c.user_id WHERE c.rowid<? ORDER BY c.rowid DESC LIMIT 100',(before,)).fetchall()
+                        rows=db.execute('SELECT c.rowid AS cursor,c.id,c.user_id,i.name,c.role,c.device,c.kind,c.revoked,c.created FROM credentials c JOIN identities i ON i.id=c.user_id WHERE c.rowid<? AND (?=0 OR (c.revoked=0 AND i.revoked=0)) ORDER BY c.rowid DESC LIMIT ?',(before,hidden,limit)).fetchall()
                     elif collection=='identities':
-                        rows=db.execute('SELECT rowid AS cursor,* FROM identities WHERE rowid<? ORDER BY rowid DESC LIMIT 100',(before,)).fetchall()
+                        rows=db.execute('SELECT rowid AS cursor,* FROM identities WHERE rowid<? AND (?=0 OR revoked=0) ORDER BY rowid DESC LIMIT ?',(before,hidden,limit)).fetchall()
                     else:
-                        rows=db.execute('SELECT rowid AS cursor,credential_id,browser_id,expires FROM sessions WHERE rowid<? AND expires>? ORDER BY rowid DESC LIMIT 100',(before,time.time())).fetchall()
+                        rows=db.execute('SELECT rowid AS cursor,credential_id,browser_id,expires FROM sessions WHERE rowid<? AND expires>? ORDER BY rowid DESC LIMIT ?',(before,time.time(),limit)).fetchall()
                 return 200,{collection:[{k:r[k] for k in r.keys() if k!='cursor'} for r in rows], 'next':rows[-1]['cursor'] if rows else None}
             if path=='/v2/admin/security/retire-others' and method=='POST':
                 if body.get('keep')!=key['id'] or body.get('confirm') is not True: self.fail(400,'explicit_owner_confirmation_required')
@@ -158,15 +162,23 @@ class APIv2:
             if path=='/v2/admin/audit' and method=='POST':
                 before=body.get('before',2**63-1)
                 if type(before) is not int: self.fail(400,'invalid_cursor')
-                with s.connect() as db: rows=db.execute('SELECT * FROM audit_events WHERE id<? ORDER BY id DESC LIMIT 100',(before,)).fetchall()
+                with s.connect() as db: rows=db.execute('SELECT * FROM audit_events WHERE id<? ORDER BY id DESC LIMIT ?',(before,limit)).fetchall()
                 return 200,dict(events=[dict(r) for r in rows],next=rows[-1]['id'] if rows else None)
             if path in ('/v2/admin/jobs/search','/v2/admin/jobs/export') and method=='POST':
                 before=body.get('before',1e20); uid=body.get('user_id',''); job_id=body.get('job_id','')
                 if type(before) not in (int,float) or not isinstance(uid,str) or not isinstance(job_id,str): self.fail(400,'invalid_filter')
-                # Bounded pages; export streams pages in the native client.
-                with s.connect() as db: rows=db.execute('SELECT rowid AS cursor,* FROM jobs WHERE rowid<? AND (?=\'\' OR user_id=?) AND (?=\'\' OR id=?) ORDER BY rowid DESC LIMIT 5',(before,uid,uid,job_id,job_id)).fetchall()
+                # Summary pages never load text/raster blobs. Full export remains
+                # capped at five records to bound response bytes for image jobs.
+                summary=body.get('summary',False)
+                if type(summary) is not bool: self.fail(400,'invalid_summary')
+                summary=summary and path.endswith('/search')
+                columns='rowid AS cursor,id,short_id,user_id,state,created' if summary else 'rowid AS cursor,*'
+                page_limit=limit if summary else min(body.get('limit',5),5)
+                with s.connect() as db: rows=db.execute('SELECT '+columns+' FROM jobs WHERE rowid<? AND (?=\'\' OR user_id=?) AND (?=\'\' OR id=?) ORDER BY rowid DESC LIMIT ?',(before,uid,uid,job_id,job_id,page_limit)).fetchall()
                 jobs=[]
                 for row in rows:
+                    if summary:
+                        jobs.append(dict(id=row['id'],shortID=row['short_id'],user_id=row['user_id'],state=row['state'],created=row['created'])); continue
                     detail=s.job(row); detail.update(user_id=row['user_id'],browser_id=row['browser_id'],credential_id=row['credential_id'])
                     with s.connect() as db: detail['events']=[dict(r) for r in db.execute('SELECT at,state FROM job_events WHERE job_id=? ORDER BY id',(row['id'],))]
                     jobs.append(detail)
@@ -201,6 +213,10 @@ class APIv2:
         confirm=re.fullmatch(r'/v2/admin/jobs/([a-f0-9-]{36,40})/confirm',path)
         if method=='POST' and confirm:
             a.require(key,['C'])
+            limit=body.get('limit',100)
+            if type(limit) is not int or not 1<=limit<=100: self.fail(400,'invalid_page_size')
+            hidden=body.get('hide_revoked',False)
+            if type(hidden) is not bool: self.fail(400,'invalid_hide_revoked')
             with s.connect() as db:
                 row=db.execute("SELECT device FROM jobs WHERE id=? AND state IN ('sent','confirmed')",(confirm.group(1),)).fetchone()
             if not row: self.fail(409,'only_sent_can_be_confirmed')

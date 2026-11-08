@@ -26,3 +26,6 @@ Anonymous browser sessions track their own fixed progress only; ordinary A token
 
 
 See [v0.3.1 live validation and browser metadata follow-up](VALIDATION-v0.3.1.zh-CN.md) for verified deployment scope and remaining platform checks.
+
+
+WinLite `v0.3.1-winlite-fix1`: native management layout, automatic credential/identity IDs, hide-revoked and 25/50/100-row paging. Legacy relay compatibility is retained; server summary/filter pagination is additive. See [Windows guide](WINDOWS.md).

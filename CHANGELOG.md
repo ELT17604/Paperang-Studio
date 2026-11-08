@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1-winlite-fix1 — 2026-11-09
+
+Redesign the native management center with category navigation, contextual actions, readable tables, 25/50/100-row pages, previous/next navigation and optional hiding of revoked credentials/identities. Credential creation uses a dedicated form and server-generated IDs; existing identities are selected rather than typed. Key generation requires an unlocked owner and writes the registered ID automatically, without placeholder JSON. Add backwards-compatible relay pagination/filtering and content-free C history summaries with selected-record details. Legacy relays remain usable through bounded client paging.
+
 ## v0.3.1 — 2026-11-08
 
 Fix anonymous own-job progress without content disclosure; restore IP/UA to active render payloads; default WinLite to paired owner private-key authentication and renewable sessions. Merge verified Linux security corrections and add safe owner cutover tooling.

@@ -31,10 +31,10 @@
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.1-winlite",
-      "runtimeVersion": "0.3.1-winlite",
+      "version": "v0.3.1-winlite-fix1",
+      "runtimeVersion": "0.3.1-winlite-fix1",
       "versionSource": "Windows/VERSION",
-      "verification": "Windows build, regression and local API v2 integration validated"
+      "verification": "Windows regression and live owner-management UI verified; native management redesign and legacy pagination supported"
     },
     "relayskill": {
       "name": "RelaySkill",

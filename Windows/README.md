@@ -6,7 +6,7 @@
 
 [English guide](../doc/WINDOWS.md) · [简体中文](../doc/WINDOWS.zh-CN.md)
 
-**V0.3.1-winlite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+**V0.3.1-winlite-fix1** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
 
 Uses the shared [version policy](../doc/VERSIONING.md) and [feature implementation matrix](../doc/FEATURE-MATRIX.md). Fix1 adds automatic print-preference persistence, live connection status and default continuous 60-second retry cycles, and repairs enabled sign-in startup paths after upgrades.
 

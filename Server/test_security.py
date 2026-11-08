@@ -262,6 +262,41 @@ class SecurityTests(unittest.TestCase):
             for table in ('job_events','submission_ids'):
                 self.assertEqual(db.execute('SELECT count(*) FROM '+table+' WHERE job_id=?',(job['id'],)).fetchone()[0],0)
 
+    def test_admin_creation_generates_ids_and_optional_passphrase(self):
+        token=self.route('POST','/v2/admin/keys','C',dict(name='Automatic identity',role='A',kind='token'))
+        uuid.UUID(token['id']);uuid.UUID(token['user_id'])
+        self.assertNotEqual(token['id'],token['user_id']);self.assertTrue(token['token'].startswith('psr_'))
+        phrase=self.route('POST','/v2/admin/keys','C',dict(name='Automatic phrase',role='B',kind='passphrase'))
+        self.assertTrue(phrase['token'].startswith('psp_'+phrase['id']+'.'))
+        linked=self.route('POST','/v2/admin/keys','C',dict(name='Existing identity',role='B',kind='token',user_id=token['user_id']))
+        self.assertEqual(linked['user_id'],token['user_id']);self.assertNotEqual(linked['id'],token['id'])
+
+    def test_admin_table_limits_filter_before_paging_and_summary(self):
+        for index in range(7):
+            entry=self.auth.create('table '+str(index),'A')
+            if index%2==0:self.auth.revoke(entry['id'],self.keys['C'])
+        first=self.route('POST','/v2/admin/keys/search','C',dict(limit=2,hide_revoked=True))
+        second=self.route('POST','/v2/admin/keys/search','C',dict(limit=2,hide_revoked=True,before=first['next']))
+        self.assertEqual(len(first['keys']),2);self.assertEqual(len(second['keys']),2)
+        self.assertFalse({r['id'] for r in first['keys']}&{r['id'] for r in second['keys']})
+        self.assertTrue(all(not r['revoked'] for r in first['keys']+second['keys']))
+        all_rows=self.route('POST','/v2/admin/keys/search','C',dict(limit=100,hide_revoked=False))
+        self.assertTrue(any(r['revoked'] for r in all_rows['keys']))
+        for limit in (0,101,True,'25'):
+            self.blocked(400,'POST','/v2/admin/keys/search','C',dict(limit=limit))
+        self.blocked(400,'POST','/v2/admin/identities/search','C',dict(hide_revoked='true'))
+        jobs=[self.submit('B') for _ in range(6)]
+        summary=self.route('POST','/v2/admin/jobs/search','C',dict(summary=True,limit=4))
+        self.assertEqual(len(summary['jobs']),4)
+        for row in summary['jobs']:self.assertFalse(set(row)&{'text','content','metadata','events'})
+        remaining=self.route('POST','/v2/admin/jobs/search','C',dict(summary=True,limit=4,before=summary['next']))
+        self.assertEqual(len(remaining['jobs']),2)
+        full=self.route('POST','/v2/admin/jobs/search','C',dict(job_id=jobs[0]['id'],limit=1))
+        self.assertEqual(len(full['jobs']),1);self.assertIn('text',full['jobs'][0])
+        for path in ('/v2/admin/identities/search','/v2/admin/sessions/search','/v2/admin/audit'):
+            result=self.route('POST',path,'C',dict(limit=1))
+            self.assertLessEqual(len(result[next(k for k in result if k!='next')]),1)
+
     def test_HTTP_cookie_csrf_and_native_login(self):
         self.s.c['port']=0;server=Server(self.s);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         base='http://127.0.0.1:'+str(server.server_port)

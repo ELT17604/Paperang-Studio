@@ -19,7 +19,7 @@ static class Tests
         {
             if (args.Length > 0 && args[0] == "--admin-ui") {
                 System.Windows.Forms.Application.EnableVisualStyles();
-                using var form = new AdminForm(Settings); System.Windows.Forms.Application.Run(form); return;
+                using var form = new AdminForm(args.Contains("--configured") ? new LocalStore().LoadSettings() : Settings); System.Windows.Forms.Application.Run(form); return;
             }
             if (args.Length == 2 && args[0] == "--admin-test") { await AdminTest(args[1]); return; }
             if (args.Length > 0 && args[0] == "--ble") { await Ble(args.Contains("--print")); return; }
