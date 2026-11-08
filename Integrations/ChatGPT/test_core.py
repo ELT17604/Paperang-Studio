@@ -19,7 +19,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(relay_url("http://127.0.0.1:8177"), "http://127.0.0.1:8177")
         for url in ("http://example.com", "https://user:pass@example.com",
                     "https://example.com/path", "https://example.com?token=x",
-                    "https://example.com#secret", "file:///tmp/local"):
+                    "https://example.com#secret", "https://example.com:invalid", "file:///tmp/local"):
             with self.subTest(url=url), self.assertRaises(PaperangError):
                 relay_url(url)
 
@@ -102,6 +102,17 @@ class CoreTests(unittest.TestCase):
             with self.subTest(role=role), self.assertRaises(PaperangError):
                 asyncio.run(sender.submit({"text": "should not print"}, str(uuid.uuid4())))
             self.assertEqual(events, ["/v2/auth/me"])
+
+    def test_short_id_lookup(self):
+        events = []
+        def handler(request):
+            events.append(request.url.path)
+            if request.url.path == "/v2/auth/me":
+                return httpx.Response(200, json={"role": "B"})
+            return httpx.Response(200, json={"id": str(uuid.uuid4()), "state": "queued"})
+        sender = RelayClient("https://print.example", KEY, transport=httpx.MockTransport(handler))
+        self.assertEqual(asyncio.run(sender.status("abcdef012345"))["state"], "queued")
+        self.assertEqual(events[-1], "/v2/jobs/lookup/ABCDEF012345")
 
     def test_a_cannot_read_status(self):
         events = []
