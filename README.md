@@ -22,6 +22,8 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 
 Full **WinClient** and **LinuxClient** are planned distributions. WinLite is the existing Windows receiver; LinuxRelayServer is a server, not a Linux Bluetooth client. See the [implementation matrix](doc/FEATURE-MATRIX.md) for exact scope and evidence.
 
+**ChatGPT (experimental):** A private MCP / GPT Actions source adapter is available at [Integrations/ChatGPT](Integrations/ChatGPT/README.md), with [English](doc/CHATGPT.md) and [中文](doc/CHATGPT.zh-CN.md) guides. This is not a deployed or released distribution; authenticated HTTPS/OAuth gateway and account-side connection are still required.
+
 ## How the parts connect
 
 ```mermaid
@@ -110,7 +112,7 @@ Install the folder `Skills/paperang-relay-print/` into your agent’s skills dir
 | Windows | [Tray/settings/admin guide](doc/WINDOWS.md) · [Build](Windows/README.md) |
 | macOS | [Workspace](doc/USER-GUIDE.md) · [Layout editor](doc/LAYOUT-EDITOR.md) · [Paper terminal](doc/TERMINAL.md) · [Tray mode](doc/TRAY-MODE.md) |
 | Relay and security | [Deploy](Server/README.md) · [Authentication/API v2](doc/AUTH-v2.md) · [Data and retention](doc/RELAY-DATA.md) |
-| Integrations | [RelaySkill](doc/RELAY-SKILL.md) · [Mac local API](doc/API.md) / [OpenAPI](doc/openapi.json) · [Swift modules](doc/SWIFT-API.md) |
+| Integrations | [ChatGPT adapter](doc/CHATGPT.md) · [RelaySkill](doc/RELAY-SKILL.md) · [Mac local API](doc/API.md) / [OpenAPI](doc/openapi.json) · [Swift modules](doc/SWIFT-API.md) |
 | Upgrade and maintain | [Changelog](CHANGELOG.md) · [Upgrade](doc/UPGRADE-v0.3.0.md) · [Mac/Linux agent prompts](doc/HANDOFF-v0.3.0.zh-CN.md) · [Validation](doc/VALIDATION-v0.3.0.md) |
 | Printer research | [Protocol](doc/PROTOCOL.md) · [Physical observations](doc/ACQUISITION.md) · [Research](doc/RESEARCH.md) · [Related projects](doc/RELATED-PROJECTS.md) · [Sources](doc/SOURCES.md) |
 
