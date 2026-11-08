@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseline": "0.3.0",
+  "baseline": "0.3.1",
   "compatibility": {
     "relayApi": "v2",
     "contentTypes": [
@@ -15,32 +15,32 @@
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.0-macclient",
-      "runtimeVersion": "0.3.0-macclient",
+      "version": "v0.3.1-macclient",
+      "runtimeVersion": "0.3.1-macclient",
       "versionSource": "VERSION",
       "verification": "Source updated; native macOS validation pending"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
       "status": "implemented",
-      "version": "v0.3.0-linuxrelayserver",
-      "runtimeVersion": "0.3.0",
+      "version": "v0.3.1-linuxrelayserver",
+      "runtimeVersion": "0.3.1",
       "versionSource": "Server/relay.py",
-      "verification": "Local HTTP/SQLite security tested on Windows; Linux deployment pending"
+      "verification": "0.3.0 Linux deployment verified; 0.3.1 local regression passed, owner cutover pending"
     },
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.0-winlite",
-      "runtimeVersion": "0.3.0-winlite",
+      "version": "v0.3.1-winlite",
+      "runtimeVersion": "0.3.1-winlite",
       "versionSource": "Windows/VERSION",
       "verification": "Windows build, regression and local API v2 integration validated"
     },
     "relayskill": {
       "name": "RelaySkill",
       "status": "implemented",
-      "version": "v0.3.0-relayskill",
-      "runtimeVersion": "0.3.0-relayskill",
+      "version": "v0.3.1-relayskill",
+      "runtimeVersion": "0.3.1-relayskill",
       "versionSource": "Skills/paperang-relay-print/VERSION",
       "verification": "Local protocol and rendering tests validated"
     },

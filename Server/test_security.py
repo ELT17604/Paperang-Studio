@@ -17,6 +17,18 @@ from relay import Store, Server, Problem
 
 
 class SecurityTests(unittest.TestCase):
+    def owner(self):
+        private=rsa.generate_private_key(public_exponent=65537,key_size=3072)
+        pem=private.public_key().public_bytes(serialization.Encoding.PEM,serialization.PublicFormat.SubjectPublicKeyInfo).decode()
+        identifier=str(uuid.uuid4())
+        entry=self.auth.public_key_add('owner',pem,identifier)
+        self.assertEqual(entry['id'],identifier)
+        self.assertEqual(self.auth.public_key_add('owner',pem,identifier)['id'],identifier)
+        challenge=self.auth.challenge({'id':identifier},'127.0.0.1')
+        signature=private.sign(challenge['message'].encode(),padding.PSS(mgf=padding.MGF1(hashes.SHA256()),salt_length=32),hashes.SHA256())
+        result=self.auth.prove({'challenge':challenge['challenge'],'signature':base64.b64encode(signature).decode()},'127.0.0.1')
+        return self.auth.authenticate('Bearer '+result['token']),result['token']
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.s = Store(dict(database=str(Path(self.temp.name)/'relay.db'),port=8177))
@@ -41,9 +53,42 @@ class SecurityTests(unittest.TestCase):
             self.blocked(410,'GET',path,'C',headers={'X-Job-Receipt':'old-secret'})
         self.blocked(403,'POST','/v2/jobs',None,dict(text='x',request_id=str(uuid.uuid4())))
 
+    def test_anonymous_own_progress_only_no_content(self):
+        session=self.route('POST','/v2/auth/anonymous',body={'browser_id':'psb_'+uuid.uuid4().hex})
+        self.keys['anon']=self.auth.authenticate('Bearer '+session['token'])
+        own=self.submit('anon');other=self.submit('B')
+        self.assertTrue(own['statusReadable'])
+        state=self.route('GET','/v2/jobs/lookup/'+own['shortID'],'anon')
+        self.assertEqual(state['state'],'queued');self.assertIn('progress',state)
+        self.assertNotIn('text',state);self.assertNotIn('metadata',state);self.assertNotIn('content',state)
+        self.blocked(404,'GET','/v2/jobs/'+other['id'],'anon')
+        self.blocked(403,'POST','/v2/admin/jobs/search','anon')
+        self.blocked(403,'GET','/v2/jobs/'+own['id'],'A')
+
+    def test_owner_execution_and_safe_retirement(self):
+        owner,token=self.owner();self.keys['owner']=owner
+        self.route('GET','/v2/device/jobs','owner')
+        self.blocked(403,'GET','/v2/device/jobs','C')
+        job=self.submit('B');path='/v2/device/jobs/'+job['id']
+        claim=self.route('POST',path+'/claim','owner')['claim']
+        full=self.route('GET',path,'owner',headers={'X-Job-Claim':claim})
+        self.assertIn('ip',full['metadata']);self.assertIn('userAgent',full['metadata'])
+        self.blocked(409,'POST','/v2/admin/security/retire-others','owner',{'keep':owner['id'],'confirm':True})
+        self.route('POST',path+'/result','owner',{'claim':claim,'state':'unknown'})
+        result=self.route('POST','/v2/admin/security/retire-others','owner',{'keep':owner['id'],'confirm':True})
+        self.assertEqual(result['kept'],owner['id'])
+        for value in self.credentials.values():
+            with self.assertRaises(Problem):self.auth.authenticate('Bearer '+value['token'])
+        self.assertEqual(self.auth.authenticate('Bearer '+token)['role'],'C')
+
+    def test_cutover_pauses_claims_without_exposing_payload(self):
+        job=self.submit('B');self.s.c['execution_paused']=True
+        self.blocked(503,'POST','/v2/device/jobs/'+job['id']+'/claim','M')
+        self.assertEqual(self.route('GET','/v2/jobs/'+job['id'],'B')['state'],'queued')
+
     def test_B_own_state_only(self):
         job=self.submit('B');state=self.route('GET','/v2/jobs/'+job['id'],'B')
-        self.assertEqual(set(state),{'id','shortID','state','created','updated'})
+        self.assertEqual(set(state),{'id','shortID','state','created','updated','lastStage','progress'})
         other=self.submit('A');self.blocked(404,'GET','/v2/jobs/'+other['id'],'B')
         self.blocked(403,'POST','/v2/admin/jobs/search','B')
 
@@ -53,7 +98,7 @@ class SecurityTests(unittest.TestCase):
         self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M')
         claim=self.route('POST','/v2/device/jobs/'+job['id']+'/claim','M')['claim']
         full=self.route('GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})
-        self.assertIn('中文',full['text']);self.assertEqual(set(full['metadata']),{'identity','authenticated'})
+        self.assertIn('中文',full['text']);self.assertEqual(set(full['metadata']),{'identity','authenticated','ip','userAgent','language'})
         self.blocked(403,'POST','/v2/jobs','M',dict(text='x',request_id=str(uuid.uuid4())))
         self.route('POST','/v2/device/jobs/'+job['id']+'/result','M',dict(claim=claim,state='sent'))
         self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})
@@ -189,6 +234,28 @@ class SecurityTests(unittest.TestCase):
         Store(dict(database=path))
         self.assertEqual(len(list(Path(self.temp.name).glob('legacy.db.pre-v0.3.0-*.bak'))),1)
 
+    def test_raw_token_cannot_be_used_as_cookie(self):
+        with self.assertRaises(Problem) as exc:
+            self.auth.authenticate(cookie='psr_session='+self.credentials['C']['token'])
+        self.assertEqual(exc.exception.status,401)
+
+    def test_repeated_heartbeat_does_not_inflate_events(self):
+        job=self.submit('B');path='/v2/device/jobs/'+job['id']
+        claim=self.route('POST',path+'/claim','M')['claim']
+        for _ in range(20):
+            self.route('POST',path+'/result','M',dict(claim=claim,state='printing'))
+        with self.s.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM job_events WHERE job_id=?',(job['id'],)).fetchone()[0],3)
+
+    def test_prune_removes_related_rows_in_one_pass(self):
+        import time
+        job=self.submit('B')
+        with self.s.connect() as db:
+            db.execute('UPDATE jobs SET updated=0 WHERE id=?',(job['id'],))
+            self.s.prune(db,time.time())
+            for table in ('job_events','submission_ids'):
+                self.assertEqual(db.execute('SELECT count(*) FROM '+table+' WHERE job_id=?',(job['id'],)).fetchone()[0],0)
+
     def test_HTTP_cookie_csrf_and_native_login(self):
         self.s.c['port']=0;server=Server(self.s);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         base='http://127.0.0.1:'+str(server.server_port)
@@ -197,6 +264,10 @@ class SecurityTests(unittest.TestCase):
             req=urllib.request.Request(base+path,data=wire,headers={'Content-Type':'application/json',**(headers or {})})
             return urllib.request.urlopen(req)
         try:
+            for path in ('/v1/public/status','/v1/device/jobs'):
+                with self.assertRaises(urllib.error.HTTPError) as exc:
+                    call(path,headers={'Authorization':'Bearer revoked'})
+                self.assertEqual(exc.exception.code,410);exc.exception.close()
             with call('/v2/auth/login',{'credential':self.credentials['B']['token']}) as res:
                 cookie=res.headers['Set-Cookie'];data=json.load(res)
             self.assertIn('HttpOnly; Secure; SameSite=Strict',cookie);self.assertNotIn('token',data)

@@ -8,7 +8,7 @@ internal sealed class SettingsForm : Form
     private AppSettings initial;
     private readonly Func<AppSettings, bool, Task> save;
     private readonly Action<AppSettings> savePrinting;
-    private readonly TextBox url = new(), key = new() { UseSystemPasswordChar = true };
+    private readonly TextBox url = new(), key = new() { ReadOnly = true };
     private readonly CheckBox http = new() { Text = "允许 HTTP 测试连接（公网建议 HTTPS）", AutoSize = true };
     private readonly CheckBox autoConnect = new() { Text = "启动后自动连接服务器与记住的打印机", AutoSize = true };
     private readonly CheckBox autoPrint = new() { Text = "每次连接自动开启允许打印", AutoSize = true };
@@ -61,9 +61,11 @@ internal sealed class SettingsForm : Form
         tabs.TabPages.AddRange([connection.Page, printing.Page, general.Page, management.Page]);
         root.Controls.Add(tabs);
         Add(connection.Body, "中转服务器根地址", url);
-        Add(connection.Body, "M 设备执行密钥（psr_ 开头）", key);
-        var show = new CheckBox { Text = "显示密钥", AutoSize = true }; show.CheckedChanged += (_, _) => key.UseSystemPasswordChar = !show.Checked;
-        Add(connection.Body, "", show); Add(connection.Body, "", http);
+        Add(connection.Body, "所有者私钥文件（最高权限 · 仅保存在本机）", key);
+        var chooseKey = new Button { Text = "选择已配对的私钥文件…", AutoSize = true };
+        chooseKey.Click += (_, _) => { using var pick = new OpenFileDialog { Filter = "Paperang 所有者文件|*.json" }; if (pick.ShowDialog(this) == DialogResult.OK) key.Text = pick.FileName; };
+        Add(connection.Body, "", chooseKey); Add(connection.Body, "", http);
+        Add(connection.Body, "", Hint("默认仅使用已配对的 RSA 所有者私钥。会话自动续期，管理与打印共用已验证的所有者身份。旧 M 设备密钥没有管理权限，不再作为默认连接凭证。"));
         Add(connection.Body, "本地 P2 打印机", printers);
         var scanRow = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Top };
         var all = new CheckBox { Text = "显示所有命名设备", AutoSize = true };
@@ -120,7 +122,7 @@ internal sealed class SettingsForm : Form
         feedback.Text = "保存后设置立即生效，关闭窗口继续驻留托盘。";
         bottom.Controls.Add(feedback); bottom.Controls.Add(apply);
         root.Controls.Add(bottom); Controls.Add(root);
-        url.Text = initial.Server; key.Text = initial.DeviceKey; http.Checked = initial.AllowHttp;
+        url.Text = initial.Server; key.Text = initial.OwnerKeyFile; http.Checked = initial.AllowHttp;
         autoConnect.Checked = initial.AutoConnect; autoPrint.Checked = initial.AutoAllowPrint; startup.Checked = StartupRegistration.Enabled;
         reconnect.Checked = initial.KeepReconnecting;
         style.SelectedItem = initial.Style; density.Value = Math.Clamp(initial.Density, 0, 100); feed.Value = Math.Clamp(initial.Feed, 0, 2000);
@@ -151,7 +153,7 @@ internal sealed class SettingsForm : Form
         {
             var selected = printers.SelectedItem as PrinterChoice;
             var next = initial with {
-                Server = url.Text.Trim(), DeviceKey = key.Text.Trim(), AllowHttp = http.Checked,
+                Server = url.Text.Trim(), OwnerKeyFile = key.Text.Trim(), AuthenticationMode = "owner", DeviceKey = "", AllowHttp = http.Checked,
                 PrinterAddress = selected?.Address.ToString("X12") ?? "", PrinterName = selected?.Name ?? "",
                 AutoConnect = autoConnect.Checked, AutoAllowPrint = autoPrint.Checked, KeepReconnecting = reconnect.Checked,
                 Style = style.SelectedItem as string ?? "便签", Density = (int)density.Value, Feed = (int)feed.Value,

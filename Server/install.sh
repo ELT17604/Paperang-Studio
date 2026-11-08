@@ -114,10 +114,10 @@ if [[ ! -f "$STATE/.bootstrapped" ]];then
  umask 077
  CREDS="$STATE/initial-credentials.jsonl"
  for role in C M B;do
-  "$PREFIX/venv/bin/python" "$PREFIX/relay.py" --config "$CONFIG" key-add --role "$role" --name "initial-$role" >> "$CREDS"
+  runuser -u paperang-relay -- "$PREFIX/venv/bin/python" -B "$PREFIX/relay.py" --config "$CONFIG" key-add --role "$role" --name "initial-$role" >> "$CREDS"
  done
  touch "$STATE/.bootstrapped"
- chown -R paperang-relay:paperang-relay "$STATE"
+ chown paperang-relay:paperang-relay "$STATE/.bootstrapped"
  chown root:root "$CREDS";chmod 0600 "$CREDS"
  echo "Initial credentials: $CREDS (root-readable; contains admin/device/submit keys)."
 fi
@@ -130,14 +130,14 @@ Type=simple
 User=paperang-relay
 Group=paperang-relay
 UMask=0077
-ExecStart=$PREFIX/venv/bin/python $PREFIX/relay.py --config $CONFIG serve
+ExecStart=$PREFIX/venv/bin/python -B $PREFIX/relay.py --config $CONFIG serve
 WorkingDirectory=$PREFIX
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ProtectHome=true
+ProtectHome=read-only
 ReadWritePaths=$STATE
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 [Install]

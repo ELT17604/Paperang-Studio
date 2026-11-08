@@ -6,7 +6,8 @@ This coordinated pre-1.0 minor release breaks relay API v1. Local Mac HTTP API v
 
 | Role | Submit | Read status | Read historical body/delivery metadata | Manage |
 |---|---|---|---|---|
-| A / anonymous | Yes | No (403 `status_read_forbidden`) | No | No |
+| A key | Yes | No (403 `status_read_forbidden`) | No | No |
+| Anonymous browser | Yes | Own identity only | No | No |
 | B | Yes | Own stable identity only | No | No |
 | C | Yes | All | All, paginated/filterable/exportable | Credentials, names, sessions, identities, trusted keys |
 | M | No | Active device queue only | Claimed active payload only, with claim secret | Report its claim results |
@@ -53,3 +54,7 @@ Windows build and local v2 integration are validated on Windows. Swift/AppKit/Se
 Primary implementation references: [cryptography RSA](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/), [argon2-cffi](https://argon2-cffi.readthedocs.io/en/stable/api.html), [OWASP sessions](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
 
 A late valid result from the same claim can move a timeout-generated unknown to sent when the client already durably recorded transport completion. This updates a report only; it never reclaims or physically resends a job. Stale claims cannot fetch payload after the five-minute activity window.
+
+## v0.3.1 correction
+
+Anonymous browser identities may read only their own fixed state/progress responses. Explicit A tokens remain mailbox-only. The active payload rendering whitelist includes IP and User-Agent for local template fields; customer-facing routes still never return body/content/metadata. WinLite defaults to a paired RSA owner file for both management and execution, automatically renewing short-lived native proof sessions. C bearer/passphrase credentials alone cannot enter device execution routes; only a proven public-key C session can, still scoped to its registered device. Existing M execution routes remain for other compatible receivers. An owner-only retire-others action refuses active claims, preserves the current proven owner, invalidates other credentials/sessions and audits the cutover.

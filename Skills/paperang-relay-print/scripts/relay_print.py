@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-__version__ = '0.3.0-relayskill'
+__version__ = '0.3.1-relayskill'
 
 
 class PrintError(Exception):
@@ -141,7 +141,7 @@ class Client:
 
     def request(self, method, path, body=None, receipt=None):
         wire = None if body is None else json.dumps(body, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
-        headers = {'Accept': 'application/json', 'Cache-Control': 'no-store', 'User-Agent': 'PaperangStudio-RelayPrint/0.3.0'}
+        headers = {'Accept': 'application/json', 'Cache-Control': 'no-store', 'User-Agent': 'PaperangStudio-RelayPrint/0.3.1'}
         if wire is not None:
             headers.update({'Content-Type': 'application/json', 'Content-Length': str(len(wire))})
         if self.key:

@@ -16,15 +16,22 @@ class APIv2:
         raise self.Problem(status,text)
 
     @staticmethod
+    def can_read_status(key):
+        return bool(key and (key['role'] in ('B','C') or key['role']=='A' and key.get('anonymous')))
+
+    @staticmethod
     def state(row):
-        return {k:row[k] for k in ('id','state','created','updated')} | {'shortID':row['short_id']}
+        value={k:row[k] for k in ('id','state','created','updated')} | {'shortID':row['short_id'],'lastStage':row['last_stage']}
+        progress=json.loads(row['progress']) if row['progress'] else None
+        value['progress']={**progress,'percent':round(100*progress['completed']/progress['total'],1)} if progress else None
+        return value
 
     def route(self, method, path, body, key, ip, headers):
         s, a = self.store, self.auth
         if path.startswith('/v1/'):
-            self.fail(410,'api_v1_retired_upgrade_to_v0.3.0')
+            self.fail(410,'api_v1_retired_upgrade_to_v0.3.1')
         if method=='GET' and path=='/v2/public/status':
-            return 200,dict(version='0.3.0',status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2))
+            return 200,dict(version='0.3.1',status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2,anonymousOwnStatus=True,ownerExecution=True))
         if method=='POST' and path=='/v2/auth/anonymous':
             if not s.c['allow_anonymous']: self.fail(403,'anonymous_disabled')
             a.limit('register:'+ip,20)
@@ -53,7 +60,7 @@ class APIv2:
                 if previous:
                     with s.connect() as db: row=db.execute('SELECT * FROM jobs WHERE id=?',(previous['job_id'],)).fetchone()
                     if not row: self.fail(409,'idempotent_job_expired')
-                    return 202,dict(id=row['id'],shortID=row['short_id'],accepted=True,statusReadable=key['role'] in ('B','C'))
+                    return 202,dict(id=row['id'],shortID=row['short_id'],accepted=True,statusReadable=self.can_read_status(key))
                 legacy={**key,'role':'submit','request_id':request_id}
                 # Quotas: IP + stable identity + credential + aggregate, including anonymous.
                 prefix='anonymous' if key['anonymous'] else 'authenticated'
@@ -70,10 +77,10 @@ class APIv2:
                 # Anonymous has an identity but must retain the anonymous limits.
                 if key['anonymous'] and units>s.c['anonymous_max_length']: self.fail(400,'anonymous_size_limit')
                 result=s.submit(body,legacy,ip,headers)
-                return 202,dict(id=result['id'],shortID=result['shortID'],accepted=True,statusReadable=key['role'] in ('B','C'))
+                return 202,dict(id=result['id'],shortID=result['shortID'],accepted=True,statusReadable=self.can_read_status(key))
         lookup=re.fullmatch(r'/v2/jobs/(?:lookup/)?([A-Fa-f0-9-]{12,40})',path)
         if method=='GET' and lookup:
-            a.require(key,['B','C'])
+            if not self.can_read_status(key): self.fail(403,'status_read_forbidden')
             value=lookup.group(1).replace('-','')
             with s.connect() as db:
                 row=db.execute('SELECT * FROM jobs WHERE id=? OR short_id=?',(lookup.group(1),value.upper())).fetchone()
@@ -93,6 +100,9 @@ class APIv2:
                     else:
                         rows=db.execute('SELECT rowid AS cursor,credential_id,browser_id,expires FROM sessions WHERE rowid<? AND expires>? ORDER BY rowid DESC LIMIT 100',(before,time.time())).fetchall()
                 return 200,{collection:[{k:r[k] for k in r.keys() if k!='cursor'} for r in rows], 'next':rows[-1]['cursor'] if rows else None}
+            if path=='/v2/admin/security/retire-others' and method=='POST':
+                if body.get('keep')!=key['id'] or body.get('confirm') is not True: self.fail(400,'explicit_owner_confirmation_required')
+                return 200,a.retire_others(key)
             if path=='/v2/admin/keys' and method=='GET':
                 with s.connect() as db: rows=db.execute('SELECT c.id,c.user_id,i.name,c.role,c.device,c.kind,c.revoked,c.created FROM credentials c JOIN identities i ON i.id=c.user_id ORDER BY c.created DESC LIMIT 500').fetchall()
                 return 200,dict(keys=[dict(r) for r in rows])
@@ -163,7 +173,11 @@ class APIv2:
                 a.audit(key,'export' if path.endswith('export') else 'history',uid)
                 return 200,dict(jobs=jobs,next=rows[-1]['cursor'] if rows else None)
         if path.startswith('/v2/device/'):
-            a.require(key,['M'])
+            if method=='POST' and path.endswith('/claim') and s.c.get('execution_paused'):
+                self.fail(503,'execution_paused_for_owner_cutover')
+            a.require(key,['M','C'])
+            if key['role']=='C' and not (key.get('session') and key.get('kind')=='publickey'):
+                self.fail(403,'owner_private_key_required_for_execution')
             legacy={**key,'role':'device'}
             if method=='GET' and path=='/v2/device/jobs':
                 with s.connect() as db:
@@ -179,12 +193,10 @@ class APIv2:
                 if not row or row['state'] not in ('claimed','printing') or row['updated']<time.time()-300 or row['claim_key']!=key['id'] or not claim or not __import__('hmac').compare_digest(row['claim_hash'] or '',hashlib.sha256(claim.encode()).hexdigest()): self.fail(403,'active_claim_required')
                 value=s.job(row)
                 # Render fields only. No arbitrary browser metadata or full delivery record.
-                meta=value['metadata']; value['metadata']={k:meta[k] for k in ('identity','authenticated') if k in meta}
+                meta=value['metadata']; value['metadata']={k:meta[k] for k in ('identity','authenticated','ip','userAgent','language') if k in meta}
                 return 200,value
             if path.endswith('/confirm'): self.fail(403,'manual_confirmation_requires_C')
             status,result=s.route_legacy(method,path.replace('/v2/','/v1/',1),body,legacy,ip,headers)
-            if method=='POST' and re.search(r'/(claim|result|reject)$',path):
-                with s.connect() as db: db.execute('INSERT INTO job_events(job_id,at,state) VALUES(?,?,?)',(path.split('/')[4],time.time(),result.get('state','claimed')))
             return status,result
         confirm=re.fullmatch(r'/v2/admin/jobs/([a-f0-9-]{36,40})/confirm',path)
         if method=='POST' and confirm:

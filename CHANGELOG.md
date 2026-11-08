@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1 — 2026-11-08
+
+Fix anonymous own-job progress without content disclosure; restore IP/UA to active render payloads; default WinLite to paired owner private-key authentication and renewable sessions. Merge verified Linux security corrections and add safe owner cutover tooling.
+
 ## v0.3.0 — 2026-11-08
 
 Coordinated API v2 identity/authentication update, A/B/C/M permissions, persistent browser sessions, RSA owner files, native WinLite/SwiftUI C administration, filtered JSONL history/export and migration safeguards. RelaySkill upgraded; local Mac API v1 retained. Windows tested; native Mac/Linux deployment validation pending. [Complete upgrade record](doc/UPGRADE-v0.3.0.zh-CN.md).
@@ -89,3 +93,5 @@ Native print workspace, image preview/rendering, presets, and tasks. The user ph
 ## 0.1
 
 Verified legacy P2 BLE handshake, read-only fields, raw raster printing, feed, and engineering tools.
+
+Linux Relay v0.3.0: enforce session-only cookies and browser owner-proof cookies; retire v1 before authentication; bound job history to state transitions; validate Ubuntu migration, cold restart and public HTTPS. Native receiver/paper/extended soak remain pending.

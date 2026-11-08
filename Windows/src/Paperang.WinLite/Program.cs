@@ -9,6 +9,12 @@ internal static class Program
     private static void Main(string[] args)
     {
         if (args.Contains("--version")) { Console.WriteLine(AppVersion.Current); return; }
+        if (args.Length == 2 && args[0] == "--configure-owner")
+        {
+            try { ConfigureOwner(args[1]).GetAwaiter().GetResult(); }
+            catch (Exception e) { Console.Error.WriteLine(e is ArgumentException or InvalidDataException or InvalidOperationException ? e.Message : "所有者连接验证失败，旧配置保持不变"); Environment.ExitCode = 1; }
+            return;
+        }
         ApplicationConfiguration.Initialize();
         using var mutex = new Mutex(true, @"Local\ELT.PaperangStudio.WinLite", out bool first);
         using var showSettings = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\ELT.PaperangStudio.WinLite.Settings");
@@ -16,6 +22,19 @@ internal static class Program
         using var context = new TrayContext(showSettings, args.Contains("--settings"));
         Application.Run(context);
         mutex.ReleaseMutex();
+    }
+    private static async Task ConfigureOwner(string path)
+    {
+        var store = new LocalStore();
+        if (store.Load() != null) throw new InvalidOperationException("先完成旧待回报任务，再切换所有者身份");
+        var next = store.LoadSettings() with { AuthenticationMode = "owner", OwnerKeyFile = Path.GetFullPath(path), DeviceKey = "" };
+        using var client = new RelayClient(next);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var me = await client.Get("v2/auth/me", timeout.Token);
+        if (me.GetProperty("role").GetString() != "C") throw new InvalidDataException("私钥未获得 C 管理权限");
+        await client.Get("v2/device/jobs", timeout.Token);
+        store.SaveSettings(next);
+        Console.WriteLine("所有者配对及执行权限已验证；旧密钥值已清除，模板和打印设置已保留");
     }
 }
 
@@ -105,7 +124,7 @@ internal sealed class TrayContext : ApplicationContext
             if (engine.Busy) throw new InvalidOperationException("请等待当前打印完成后保存");
             // Validate journal affinity before replacing credentials on disk.
             var pending = store.Load();
-            if (pending != null && (pending.Server != value.Validate().AbsoluteUri || pending.KeyFingerprint != RelayEngine.Fingerprint(value.DeviceKey)))
+            if (pending != null && (pending.Server != value.Validate().AbsoluteUri || pending.KeyFingerprint != RelayEngine.CredentialFingerprint(value)))
                 throw new InvalidOperationException("有未回报结果，请先使用原服务器和密钥重新连接");
             StartupRegistration.Set(startup);
             store.SaveSettings(value); settings = value; storageError = "";

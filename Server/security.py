@@ -98,7 +98,7 @@ class Security:
                 key.update(session=True, browser_id=session['browser_id'], csrf=session['csrf'], cookie=not bool(authorization))
                 return key
             row = db.execute("SELECT id FROM credentials WHERE kind='token' AND secret_hash=?", (hashlib.sha256(token.encode()).hexdigest(),)).fetchone()
-        if row:
+        if row and authorization:
             return self.get(row['id'])
         self.fail(401, 'invalid_or_expired_credential')
 
@@ -168,15 +168,24 @@ class Security:
         if not key or key['role']=='M': self.fail(403,'device_cannot_login_to_web')
         return self.session(key, str(uuid.uuid4()))
 
-    def public_key_add(self, name, pem):
+    def public_key_add(self, name, pem, identifier=None):
         try:
             public = serialization.load_pem_public_key(pem.encode())
             if not isinstance(public,rsa.RSAPublicKey) or public.key_size<3072 or public.key_size>4096: raise ValueError()
         except Exception:
             self.fail(400,'expected_RSA_3072_or_4096_public_PEM')
+        if identifier:
+            try: identifier=str(uuid.UUID(identifier))
+            except (ValueError,TypeError): self.fail(400,'invalid_credential_id')
+            with self.store.connect() as db:
+                old=db.execute('SELECT * FROM credentials WHERE id=?',(identifier,)).fetchone()
+            if old:
+                if old['public_key']!=pem or old['revoked'] or old['kind'] not in ('pendingkey','publickey'): self.fail(409,'credential_id_already_used')
+                return dict(id=identifier,user_id=old['user_id'],role='C',kind=old['kind'])
         entry = self.create(name,'C')
         with self.store.connect() as db:
-            db.execute("UPDATE credentials SET kind='pendingkey',secret_hash=NULL,public_key=? WHERE id=?",(pem,entry['id']))
+            db.execute("UPDATE credentials SET kind='pendingkey',secret_hash=NULL,public_key=?,id=? WHERE id=?",(pem,identifier or entry['id'],entry['id']))
+        if identifier: entry['id']=identifier
         entry.pop('token')
         return entry
 
@@ -211,6 +220,22 @@ class Security:
     def audit(self, actor, action, target):
         with self.store.connect() as db:
             db.execute('INSERT INTO audit_events(at,actor,action,target) VALUES(?,?,?,?)',(time.time(),actor['id'],action,str(target)))
+
+    def retire_others(self, actor):
+        self.require(actor,['C'])
+        if not actor.get('session') or actor.get('kind')!='publickey': self.fail(403,'owner_private_key_required')
+        with self.store.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            if db.execute("SELECT 1 FROM jobs WHERE state IN ('claimed','printing') LIMIT 1").fetchone():
+                db.execute('ROLLBACK'); self.fail(409,'drain_active_claims_before_rotation')
+            count=db.execute('SELECT count(*) FROM credentials WHERE id<>? AND revoked=0',(actor['id'],)).fetchone()[0]
+            db.execute('UPDATE credentials SET revoked=1 WHERE id<>?',(actor['id'],))
+            db.execute('UPDATE keys SET revoked=1')
+            db.execute('DELETE FROM sessions WHERE credential_id<>?',(actor['id'],))
+            db.execute('DELETE FROM challenges')
+            db.execute('COMMIT')
+        self.audit(actor,'retire_all_other_credentials',actor['id'])
+        return dict(revoked=count,kept=actor['id'])
 
     def revoke(self, identifier, actor):
         with self.store.connect() as db:

@@ -1,6 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let identity=null, policy=null, sending=false, connectionOK=false;
+let trackingTimer=null, trackingID=null, trackingUntil=0;
 let drawMode=false,drawHasInk=false,supportsRaster=false,drawActive=false,drawUndo=[];
 const canvas=$('draw-canvas'),drawContext=canvas.getContext('2d',{willReadFrequently:true});
 const countCharacters=()=>Array.from($('text').value).length;
@@ -18,12 +19,30 @@ function updateForm(){
 }
 function showHistory(){const list=$('history-list');list.replaceChildren();try{const rows=JSON.parse(localStorage.getItem('paperang.history.v2')||'[]');if(!Array.isArray(rows))return;for(const row of rows.slice(0,20)){if(!/^[A-F0-9]{12}$/.test(row.shortID||''))continue;const button=document.createElement('button');button.type='button';button.textContent=row.shortID;button.addEventListener('click',()=>lookup(row.shortID));list.append(button);}}catch{}}
 function remember(job){try{const saved=JSON.parse(localStorage.getItem('paperang.history.v2')||'[]');const rows=Array.isArray(saved)?saved:[];localStorage.setItem('paperang.history.v2',JSON.stringify([{id:job.id,shortID:job.shortID},...rows.filter(x=>x.id!==job.id)].slice(0,20)));showHistory();}catch{}}
-function renderJob(job){$('delivery').hidden=false;$('result').textContent=job.accepted?'Accepted by inbox':job.state;$('reference').textContent=job.shortID||job.id;$('detail').textContent=job.accepted?'Acceptance receipt only. A permissions do not include delivery status.':'Status only. Content and delivery metadata are available only in the owner’s C management panel.';$('task-created').textContent=job.created?new Date(job.created*1000).toLocaleString():'—';$('task-updated').textContent=job.updated?new Date(job.updated*1000).toLocaleString():'—';$('task-text').hidden=true;$('task-text').textContent='';$('detail-access').textContent='Content is never returned to this webpage.';}
-async function lookup(id){try{renderJob(await request('jobs/lookup/'+id.trim().replace(/-/g,'').toUpperCase()));error();}catch(e){error(e.message==='status_read_forbidden'?'A allows submission only; delivery status is unavailable.':e.message);}}
+function renderJob(job){$('delivery').hidden=false;$('result').textContent=job.accepted?'Accepted by inbox':job.state;$('reference').textContent=job.shortID||job.id;$('detail').textContent=job.accepted?(job.statusReadable?'Accepted. Tracking your delivery status…':'Acceptance receipt only. This A key has no status permission.'):'Status only. Content and delivery metadata are available only in the owner’s C management panel.';$('task-created').textContent=job.created?new Date(job.created*1000).toLocaleString():'—';$('task-updated').textContent=job.updated?new Date(job.updated*1000).toLocaleString():'—';const order=['queued','claimed','printing','sent','confirmed'];const stage=order.indexOf(job.state)+1;
+ const counted=job.progress&&Number.isFinite(job.progress.percent);
+ document.querySelector('.progress-heading').hidden=Boolean(job.accepted);document.querySelector('.progress-track').hidden=Boolean(job.accepted);
+ $('progress').value=counted?40+Math.min(100,Math.max(0,job.progress.percent))*0.2:Math.max(0,stage)*20;
+ $('progress-count').textContent=counted?`${job.progress.completed} / ${job.progress.total} partitions · ${job.progress.percent}%`:(job.state||'Accepted');
+ $('task-text').hidden=true;$('task-text').textContent='';$('detail-access').textContent='Content is never returned to this webpage.';}
+async function pollCurrent(){
+ clearTimeout(trackingTimer);if(!trackingID||Date.now()>trackingUntil)return;
+ const active=trackingID;
+ try {const job=await request('jobs/lookup/'+active);if(active!==trackingID)return;renderJob(job);
+  if(['confirmed','unknown','rejected'].includes(job.state))return;
+ } catch(e){if(e.status===401||e.status===403||e.status===404){error(e.message);return;}}
+ if(active===trackingID)trackingTimer=setTimeout(pollCurrent,document.hidden?5000:2000);
+}
+async function lookup(id){
+ clearTimeout(trackingTimer);trackingID=null;
+ try{const normalized=id.trim().replace(/-/g,'').toUpperCase();const job=await request('jobs/lookup/'+normalized);renderJob(job);error();
+  trackingID=normalized;trackingUntil=Date.now()+15*60*1000;trackingTimer=setTimeout(pollCurrent,2000);
+ }catch(e){error(e.message==='status_read_forbidden'?'This A key allows submission only; delivery status is unavailable.':e.message);}
+}
 $('lookup').addEventListener('submit',e=>{e.preventDefault();lookup($('lookup-id').value);});
 $('login').addEventListener('click',async()=>{try{await request('auth/login',{credential:$('key').value.trim()});$('key').value='';identity=await request('auth/me');error();updateForm();}catch(e){error(e.message);}});
-$('logout').addEventListener('click',async()=>{try{await request('auth/logout',{});identity=null;await initialize();}catch(e){error(e.message);}});
-$('note').addEventListener('submit',async e=>{e.preventDefault();if($('send').disabled)return;sending=true;updateForm();error();try{const body={text:$('text').value,request_id:crypto.randomUUID()};if(drawMode)body.content=await drawingContent();const job=await request('jobs',body);remember(job);renderJob(job);$('text').value='';if(drawMode)clearDrawing();if(job.statusReadable)renderJob(await request('jobs/'+job.id));}catch(e){error(`${e.message}. A network failure may hide an accepted task; do not resend automatically.`);}finally{sending=false;updateForm();}});
+$('logout').addEventListener('click',async()=>{try{await request('auth/logout',{});identity=null;trackingID=null;clearTimeout(trackingTimer);await initialize();}catch(e){error(e.message);}});
+$('note').addEventListener('submit',async e=>{e.preventDefault();if($('send').disabled)return;sending=true;updateForm();error();try{const body={text:$('text').value,request_id:crypto.randomUUID()};if(drawMode)body.content=await drawingContent();const job=await request('jobs',body);remember(job);renderJob(job);$('text').value='';if(drawMode)clearDrawing();if(job.statusReadable)await lookup(job.shortID);}catch(e){error(`${e.message}. A network failure may hide an accepted task; do not resend automatically.`);}finally{sending=false;updateForm();}});
 async function initialize(){try{const data=await request('public/status');policy=data.policy;supportsRaster=data.capabilities.contentTypes.includes('raster1');$('compose-mode').querySelector('option[value="raster1"]').disabled=!supportsRaster;try{identity=await request('auth/me');}catch(e){if(e.status!==401)throw e;if(policy.allow_anonymous){await request('auth/anonymous',{browser_id:browserID()});identity=await request('auth/me');}}connectionOK=true;$('printer').textContent='Inbox available';$('dot').className='online';}catch(e){error(e.message);}updateForm();}
 function clearDrawing() {
   drawContext.fillStyle = '#fff';drawContext.fillRect(0, 0, canvas.width, canvas.height);

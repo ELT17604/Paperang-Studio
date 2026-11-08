@@ -10,7 +10,7 @@ static class Tests
     private static int count;
     static void Check(bool ok, string name) { if (!ok) throw new Exception(name); count++; Console.WriteLine("PASS " + name); }
     static async Task Until(Func<bool> condition, int ms = 12000) { var end = DateTime.UtcNow.AddMilliseconds(ms); while (!condition()) { if (DateTime.UtcNow > end) throw new TimeoutException("Test condition timed out"); await Task.Delay(20); } }
-    static AppSettings Settings => new() { Server = "http://127.0.0.1:8177", DeviceKey = "psr_test", PrinterAddress = "112233445566" };
+    static AppSettings Settings => new() { AuthenticationMode = "legacy", Server = "http://127.0.0.1:8177", DeviceKey = "psr_test", PrinterAddress = "112233445566" };
     static RelayJob Job => new() { Id = new string('a', 40), Text = "Hello 你好，纸条！", Created = 1793894400 };
     [STAThread]
     static async Task Main(string[] args)
@@ -114,6 +114,16 @@ static class Tests
         Check(proof.GetProperty("role").GetString() == "C", "Windows RSA-PSS signature interoperates with Python verification");
         var page = await owner.Post("v2/admin/jobs/export", new { user_id = "" }, default);
         Check(page.GetProperty("jobs").GetArrayLength() == 2 && page.GetProperty("jobs")[0].TryGetProperty("metadata", out _), "Windows C export returns text/image jobs and delivery metadata");
+        string ownerFile = Path.Combine(Path.GetTempPath(), "paperang-owner-" + Guid.NewGuid() + ".json");
+        try {
+            AdminForm.WritePrivate(ownerFile, JsonSerializer.Serialize(new { server = settings.Server, id = pub.GetProperty("id").GetString(), privateKeyPem = rsa.ExportPkcs8PrivateKeyPem() }));
+            var ownerSettings = settings with { AuthenticationMode = "owner", OwnerKeyFile = ownerFile, DeviceKey = "" };
+            using var nativeOwner = new RelayClient(ownerSettings);
+            Check((await nativeOwner.Get("v2/auth/me", default)).GetProperty("role").GetString() == "C", "configured owner file renews native proof without saved bearer");
+            await nativeOwner.Post("v2/device/status", new { status = new { connected = true } }, default);
+            Check((await nativeOwner.Get("v2/device/jobs", default)).GetProperty("jobs").ValueKind == JsonValueKind.Array, "same proven owner identity accesses scoped execution and management");
+            Check(RelayEngine.CredentialFingerprint(ownerSettings) == RelayEngine.CredentialFingerprint(ownerSettings), "owner journal affinity uses stable public key identity");
+        } finally { File.Delete(ownerFile); }
         string privateFile = Path.Combine(Path.GetTempPath(), "paperang-acl-" + Guid.NewGuid() + ".json");
         try { AdminForm.WritePrivate(privateFile, "fixture"); Check(File.ReadAllText(privateFile) == "fixture" && new FileInfo(privateFile).GetAccessControl().AreAccessRulesProtected, "Windows owner file disables inherited ACL before writing secret"); }
         finally { File.Delete(privateFile); }

@@ -3,7 +3,7 @@
 # Paperang Studio
 
 <p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill</p>
-<p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.0 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.1 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
 Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. A native desktop client connects to the printer over Bluetooth; the Linux relay accepts notes from a browser or RelaySkill and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
 
@@ -13,7 +13,7 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 
 ## Platforms
 
-| Distribution | What it does | Start here | v0.3.0 verification |
+| Distribution | What it does | Start here | v0.3.1 verification |
 |---|---|---|---|
 | **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | Source updated; native macOS validation pending |
 | **WinLite · Windows** | Native WinForms/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | Windows build, regression and local relay integration tested |
@@ -57,7 +57,7 @@ Choose **one active Bluetooth receiver per printer**. The relay handles identity
 - **Send a note from elsewhere.** Submit text or a raster drawing through the webpage or RelaySkill, then let a configured desktop receiver print it.
 - **Make the paper your own.** MacClient and WinLite share block-template JSON, presets, text/image composition and a 576-dot output format. Font rendering can differ across systems.
 - **Run a quiet Windows receiver.** WinLite starts in the tray, remembers credentials with DPAPI, restores templates, offers sign-in startup and retries server outages in bounded batches.
-- **Manage access from a native client.** A submits only; B also reads its identity’s status; C manages identities, credentials, sessions, owner public keys and full history. M is the separate printer-execution credential. C history can be filtered and exported as JSONL with raster content.
+- **Manage access from a native client.** A keys submit only; anonymous browser sessions can track their own jobs; B also reads its identity’s status; C manages identities, credentials, sessions, owner public keys and full history. M is the separate printer-execution credential. C history can be filtered and exported as JSONL with raster content.
 - **Use the full Mac workspace.** Print transformed/dithered images, work with an interactive zsh paper terminal, inspect protocol readings, or integrate through the local HTTP API and Python/JavaScript clients.
 - **Keep delivery states honest.** `sent` means data reached the transport; `confirmed` requires a manual paper check. Interrupted or uncertain output is not automatically reprinted.
 
@@ -71,7 +71,7 @@ Requires Windows 10 2004+ / Windows 11, a BLE adapter, and .NET 10 Desktop Runti
 .\Windows\scriptsuild.ps1
 ```
 
-Run `PaperangStudio.exe` from a stable directory. Open settings from the tray, enter the v0.3.0 relay URL and **M** credential, scan/select your P2, and choose **保存并连接**. Automatic connection and printing are enabled by default after configuration; both are configurable. Settings → **管理** opens C administration. [Full Windows instructions](doc/WINDOWS.md).
+Run `PaperangStudio.exe` from a stable directory. Open settings from the tray, enter the v0.3.1 relay URL and a **paired owner private-key file**, scan/select your P2, and choose **保存并连接**. Automatic connection and printing are enabled by default after configuration; both are configurable. Settings → **管理** opens C administration. [Full Windows instructions](doc/WINDOWS.md).
 
 ### macOS · MacClient
 
@@ -136,3 +136,5 @@ Build outputs stay outside the source tree: `PaperangStudio-Development/` for Ma
 Licensed under [CC BY-NC-SA 4.0](LICENSE): credit ELT Group, use it non-commercially, identify modifications, and follow the ShareAlike terms. Intended for personal research and learning; commercial use is prohibited. See [NOTICE](NOTICE) for attribution and the full project statement.
 
 Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any related companies or affiliates. All third-party names and trademarks belong to their respective owners. Referenced third-party materials retain their own licenses.
+
+Linux security and migration preparation: [validation record](doc/LINUX-v0.3.0-VALIDATION.md). Production migration/systemd/HTTPS checks passed; native receiver/paper checks remain pending there.

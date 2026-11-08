@@ -1,3 +1,5 @@
+> v0.3.1: [Owner-file authentication](../doc/OWNER-CUTOVER-v0.3.1.zh-CN.md). WinLite defaults to a paired owner private key.
+
 # Paperang Studio for Windows
 
 > v0.3.0 uses [relay API v2](../doc/AUTH-v2.md). Settings → 管理 opens the native C panel for keys, identities, sessions, history and JSONL export. Keep the background M token separate.

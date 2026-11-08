@@ -39,13 +39,13 @@ internal sealed class AdminForm : Form
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 6, ColumnCount = 1, Padding = new Padding(14) };
         root.RowStyles.Add(new(SizeType.AutoSize)); root.RowStyles.Add(new(SizeType.AutoSize)); root.RowStyles.Add(new(SizeType.AutoSize)); root.RowStyles.Add(new(SizeType.AutoSize)); root.RowStyles.Add(new(SizeType.Percent, 100)); root.RowStyles.Add(new(SizeType.AutoSize));
         var login = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Top };
-        login.Controls.Add(new Label { Text = "C 密钥 / 完整口令", AutoSize = true, Padding = new Padding(0, 7, 0, 0) }); login.Controls.Add(credential);
+        login.Controls.Add(new Label { Text = "所有者私钥鉴权 · C 管理权限", AutoSize = true, Padding = new Padding(0, 7, 0, 0) });
         Button Add(FlowLayoutPanel panel, string title, Func<Task> run)
         {
             var button = new Button { Text = title, AutoSize = true };
             button.Click += async (_, _) => await Work(run); panel.Controls.Add(button); return button;
         }
-        Add(login, "验证 C 权限", Login); Add(login, "私钥文件登录…", PrivateLogin); Add(login, "生成私钥…", GenerateKey);
+        Add(login, "私钥文件登录…", PrivateLogin); Add(login, "生成私钥…", GenerateKey);
         root.Controls.Add(login);
         root.Controls.Add(new Label { Text = "管理凭证仅保留在窗口内存。打印后台继续使用独立 M 凭证。导出文件含私人任务内容，请自行保管。", AutoSize = true });
         view.Items.AddRange(["凭证", "身份", "浏览器会话", "任务历史", "审计记录"]); view.SelectedIndex = 0;
@@ -77,6 +77,7 @@ internal sealed class AdminForm : Form
         };
         view.SelectedIndexChanged += async (_, _) => { if (client != null && !busy) await Work(() => RefreshRows(false)); };
         FormClosed += (_, _) => { lifetime.Cancel(); client?.Dispose(); sessionTimer.Dispose(); credential.Clear(); phrase.Clear(); ClearDetails(); rows.Clear(); lifetime.Dispose(); };
+        Shown += async (_, _) => { if (File.Exists(settings.OwnerKeyFile)) await Work(() => LoginOwnerFile(settings.OwnerKeyFile)); };
         sessionTimer.Tick += (_, _) => Lock();
         message.Text = "请使用 C 凭证，或已在服务器登记的所有者私钥。首次登记可在服务器执行 trust-public-key。";
     }
@@ -89,7 +90,7 @@ internal sealed class AdminForm : Form
         catch (Exception e) { if (IsDisposed) return; message.Text = e is ArgumentException or InvalidDataException or CryptographicException ? e.Message : "操作失败；请检查网络、服务器版本和所选数据。"; }
         finally { busy = false; if (!IsDisposed) UseWaitCursor = false; }
     }
-    private RelayClient New(string token) => new(settings with { DeviceKey = token });
+    private RelayClient New(string token) => new(settings with { DeviceKey = token, AuthenticationMode = "legacy", OwnerKeyFile = "" });
     private async Task Login()
     {
         using var login = New("psr_unauthenticated");
@@ -115,16 +116,17 @@ internal sealed class AdminForm : Form
     {
         using var pick = new OpenFileDialog { Filter = "Paperang 所有者文件|*.json", Title = "选择所有者私钥文件" };
         if (pick.ShowDialog(this) != DialogResult.OK) return;
-        if (new FileInfo(pick.FileName).Length > 32768) throw new InvalidDataException("私钥文件过大");
-        using var doc = JsonDocument.Parse(await File.ReadAllTextAsync(pick.FileName, lifetime.Token));
-        if (doc.RootElement.GetProperty("server").GetString()?.TrimEnd('/') != settings.Server.TrimEnd('/')) throw new InvalidDataException("私钥文件绑定的服务器不匹配");
-        using var rsa = RSA.Create(); rsa.ImportFromPem(doc.RootElement.GetProperty("privateKeyPem").GetString());
-        using var login = New("psr_unauthenticated");
-        var challenge = await login.Post("v2/auth/challenge", new { id = doc.RootElement.GetProperty("id").GetString() }, lifetime.Token);
-        var signature = rsa.SignData(Encoding.UTF8.GetBytes(challenge.GetProperty("message").GetString()!), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
-        var proof = await login.Post("v2/auth/prove", new { challenge = challenge.GetProperty("challenge").GetString(), signature = Convert.ToBase64String(signature) }, lifetime.Token);
-        await Accept(proof.GetProperty("token").GetString()!);
-        message.Text = "所有者私钥已验证；管理会话有效期 10 分钟，超时后重新登录。";
+        await LoginOwnerFile(pick.FileName);
+    }
+    private async Task LoginOwnerFile(string path)
+    {
+        using var authorized = new RelayClient(settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" });
+        var me = await authorized.Get("v2/auth/me", lifetime.Token);
+        if (me.GetProperty("role").GetString() != "C") throw new InvalidDataException("私钥未获得 C 权限");
+        // Each management request can renew its proof session without storing a token.
+        client?.Dispose(); client = new RelayClient(settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" });
+        actions.Enabled = true; sessionTimer.Stop(); sessionTimer.Start(); await RefreshRows(false);
+        message.Text = "所有者私钥已验证；后台使用同一公钥身份，会话自动续期。";
     }
     private async Task GenerateKey()
     {

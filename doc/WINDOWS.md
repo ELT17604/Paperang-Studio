@@ -1,3 +1,5 @@
+> v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
+
 # Windows tray client · V0.3.0-winlite
 
 > **v0.3.0:** [API v2 authentication](AUTH-v2.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Handoff](HANDOFF-v0.3.0.zh-CN.md). WinLite includes a C management panel; web receipts no longer grant content access.
@@ -9,7 +11,7 @@ Native C#/.NET 10, WinForms and Windows BLE GATT. Requires Windows 10 2004 or Wi
 ## Setup and tray behavior
 
 1. Extract to a stable directory and run `PaperangStudio.exe`. It starts in the tray without a main window.
-2. Double-click the tray icon, enter the existing relay root URL and a `psr_` **device** key. Submit/admin keys cannot receive device jobs.
+2. Double-click the tray icon, enter the relay root URL and select the **paired owner private-key JSON file**. Old M keys cannot open C management.
 3. Turn on Bluetooth and the P2, scan, select your printer, then save and connect. Avoid simultaneous Mac/phone connections to the same printer.
 4. Closing settings keeps the app running. The tray label “开启自动打印” stays fixed; a left check mark means enabled. Settings show live relay/printer status, and the Connection tab provides save/connect directly.
 5. Startup settings offer current-user Windows sign-in startup and automatic connection. Move the executable to its permanent location before enabling startup. If disabled by Windows Task Manager, re-enable it there.
@@ -82,4 +84,4 @@ Research compared [paperang-p2-lib](https://github.com/mdj2812/paperang-p2-lib),
 
 ## C management panel
 
-Settings → Management provides C/passphrase/private-file login, credential creation/rename/rotation/revocation, identities and browser sessions, trusted public keys, complete historical JSON records with readable text/image tabs, user-ID filtering, streaming JSONL export and manual paper confirmation. A ten-minute local timeout locks management; the M background loop continues. New owner files get user-only ACLs. The relay and all participants must upgrade to v0.3.0.
+Settings → Management provides owner-private-file login, credential creation/rename/rotation/revocation, identities and browser sessions, trusted public keys, complete historical JSON records with readable text/image tabs, user-ID filtering, streaming JSONL export and manual paper confirmation. A ten-minute local timeout locks management; the M background loop continues. New owner files get user-only ACLs. The relay and all participants must upgrade to v0.3.0.

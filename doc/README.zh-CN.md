@@ -3,7 +3,7 @@
 # Paperang Studio
 
 <p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill</p>
-<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.0 共同基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.1 共同基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
 
 Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。电脑上的原生客户端通过蓝牙连接打印机；Linux 中转服务器接受网页和 RelaySkill 投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
 
@@ -13,7 +13,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。�
 
 ## 平台与分发
 
-| 分发 | 职责 | 入口 | v0.3.0 验证状态 |
+| 分发 | 职责 | 入口 | v0.3.1 验证状态 |
 |---|---|---|---|
 | **MacClient · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | 源码已同步，macOS 原生验证待完成 |
 | **WinLite · Windows** | 原生 WinForms/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
@@ -57,7 +57,7 @@ flowchart LR
 - **从其他地方投递纸条：**通过网页或 RelaySkill 发送文字/绘图，由已配置的桌面接收端处理。
 - **自定义纸面：**MacClient 与 WinLite 共享区块模板、预设、文字/图片组合及 576 点输出格式；不同系统的字体效果可能不同。
 - **安静驻留 Windows：**启动进入托盘，DPAPI 保存凭证，恢复当前模板，支持登录自启，并以有间隔的批次持续重连。
-- **在原生客户端中管理：**A 只投递；B 可查本身份状态；C 管理身份、凭证、会话、公钥和完整历史；M 独立执行打印。C 可按用户筛选并导出含点阵内容的 JSONL。
+- **在原生客户端中管理：**A 投稿密钥只投递；匿名浏览器可查自己任务的进度；B 可查本身份状态；C 管理身份、凭证、会话、公钥和完整历史；M 独立执行打印。C 可按用户筛选并导出含点阵内容的 JSONL。
 - **使用完整 Mac 工作台：**图片变换与抖动、交互式 zsh 纸带终端、协议读数，以及本地 HTTP API 和 Python/JavaScript SDK。
 - **区分发送和纸面结果：**sent 仅表示传输完成，confirmed 需要人工核对；中断或结果不确定的任务不自动重印。
 
@@ -71,7 +71,7 @@ flowchart LR
 .\Windows\scripts\build.ps1
 ```
 
-在固定目录运行 PaperangStudio.exe，从托盘打开设置，填写 v0.3.0 中转地址和 **M** 凭证，扫描并选择 P2，点击“保存并连接”。配置后默认自动连接和允许自动打印，均可修改；“设置→管理”提供 C 管理面板。[完整说明](WINDOWS.zh-CN.md)。
+在固定目录运行 PaperangStudio.exe，从托盘打开设置，填写 v0.3.1 中转地址和**已配对的所有者私钥文件**，扫描并选择 P2，点击“保存并连接”。配置后默认自动连接和允许自动打印，均可修改；“设置→管理”提供 C 管理面板。[完整说明](WINDOWS.zh-CN.md)。
 
 ### macOS · MacClient
 
