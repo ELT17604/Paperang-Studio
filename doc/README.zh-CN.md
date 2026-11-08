@@ -2,7 +2,7 @@
 
 # Paperang Studio
 
-<p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill</p>
+<p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT 集成</p>
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.0 共同基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
 
 Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。电脑上的原生客户端通过蓝牙连接打印机；Linux 中转服务器接受网页和 RelaySkill 投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
@@ -18,6 +18,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。�
 | **MacClient · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | 源码已同步，macOS 原生验证待完成 |
 | **WinLite · Windows** | 原生 WinForms/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
 | **LinuxRelayServer · Linux** | HTTP/SQLite 中转、投稿网页、身份与权限、队列及管理 API | [服务器部署](../Server/README.md) | 本机 HTTP/SQLite 测试通过，Linux 部署验证待完成 |
+| **ChatGPT 集成 · 实验性** | Relay API v2 的 MCP 发送端适配与传统 GPT Actions 兼容接口 | [集成指南](CHATGPT.zh-CN.md) · [源码](../Integrations/ChatGPT/) | 仅源码；网关、ChatGPT 连接和实机验证待完成 |
 | **RelaySkill · 投稿工具** | Agent 打印技能：文字/图片渲染、参数调整、明确投递及按权限查询状态 | [技能指南](RELAY-SKILL.zh-CN.md) · [源码](../Skills/paperang-relay-print/SKILL.md) | 本地协议与渲染测试通过 |
 
 完整 **WinClient**、**LinuxClient** 仍在规划中。当前 Windows 接收端是 WinLite；LinuxRelayServer 是服务器，不是 Linux 蓝牙客户端。各端范围与证据见[功能实现矩阵](FEATURE-MATRIX.zh-CN.md)。
@@ -110,7 +111,7 @@ sudo bash Server/install.sh
 | Windows | [托盘、设置与管理](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) |
 | macOS | [工作台](USER-GUIDE.zh-CN.md) · [模板编辑](LAYOUT-EDITOR.zh-CN.md) · [纸带终端](TERMINAL.zh-CN.md) · [托盘模式](TRAY-MODE.zh-CN.md) |
 | 中转与安全 | [部署](../Server/README.md) · [身份/API v2](AUTH-v2.zh-CN.md) · [数据保留](RELAY-DATA.zh-CN.md) |
-| 集成 | [RelaySkill](RELAY-SKILL.zh-CN.md) · [Mac 本地 API](API.zh-CN.md) / [OpenAPI](openapi.json) · [Swift 模块](SWIFT-API.zh-CN.md) |
+| 集成 | [ChatGPT 实验性集成](CHATGPT.zh-CN.md) · [RelaySkill](RELAY-SKILL.zh-CN.md) · [Mac 本地 API](API.zh-CN.md) / [OpenAPI](openapi.json) · [Swift 模块](SWIFT-API.zh-CN.md) |
 | 升级与维护 | [更新日志](CHANGELOG.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Mac/Linux Agent Prompt](HANDOFF-v0.3.0.zh-CN.md) · [验证记录](VALIDATION-v0.3.0.md) |
 | 打印机研究 | [协议](PROTOCOL.zh-CN.md) · [实物记录](ACQUISITION.zh-CN.md) · [研究](RESEARCH.zh-CN.md) · [相关项目](RELATED-PROJECTS.zh-CN.md) · [来源](SOURCES.zh-CN.md) |
 
@@ -123,6 +124,7 @@ sudo bash Server/install.sh
 | Server/ | 中转 API v2、投稿网页、SQLite 身份/队列与 Linux 部署 |
 | Skills/ | 独立版本的 RelaySkill |
 | Clients/ | 面向 Mac 本地 API 的 Python/JavaScript SDK |
+| Integrations/ChatGPT/ | 实验性 MCP/GPT Actions 适配器，不作为正式发行版本 |
 | Configurations/ | 可导入打印预设 |
 | assets/ | 原始品牌资源与实际应用截图 |
 | doc/ | 使用指南、接口合同、升级记录和研究 |
