@@ -34,3 +34,14 @@ assert f"__version__ = '{skill}'" in (root / 'Skills/paperang-relay-print/script
 assert registry['compatibility']['localApi'] == registry['compatibility']['relayApi'] == 'v2'
 assert (root / 'VERSION').read_text().strip() == baseline + '-macclient'
 print('PASS product targets, historical platform runtimes, API baseline and policy/matrix')
+
+for project in ('Paperang.Core', 'Paperang.WinLite'):
+    metadata = (root / f'Windows/src/{project}/{project}.csproj').read_text(encoding='utf-8')
+    assert f'<Version>{baseline}</Version>' in metadata
+    assert f'<AssemblyVersion>{baseline}.0</AssemblyVersion>' in metadata
+    assert f'<FileVersion>{baseline}.0</FileVersion>' in metadata
+    assert f'<InformationalVersion>{win}</InformationalVersion>' in metadata
+installer = (root / 'Windows/installer/WinLite.iss').read_text(encoding='utf-8')
+assert f'#define AppVersion "{win}"' in installer
+assert f'VersionInfoVersion={baseline}.0' in installer
+print('PASS Windows assembly/file/installer numeric versions and distribution suffix')

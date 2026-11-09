@@ -1,10 +1,11 @@
 #ifndef AppVersion
-#define AppVersion "0.3.1-winlite-opt2"
+#define AppVersion "0.3.2-winlite"
 #endif
 [Setup]
 AppId={{BF30D1A7-D03B-434C-A51B-718507439EC8}
 AppName=Paperang Studio WinLite
 AppVersion={#AppVersion}
+VersionInfoVersion=0.3.2.0
 AppPublisher=ELT Group
 AppPublisherURL=https://github.com/ELT17604/Paperang-Studio
 DefaultDirName={localappdata}\Programs\Paperang Studio WinLite
