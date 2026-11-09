@@ -5,6 +5,7 @@ import curses
 import datetime
 import fcntl
 import json
+import ipaddress
 import os
 from pathlib import Path
 import pwd
@@ -12,6 +13,8 @@ import subprocess
 import sys
 import textwrap
 import time
+import tempfile
+import urllib.request
 import uuid
 
 
@@ -24,6 +27,14 @@ class AdminBackend:
 
     def call(self, action, body):
         s = self.store
+        if action == 'restart_check':
+            with s.connect() as db:
+                if db.execute("SELECT 1 FROM jobs WHERE state IN ('claimed','printing') LIMIT 1").fetchone():
+                    raise ValueError('An active print must finish before changing service configuration')
+            return dict(ready=True)
+        if action == 'configuration_saved':
+            s.api.auth.audit(self.actor,'local_configuration_update',','.join(body['fields']))
+            return dict(saved=True)
         if action == 'summary':
             with s.connect() as db:
                 counts = {name: db.execute('SELECT count(*) FROM '+name).fetchone()[0]
@@ -66,6 +77,7 @@ class AdminBackend:
 
 class Worker:
     def __init__(self, root, config):
+        self.root,self.config=root,config
         self.process = subprocess.Popen(['runuser','-u','paperang-relay','--',sys.executable,'-B',
                                         str(Path(__file__).resolve()),'--worker','--root',str(root),
                                         '--config',str(config)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -82,6 +94,10 @@ class Worker:
             raise ValueError(result['error'])
         return result['result']
 
+    def reload(self):
+        self.close()
+        self.__init__(self.root,self.config)
+
     def close(self):
         self.process.stdin.close()
         try:
@@ -91,9 +107,99 @@ class Worker:
             self.process.wait()
 
 
+class Configuration:
+    FIELDS={
+        'allow_anonymous': ('Allow anonymous submissions',bool),
+        'anonymous_max_length': ('Anonymous maximum text/row units',int),
+        'anonymous_hourly_limit': ('Anonymous hourly jobs per IP',int),
+        'anonymous_hourly_chars': ('Anonymous hourly text/row units per IP',int),
+        'authenticated_max_length': ('Authenticated maximum text/row units',int),
+        'authenticated_hourly_limit': ('Authenticated hourly jobs per IP',int),
+        'authenticated_hourly_chars': ('Authenticated hourly units per IP',int),
+        'queue_limit': ('Maximum queued/active jobs',int),
+        'retention_days': ('History retention days',int),
+        'session_days': ('Non-owner session lifetime days',int),
+        'global_hourly_limit': ('Global hourly jobs',int),
+        'global_hourly_chars': ('Global hourly text/row units',int),
+        'trusted_proxies': ('Trusted proxy IP networks',list),
+    }
+    def __init__(self,path,worker):
+        self.path,self.worker=path,worker
+
+    def load(self):
+        original=self.path.read_bytes()
+        return original,json.loads(original)
+
+    def validate(self,original,draft):
+        old=json.loads(original)
+        if set(old)!=set(draft) or any(draft[k]!=old[k] for k in old if k not in self.FIELDS):
+            raise ValueError('Deployment paths, bind/port and device identity require coordinated deployment changes')
+        for field,(label,kind) in self.FIELDS.items():
+            if field not in draft:continue
+            value=draft[field]
+            if type(value) is not kind:raise ValueError(label+': incorrect type')
+            if kind is int:
+                ceiling=10000 if field.endswith('max_length') else (180 if field=='session_days' else 1000000000)
+                if not 1<=value<=ceiling:raise ValueError(label+f': expected 1..{ceiling}')
+            if kind is list:
+                for network in value:
+                    if not isinstance(network,str):raise ValueError(label+': expected CIDR strings')
+                    ipaddress.ip_network(network)
+
+    def write(self,content):
+        stat=self.path.stat()
+        fd,temporary=tempfile.mkstemp(dir=self.path.parent,prefix='.config-')
+        try:
+            os.fchown(fd,stat.st_uid,stat.st_gid);os.fchmod(fd,0o640)
+            with os.fdopen(fd,'wb') as file:
+                file.write(content);file.flush();os.fsync(file.fileno())
+            os.replace(temporary,self.path)
+            directory=os.open(self.path.parent,os.O_RDONLY|os.O_DIRECTORY)
+            try:os.fsync(directory)
+            finally:os.close(directory)
+        finally:
+            Path(temporary).unlink(missing_ok=True)
+
+    def control(self,action):
+        subprocess.run(['systemctl',action,'paperang-relay'],capture_output=True,text=True,check=True)
+
+    def healthy(self):
+        opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        for _ in range(30):
+            try:
+                with opener.open('http://127.0.0.1:28177/v2/public/status',timeout=2) as response:
+                    if response.status==200:return
+            except (OSError,ValueError):pass
+            time.sleep(.2)
+        raise RuntimeError('Relay did not become healthy')
+
+    def apply(self,original,draft):
+        self.validate(original,draft)
+        old=json.loads(original);changed=[k for k in draft if old[k]!=draft[k]]
+        if not changed:return 'No changes.'
+        with self.path.with_name('.config-edit.lock').open('a') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            if self.path.read_bytes()!=original:raise ValueError('Configuration changed elsewhere; reopen the configuration page')
+            self.worker.call('restart_check')
+            try:
+                self.control('stop')
+                # Recheck after stopping the receiver endpoint; no new claim can race the write.
+                self.worker.call('restart_check')
+                self.write((json.dumps(draft,indent=2)+'\n').encode())
+                self.control('start');self.healthy();self.worker.reload()
+            except Exception:
+                self.write(original);self.control('restart');self.healthy();self.worker.reload()
+                raise
+        message='Saved, service restarted and health verified. Windows keys and task data are unchanged.'
+        try:self.worker.call('configuration_saved',fields=changed)
+        except ValueError as error:message+=' Audit entry failed: '+str(error)
+        return message
+
+
 class Console:
-    def __init__(self, worker, root, server):
+    def __init__(self, worker, root, server, config=None):
         self.worker, self.root, self.server = worker, root, server
+        self.configuration=Configuration(config or root/'config/config.json',worker)
         self.screen = None
 
     def draw(self, lines, selected=None, footer='Arrows: select   Enter: open   Esc/Q: back'):
@@ -202,6 +308,9 @@ class Console:
             phrase=self.ask('Passphrase (blank: generate)',secret=True)
             if phrase is None: return
             if phrase: body['password']=phrase
+        existing=self.ask('Existing identity UUID (blank: create new identity)')
+        if existing is None:return
+        if existing:body['user_id']=existing
         result=self.api('keys',**body)
         path=self.save('credential',dict(server=self.server,**result))
         self.view('New secret / distribution file',f'Saved root-only: {path}\n\n'+json.dumps(result,indent=2)+'\n\nExisting secrets cannot be recovered. Transfer privately; rotate if lost.')
@@ -211,14 +320,18 @@ class Console:
             rows=self.worker.call('credentials')
             choice=self.menu('Credentials (no raw secrets in listings)',[f'{r["role"]} {r["kind"]} {"REVOKED" if r["revoked"] else "active"} {r["name"]}  {r["id"]}' for r in rows])
             if choice is None: return
-            row=rows[choice];action=self.menu(row['name'],['Details','Rename','Revoke','Rotate / distribute replacement','Revoke sessions'])
+            row=rows[choice];action=self.menu(row['name'],['Details','Rename','Revoke','Rotate / distribute replacement','Revoke sessions','Configure identity quota'])
             if action is None: continue
             identifier=row['id']
             if action==0: self.view('Credential metadata',row)
             elif action==1:
                 name=self.ask('New display name',row['name'])
                 if name: self.api('keys/'+identifier+'/rename',name=name)
+            elif action==5:self.quotas('user:'+row['user_id'])
             elif action in (2,3,4):
+                if action==3 and row['kind'] in ('publickey','pendingkey'):
+                    self.view('Owner key rotation','Create a replacement owner file, connect and prove it on the client, then revoke this old key. Existing private keys cannot be recovered or rotated as bearer tokens.')
+                    continue
                 approved=self.menu('Confirm action for '+identifier,['Cancel','Confirm'])
                 if approved!=1: continue
                 if action==2: self.api('keys/'+identifier+'/revoke')
@@ -266,19 +379,46 @@ class Console:
                         cursor=result['next']
                 self.view('History exported',f'{count} jobs\n{path}\nContains private text, raster and metadata; keep private.')
 
-    def quotas(self):
-        scope=self.ask('Scope: anonymous / authenticated / user:<id>','anonymous')
+    def quotas(self,scope=None):
+        scope=scope or self.ask('Scope: anonymous / authenticated / user:<id>','anonymous')
         if scope is None: return
         current=self.api('quotas/get',scope=scope)
         self.view('Current quotas',current)
         value=self.ask('Limits JSON (null values reset overrides)',json.dumps(current.get('overrides',{})))
         if value is not None: self.view('Quota result',self.api('quotas/set',scope=scope,limits=json.loads(value)))
 
+    def settings(self):
+        original,draft=self.configuration.load()
+        self.view('Configuration scope','Service policy defaults apply after restart. Class/user overrides are managed under Quota management and are preserved. Deployments paths, ports and device ID are read-only here.')
+        fields=list(Configuration.FIELDS)
+        while True:
+            labels=[label+': '+json.dumps(draft.get(key),ensure_ascii=False) for key,(label,kind) in Configuration.FIELDS.items()]
+            choice=self.menu('Service configuration (edits stay local until applied)',labels+['View full configuration / read-only deployment fields','Apply changes and restart Relay','Discard and return'])
+            if choice is None or choice==len(fields)+2:return
+            if choice==len(fields):
+                self.view('Deployment fields are read-only: bind / port / database / device_id',draft)
+            elif choice==len(fields)+1:
+                changes={key:dict(old=json.loads(original).get(key),new=value) for key,value in draft.items() if json.loads(original).get(key)!=value}
+                self.view('Pending changes',changes)
+                if self.menu('Apply and briefly restart Relay?',['Cancel','Apply'])==1:
+                    self.view('Configuration',self.configuration.apply(original,draft))
+                    original,draft=self.configuration.load()
+            else:
+                key=fields[choice];label,kind=Configuration.FIELDS[key]
+                if kind is bool:
+                    selected=self.menu(label,['Disabled','Enabled'])
+                    if selected is not None:draft[key]=bool(selected)
+                else:
+                    value=self.ask(label,json.dumps(draft.get(key),ensure_ascii=False))
+                    if value is not None:
+                        updated=dict(draft);updated[key]=int(value) if kind is int else json.loads(value)
+                        self.configuration.validate(original,updated);draft=updated
+
     def run(self, screen):
         self.screen=screen;curses.curs_set(0);screen.keypad(True)
         while True:
-            choice=self.menu('Paperang local sudo console', ['Service / database / Windows receiver status','Create / distribute credential','Manage credentials / revoke / rotate','Print history / export','Quota management','Audit events','Identities','Exit'])
-            if choice in (None,7): return
+            choice=self.menu('Paperang local sudo console', ['Service / database / Windows receiver status','Create / distribute credential','Manage credentials / revoke / rotate','Print history / export','Quota management','Audit events','Identities','Service configuration / apply changes','Exit'])
+            if choice in (None,8): return
             try:
                 if choice==0:
                     result=self.worker.call('summary')
@@ -289,6 +429,7 @@ class Console:
                 elif choice==3: self.history()
                 elif choice==4: self.quotas()
                 elif choice==6: self.identities()
+                elif choice==7: self.settings()
                 elif choice==5:
                     before=2**63-1
                     while True:
@@ -331,7 +472,7 @@ def main():
     worker=Worker(root,config)
     try:
         if args.check:print(json.dumps(worker.call('summary'),indent=2))
-        else:curses.wrapper(Console(worker,root,args.server).run)
+        else:curses.wrapper(Console(worker,root,args.server,config).run)
     finally: worker.close()
 
 

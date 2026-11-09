@@ -60,4 +60,6 @@ Native build, SwiftUI window review, isolated owner/C/M HTTP integration and 39 
 
 [Current source cleanup, per-platform validation and regression archive](OPTIMIZATION-opt1.md). All implemented distribution runtime versions now end in opt1; this does not assert new Windows/hardware/deployment validation.
 
-Linux opt1 follow-up: local root-only curses console for credential distribution/revocation, identities, quotas and full paged history/export; pinned fresh reset preserves one selected Windows owner. Isolated 39 regressions, 4 console checks, reset/rollback and terminal navigation passed; host application pending.
+Linux opt1 follow-up: local root-only curses console for credential distribution/revocation, identities, quotas and full paged history/export; pinned fresh reset preserves one selected Windows owner. Isolated 39 regressions, 4 console checks, reset/rollback and terminal navigation passed; host reset and retained Windows reconnection verified.
+
+Local console follow-up: service configuration drafts with validation/atomic apply/health and rollback; identity-bound credential creation and direct identity quota controls. Configuration tests cover six save/failure/concurrency/active-claim paths; latest configuration-editor installation pending.

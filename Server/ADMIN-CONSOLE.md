@@ -21,3 +21,13 @@ The installer pins package hashes, refuses active claims or a mismatched public-
 The current source checkout/development artifacts live under `paperang/workspace`; live immutable code is under `paperang/releases`, dependencies under `paperang/venvs`, state under `paperang/data`, configuration under `paperang/config`, and current logs under `paperang/logs`. Only the unit and Nginx site remain outside. Historical unrelated development checkouts outside paperang are not removed automatically.
 
 New reset/runtime verification is recorded in `paperang/docs/deployment.json`. A Windows heartbeat after reset confirms the retained key still executes; public acceptance alone is not evidence that the receiver is connected. No physical test print is submitted by the installer or console.
+
+## Service configuration
+
+Open **Service configuration / apply changes** to edit anonymous access, maximum text/row units, hourly limits, queue capacity, retention, ordinary-session lifetime, global ceilings and trusted proxy networks. Edits stay in a draft until you review the changes and confirm Apply. Class/stable-identity quota overrides remain in the Quota page; existing overrides are not erased by changing service defaults. Credential creation can attach a new credential to an existing identity UUID; the credential menu links directly to that identity's quotas.
+
+The controller validates types/ranges/networks and rejects changes to deployment paths, bind/port and the device ID. It refuses an active print, checks for a concurrent configuration change, stops the receiver endpoint, rechecks claims, writes a 0640 config atomically with the original owner/group, starts the service and checks health. Startup failure restores the original config and service; it never rolls back or deletes the database. The local database worker reloads the new config so its displayed quotas match the running relay. Successful edits write an audit event containing field names, not secret values. The ordinary owner session remains ten minutes; `session_days` affects only non-owner sessions.
+
+The terminal console may be updated independently of the immutable relay release; deployment records track its source separately. Close open console instances before installing an update. A console-only update does not reset data or require a relay restart.
+
+`Server/update_console.py --package <pinned-console-package>` updates only the root terminal program/documentation. It verifies hashes, refuses an open console/reset lock, checks root config-write permissions using identical bytes and verifies the service-account worker; failed installation restores the prior terminal program. It does not restart the relay, change policy, rotate credentials or touch task data.
