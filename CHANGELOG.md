@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.1-macclient-fix3 — 2026-11-09
+
+- Native macOS build restored; paired owner-file execution, renewable RSA-PSS proof, stable recovery identity and legacy M compatibility.
+- Native paginated C management, private history/raster details, scoped quotas, safe owner creation and streamed JSONL export.
+- Autosaved settings/drafts, credential-free configuration export, optional startup/printer reconnect and immutable active-job layout. Known sent results survive disconnects without replay.
+- Native arm64 build/GUI/local relay integration and 39 server tests passed. No new physical print or production deployment. [Upgrade notes](doc/MACCLIENT-v0.3.1.md).
+
 ## v0.3.1-macclient-fix2 — 2026-11-09
 
 - macOS 应用菜单和托盘加入手动检查 GitHub 更新，只比较最近 100 条中的正式 MacClient 标签，发现新版后打开下载页面。无发行版、网络失败均提示；不自动安装。按要求未运行 macOS 验证。

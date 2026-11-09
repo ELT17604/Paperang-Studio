@@ -1,7 +1,7 @@
 import SwiftUI
 extension Content {
  var relayKeyManager:some View {
-  DisclosureGroup("v0.3.0 · C 权限管理面板") { RelaySecurityManager(server:lab.relayURL,previewCredential:$lab.relayAdminKey,clearPreview:{lab.clearRelayPrivateViews()}) }
+  DisclosureGroup("API v2 · C 权限管理中心") { RelaySecurityManager(server:lab.relayURL,previewCredential:$lab.relayAdminKey,clearPreview:{lab.clearRelayPrivateViews()},ownerSelected:{lab.relayOwnerPath=$0;lab.relayAuthMode="owner";lab.flushRelayConfiguration()}) }
  }
 }
 
