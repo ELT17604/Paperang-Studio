@@ -26,7 +26,7 @@
       "version": "v0.3.1-linuxrelayserver-opt1",
       "runtimeVersion": "0.3.1-linuxrelayserver-opt1",
       "versionSource": "Server/relay.py",
-      "verification": "39 local regression checks and isolated browser text/raster tracking passed; no opt1 production deployment"
+      "verification": "Opt1 fresh host reset, sole Windows key retention/reconnect and terminal/config editor installed; 39 regressions, 4 backend, 6 config checks plus console update/rollback and PTY checks passed; root atomic config/worker access verified"
     },
     "winlite": {
       "name": "WinLite",
