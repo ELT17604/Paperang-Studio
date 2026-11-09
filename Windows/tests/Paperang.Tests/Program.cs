@@ -10,7 +10,7 @@ static class Tests
     private static int count;
     static void Check(bool ok, string name) { if (!ok) throw new Exception(name); count++; Console.WriteLine("PASS " + name); }
     static async Task Until(Func<bool> condition, int ms = 12000) { var end = DateTime.UtcNow.AddMilliseconds(ms); while (!condition()) { if (DateTime.UtcNow > end) throw new TimeoutException("Test condition timed out"); await Task.Delay(20); } }
-    static AppSettings Settings => new() { Server = "http://127.0.0.1:8177", DeviceKey = "psr_test", PrinterAddress = "112233445566" };
+    static AppSettings Settings => new() { AuthenticationMode = "legacy", Server = "http://127.0.0.1:8177", DeviceKey = "psr_test", PrinterAddress = "112233445566" };
     static RelayJob Job => new() { Id = new string('a', 40), Text = "Hello 你好，纸条！", Created = 1793894400 };
     [STAThread]
     static async Task Main(string[] args)
@@ -19,7 +19,7 @@ static class Tests
         {
             if (args.Length > 0 && args[0] == "--admin-ui") {
                 System.Windows.Forms.Application.EnableVisualStyles();
-                using var form = new AdminForm(Settings); System.Windows.Forms.Application.Run(form); return;
+                using var form = new AdminForm(args.Contains("--configured") ? new LocalStore().LoadSettings() : Settings); System.Windows.Forms.Application.Run(form); return;
             }
             if (args.Length == 2 && args[0] == "--admin-test") { await AdminTest(args[1]); return; }
             if (args.Length > 0 && args[0] == "--ble") { await Ble(args.Contains("--print")); return; }
@@ -32,6 +32,7 @@ static class Tests
             }
             if (args.Length == 2 && args[0] == "--live") { await Live(args[1]); return; }
             if (args.Length > 0 && args[0] == "--minute-retry") { await MinuteRetry(); return; }
+            Check(ReleaseUpdates.Compare("v0.3.1-winlite-fix10", "0.3.1-winlite-fix3") > 0 && ReleaseUpdates.Compare("v0.4.0-winlite", "0.3.1-winlite-fix99") > 0 && ReleaseUpdates.Compare("v0.3.1-winlite", "0.3.1-winlite") == 0, "release comparison respects baseline and numeric revision");
             Check(Wire.Crc(Encoding.ASCII.GetBytes("123456789")) == 0xcbf43926, "standard CRC32 vector");
             Check(Convert.ToHexString(Wire.Encode(24, [0x21, 0x95, 0x76, 0x35], 0x35769521)) == "0218000400219576351CDF442103", "handshake golden frame from independent Python zlib");
             var good = Wire.Encode(13, [8, 0]); var decoder = new FrameDecoder();
@@ -114,6 +115,26 @@ static class Tests
         Check(proof.GetProperty("role").GetString() == "C", "Windows RSA-PSS signature interoperates with Python verification");
         var page = await owner.Post("v2/admin/jobs/export", new { user_id = "" }, default);
         Check(page.GetProperty("jobs").GetArrayLength() == 2 && page.GetProperty("jobs")[0].TryGetProperty("metadata", out _), "Windows C export returns text/image jobs and delivery metadata");
+        string ownerFile = Path.Combine(Path.GetTempPath(), "paperang-owner-" + Guid.NewGuid() + ".json");
+        try {
+            AdminForm.WritePrivate(ownerFile, JsonSerializer.Serialize(new { server = settings.Server, id = pub.GetProperty("id").GetString(), privateKeyPem = rsa.ExportPkcs8PrivateKeyPem() }));
+            var ownerSettings = settings with { AuthenticationMode = "owner", OwnerKeyFile = ownerFile, DeviceKey = "" };
+            using var nativeOwner = new RelayClient(ownerSettings);
+            Check((await nativeOwner.Get("v2/auth/me", default)).GetProperty("role").GetString() == "C", "configured owner file renews native proof without saved bearer");
+            await nativeOwner.Post("v2/device/status", new { status = new { connected = true } }, default);
+            Check((await nativeOwner.Get("v2/device/jobs", default)).GetProperty("jobs").ValueKind == JsonValueKind.Array, "same proven owner identity accesses scoped execution and management");
+            Check(RelayEngine.CredentialFingerprint(ownerSettings) == RelayEngine.CredentialFingerprint(ownerSettings), "owner journal affinity uses stable public key identity");
+            var blockedHandler = new BlockedAuthentication();
+            using var blockedHttp = new HttpClient(blockedHandler) { BaseAddress = settings.Validate() };
+            using var cancellation = new CancellationTokenSource();
+            var authenticator = new OwnerAuthentication(ownerFile, settings.Validate());
+            var signing = authenticator.GetTokenAsync(blockedHttp, cancellation.Token);
+            await Until(() => blockedHandler.Started);
+            authenticator.Dispose(); cancellation.Cancel();
+            try { await signing; throw new Exception("cancelled authentication completed"); }
+            catch (OperationCanceledException) { Check(true, "closing owner client during authentication cancels without disposed-gate fault"); }
+
+        } finally { File.Delete(ownerFile); }
         string privateFile = Path.Combine(Path.GetTempPath(), "paperang-acl-" + Guid.NewGuid() + ".json");
         try { AdminForm.WritePrivate(privateFile, "fixture"); Check(File.ReadAllText(privateFile) == "fixture" && new FileInfo(privateFile).GetAccessControl().AreAccessRulesProtected, "Windows owner file disables inherited ACL before writing secret"); }
         finally { File.Delete(privateFile); }
@@ -145,6 +166,22 @@ static class Tests
             var changed = restored with { Style = "小票", Feed = 189 };
             var merged = Settings.WithPrintingFrom(changed);
             Check(merged.Server == Settings.Server && merged.DeviceKey == Settings.DeviceKey && merged.Feed == 189 && merged.TemplateId == template.Id, "print autosave preserves connection credentials and selected template");
+            var full = value with { OwnerKeyFile = @"C:\Paperang\owner.json", AutoConnect = false, AutoAllowPrint = false, KeepReconnecting = false, StartAtLogin = true, AllowHttp = true };
+            store.SaveSettings(full);
+            var all = new LocalStore(directory).LoadSettings();
+            Check(all.OwnerKeyFile == full.OwnerKeyFile && all.StartAtLogin == true && !all.AutoConnect && !all.AutoAllowPrint && !all.KeepReconnecting && all.AllowHttp, "restart restores key-file path and all connection/startup preferences");
+            store.SaveDraft(full with { Server = "unfinished server" });
+            Check(new LocalStore(directory).LoadDraft()?.Server == "unfinished server" && store.LoadSettings().Server == full.Server, "unfinished connection draft persists separately without replacing recoverable active configuration");
+            Check(!Encoding.UTF8.GetString(File.ReadAllBytes(Path.Combine(directory, "settings-draft.dat"))).Contains("unfinished server"), "connection drafts are DPAPI encrypted");
+            var ui = new UiPreferences { SettingsTab = 3, ShowAllPrinters = true, AdminCategory = 4, AdminPageSize = 100, AdminHideRevoked = false, AdminUserFilter = "fixture-identity" };
+            store.SaveUi(ui);
+            Check(new LocalStore(directory).LoadUi() == ui, "management category, page size, revoked filter and settings tabs survive restart");
+            string exported = ConfigurationExport.Serialize(full, ui);
+            using (var document = JsonDocument.Parse(exported)) {
+                var exportedSettings = document.RootElement.GetProperty("settings").Deserialize<AppSettings>(RelayClient.Json)!;
+                Check(document.RootElement.GetProperty("schemaVersion").GetInt32() == 1 && exportedSettings.OwnerKeyFile == full.OwnerKeyFile && exportedSettings.Templates[0].Name == template.Name && exportedSettings.StartAtLogin == true, "JSON configuration export preserves paths, templates and startup preference");
+                Check(exportedSettings.DeviceKey == "" && !exported.Contains("psr_test") && !exported.Contains("privateKeyPem") && document.RootElement.GetProperty("ui").GetProperty("adminPageSize").GetInt32() == 100, "configuration export omits raw credentials and private-key contents while retaining UI preferences");
+            }
             var legacy = JsonSerializer.Deserialize<AppSettings>("{}", RelayClient.Json)!;
             Check(legacy.KeepReconnecting && RelayTiming.Default.RetryCooldown == TimeSpan.FromMinutes(1), "old settings default to continuous reconnect and exact 60 second cooldown");
             Parallel.For(0, 80, i => { store.SaveSettings(value with { Feed = i }); store.Save(new PendingResult("http://localhost/", "fixture", new string('a', 40), "fixture")); });
@@ -243,6 +280,11 @@ static class Tests
         using var document = JsonDocument.Parse(json);
         Check(document.RootElement.GetProperty("blocks")[0].GetProperty("font").GetString() == "PingFang SC" && roundtrip.Blocks.Count == 4, "Swift Codable v1 template keys and fonts preserved");
         var job = TemplateEditor.SampleJob("{{ip}} — 中文说明", true);
+        var browserBlock = new RelayBlock { Kind = "浏览器信息" };
+        var anonymousJob = job with { Metadata = new() { ["userAgent"] = JsonSerializer.SerializeToElement("Firefox/132.0"), ["language"] = JsonSerializer.SerializeToElement("zh-CN") } };
+        Check(browserBlock.Value(anonymousJob) == "Firefox/132.0 · language=zh-CN", "anonymous browser block falls back to delivered UA and language on older relays");
+        Check(browserBlock.Value(job).Contains("platform=Sample device"), "structured browser metadata remains preferred");
+        Check(browserBlock.Value(job with { Metadata = new() }) == "浏览器信息未提供", "missing browser data is explicit rather than an empty block");
         var block = new RelayBlock { Kind = "自定义文字", Text = "{{text}} / {{id}} / {{sender}}" };
         Check(block.Value(job).StartsWith("{{ip}} — 中文说明 / A1B2-C3D4-E5F6 / Sample visitor"), "template variables expand once; visitor text never expanded recursively");
         template = template with { Blocks = [new RelayBlock { Kind = "标题", Text = "TEST", Gap = 5 }, new RelayBlock { Kind = "正文", Margin = 0, Gap = 7 }, new RelayBlock { Kind = "投稿身份", Gap = 9 }] };
@@ -313,6 +355,12 @@ static class Tests
         await Until(() => printer.Prints == 2 && journal.Value == null, 20000);
         await engine.StopAsync();
         Check(printer.Prints == 2, "original Python relay: text and raster1 end-to-end");
+    }
+    sealed class BlockedAuthentication : HttpMessageHandler
+    {
+        public bool Started;
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        { Started = true; await Task.Delay(Timeout.Infinite, ct); return new(HttpStatusCode.OK); }
     }
     sealed class MemoryJournal : IJournal { public PendingResult? Value; public PendingResult? Load() => Value; public void Save(PendingResult? v) => Value = v; }
     sealed class FakeRenderer : IRasterizer { public Raster Render(RelayJob j, AppSettings s) => new(1, new byte[72]); }

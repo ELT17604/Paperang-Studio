@@ -7,8 +7,10 @@ internal sealed class SettingsForm : Form
     private readonly RelayEngine engine;
     private AppSettings initial;
     private readonly Func<AppSettings, bool, Task> save;
-    private readonly Action<AppSettings> savePrinting;
-    private readonly TextBox url = new(), key = new() { UseSystemPasswordChar = true };
+    private readonly Func<AppSettings, bool, string> savePreferences;
+    private readonly LocalStore local = new();
+    private UiPreferences ui;
+    private readonly TextBox url = new(), key = new() { ReadOnly = true };
     private readonly CheckBox http = new() { Text = "允许 HTTP 测试连接（公网建议 HTTPS）", AutoSize = true };
     private readonly CheckBox autoConnect = new() { Text = "启动后自动连接服务器与记住的打印机", AutoSize = true };
     private readonly CheckBox autoPrint = new() { Text = "每次连接自动开启允许打印", AutoSize = true };
@@ -28,13 +30,14 @@ internal sealed class SettingsForm : Form
     private readonly Button scan = new() { Text = "扫描 P2（12 秒）", AutoSize = true };
     private readonly Button connectHere = new() { Text = "保存并连接", AutoSize = true };
     private readonly System.Windows.Forms.Timer autosave = new() { Interval = 350 };
-    private bool printDirty;
+    private bool settingsDirty;
     private bool saving;
     private readonly CancellationTokenSource lifetime = new();
-    public SettingsForm(AppSettings initial, RelayEngine engine, Func<AppSettings, bool, Task> save, Action<List<RelayTemplate>, string> saveTemplates, Action<AppSettings> savePrinting)
+    public SettingsForm(AppSettings initial, RelayEngine engine, Func<AppSettings, bool, Task> save, Action<List<RelayTemplate>, string> saveTemplates, Func<AppSettings, bool, string> savePreferences)
     {
+        SuspendLayout(); AutoScaleDimensions = new SizeF(96, 96);
         this.initial = initial; this.engine = engine; this.save = save;
-        this.savePrinting = savePrinting;
+        this.savePreferences = savePreferences; ui = local.LoadUi();
         templates = initial.Templates;
         Text = "Paperang Studio · 设置"; ClientSize = new Size(680, 790);
         MinimumSize = new Size(620, 660); AutoScaleMode = AutoScaleMode.Dpi;
@@ -53,20 +56,25 @@ internal sealed class SettingsForm : Form
         var management = Page("管理");
         var openAdmin = new Button { Text = "打开图形化管理面板…", AutoSize = true };
         openAdmin.Click += (_, _) => {
-            try { using var form = new AdminForm(initial); form.ShowDialog(this); }
+            try {
+                if (!PersistSettings()) return;
+                using var form = new AdminForm(this.initial, path => { key.Text = path; return PersistSettings(); }); form.ShowDialog(this);
+            }
             catch { feedback.Text = "请先保存有效的服务器连接设置。"; }
         };
         Add(management.Body, "C 权限管理", openAdmin);
-        Add(management.Body, "", Hint("管理 A/B/C/M 凭证、身份、浏览器会话、公钥和完整任务历史；支持按用户 ID 筛选及 JSONL 导出。\n可使用 C 密钥、口令或本地所有者私钥登录；后台打印仍使用独立 M 凭证。"));
+        Add(management.Body, "", Hint("管理 A/B/C/M 凭证、身份、浏览器会话、公钥和完整任务历史；支持按用户 ID 筛选及 JSONL 导出。\n使用本地所有者私钥登录；后台连接和管理使用同一已证明的公钥身份。"));
         tabs.TabPages.AddRange([connection.Page, printing.Page, general.Page, management.Page]);
         root.Controls.Add(tabs);
         Add(connection.Body, "中转服务器根地址", url);
-        Add(connection.Body, "M 设备执行密钥（psr_ 开头）", key);
-        var show = new CheckBox { Text = "显示密钥", AutoSize = true }; show.CheckedChanged += (_, _) => key.UseSystemPasswordChar = !show.Checked;
-        Add(connection.Body, "", show); Add(connection.Body, "", http);
+        Add(connection.Body, "所有者私钥文件（最高权限 · 仅保存在本机）", key);
+        var chooseKey = new Button { Text = "选择已配对的私钥文件…", AutoSize = true };
+        chooseKey.Click += (_, _) => { using var pick = new OpenFileDialog { Filter = "Paperang 所有者文件|*.json" }; if (pick.ShowDialog(this) == DialogResult.OK) key.Text = pick.FileName; };
+        Add(connection.Body, "", chooseKey); Add(connection.Body, "", http);
+        Add(connection.Body, "", Hint("默认仅使用已配对的 RSA 所有者私钥。会话自动续期，管理与打印共用已验证的所有者身份。旧 M 设备密钥没有管理权限，不再作为默认连接凭证。"));
         Add(connection.Body, "本地 P2 打印机", printers);
         var scanRow = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Top };
-        var all = new CheckBox { Text = "显示所有命名设备", AutoSize = true };
+        var all = new CheckBox { Text = "显示所有命名设备", AutoSize = true, Checked = ui.ShowAllPrinters };
         scanRow.Controls.AddRange([scan, all]); Add(connection.Body, "", scanRow);
         Add(connection.Body, "", connectHere);
         var forget = new Button { Text = "清除记住的打印机", AutoSize = true };
@@ -113,15 +121,19 @@ internal sealed class SettingsForm : Form
         style.SelectedIndexChanged += (_, _) => { fields.Enabled = style.Text != "自定义"; template.Enabled = style.Text == "自定义"; };
         Add(printing.Body, "", Hint("与 macOS 相同：576 点宽、浓度 100、批后送纸 150 行。\n支持文字与 raster1 黑白绘图；打印前检查纸仓并回读浓度。\n暂停只影响新任务，已进入打印机缓存的数据可能继续输出。\n“数据已发送”需要你核对实际纸面；不确定任务不会自动重打。"));
         Add(general.Body, "", autoConnect); Add(general.Body, "", startup); Add(general.Body, "", reconnect);
+        var export = new Button { Text = "导出全部配置…", AutoSize = true };
+        export.Click += (_, _) => ExportConfiguration();
+        Add(general.Body, "配置备份", export);
+        Add(general.Body, "", Hint("所有设置会自动保存在本机，包括私钥路径和界面偏好。导出 JSON 包含模板与设置，不包含私钥、密钥正文或会话。连接未填写完成时会保留草稿，后台继续使用原连接。"));
         Add(general.Body, "当前状态", status);
         Add(general.Body, "", Hint("凭证与待回报记录由 Windows 当前用户 DPAPI 加密，保存在：\n" + LocalStore.Root + "\n\n无主页面、无后台系统服务。开机自启使用当前用户登录启动项，无需管理员权限。请将程序放在固定目录后开启自启。\n\nV" + AppVersion.Current + " · © 2026 ELT Group"));
         var bottom = new TableLayoutPanel { AutoSize = true, Dock = DockStyle.Fill, ColumnCount = 2, Padding = new Padding(0, 14, 0, 0) };
         bottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); bottom.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        feedback.Text = "保存后设置立即生效，关闭窗口继续驻留托盘。";
+        feedback.Text = "所有设置自动本地保存；连接变更可点击“保存并连接”应用。";
         bottom.Controls.Add(feedback); bottom.Controls.Add(apply);
         root.Controls.Add(bottom); Controls.Add(root);
-        url.Text = initial.Server; key.Text = initial.DeviceKey; http.Checked = initial.AllowHttp;
-        autoConnect.Checked = initial.AutoConnect; autoPrint.Checked = initial.AutoAllowPrint; startup.Checked = StartupRegistration.Enabled;
+        url.Text = initial.Server; key.Text = initial.OwnerKeyFile; http.Checked = initial.AllowHttp;
+        autoConnect.Checked = initial.AutoConnect; autoPrint.Checked = initial.AutoAllowPrint; startup.Checked = initial.StartAtLogin ?? StartupRegistration.Enabled;
         reconnect.Checked = initial.KeepReconnecting;
         style.SelectedItem = initial.Style; density.Value = Math.Clamp(initial.Density, 0, 100); feed.Value = Math.Clamp(initial.Feed, 0, 2000);
         senderField.Checked = initial.IncludeSender; timeField.Checked = initial.IncludeTime; idField.Checked = initial.IncludeId;
@@ -129,18 +141,21 @@ internal sealed class SettingsForm : Form
         { printers.Items.Add(new PrinterChoice(address, initial.PrinterName, 0)); printers.SelectedIndex = 0; }
         apply.Click += async (_, _) => await Save();
         connectHere.Click += async (_, _) => await Save();
-        foreach (var input in new Control[] { style, template, density, feed, senderField, timeField, idField, autoPrint })
+        foreach (var input in new Control[] { url, key, http, printers, autoConnect, startup, reconnect, style, template, density, feed, senderField, timeField, idField, autoPrint })
         {
-            if (input is ComboBox c) c.SelectedIndexChanged += (_, _) => QueuePrintSave();
-            else if (input is NumericUpDown n) n.ValueChanged += (_, _) => QueuePrintSave();
-            else if (input is CheckBox b) b.CheckedChanged += (_, _) => QueuePrintSave();
+            if (input is TextBox text) text.TextChanged += (_, _) => QueueSave();
+            else if (input is ComboBox c) c.SelectedIndexChanged += (_, _) => QueueSave();
+            else if (input is NumericUpDown n) n.ValueChanged += (_, _) => QueueSave();
+            else if (input is CheckBox b) b.CheckedChanged += (_, _) => QueueSave();
         }
-        autosave.Tick += (_, _) => { autosave.Stop(); PersistPrinting(); };
-        tabs.SelectedIndex = 0;
+        autosave.Tick += (_, _) => { autosave.Stop(); PersistSettings(); };
+        tabs.SelectedIndex = Math.Clamp(ui.SettingsTab, 0, tabs.TabCount - 1);
+        tabs.SelectedIndexChanged += (_, _) => SaveUi(x => x with { SettingsTab = tabs.SelectedIndex });
+        all.CheckedChanged += (_, _) => SaveUi(x => x with { ShowAllPrinters = all.Checked });
         ActiveControl = url;
-        FormClosing += (_, args) => { autosave.Stop(); if (!PersistPrinting()) args.Cancel = true; };
+        FormClosing += (_, args) => { autosave.Stop(); if (!PersistSettings()) args.Cancel = true; };
         FormClosed += (_, _) => { lifetime.Cancel(); lifetime.Dispose(); autosave.Dispose(); Icon?.Dispose(); };
-        UpdateStatus();
+        UpdateStatus(); ResumeLayout(true);
     }
     private async Task Save()
     {
@@ -149,36 +164,58 @@ internal sealed class SettingsForm : Form
         autosave.Stop();
         try
         {
-            var selected = printers.SelectedItem as PrinterChoice;
-            var next = initial with {
-                Server = url.Text.Trim(), DeviceKey = key.Text.Trim(), AllowHttp = http.Checked,
-                PrinterAddress = selected?.Address.ToString("X12") ?? "", PrinterName = selected?.Name ?? "",
-                AutoConnect = autoConnect.Checked, AutoAllowPrint = autoPrint.Checked, KeepReconnecting = reconnect.Checked,
-                Style = style.SelectedItem as string ?? "便签", Density = (int)density.Value, Feed = (int)feed.Value,
-                IncludeSender = senderField.Checked, IncludeTime = timeField.Checked, IncludeId = idField.Checked
-                , Templates = templates, TemplateId = (template.SelectedItem as RelayTemplate)?.Id ?? ""
-            };
+            var next = ReadSettings();
+            if (!PersistSettings()) return;
             await save(next, startup.Checked);
-            initial = next; printDirty = false;
+            initial = next; settingsDirty = false;
             feedback.Text = "已加密保存，正在后台连接；可以关闭设置。";
         }
         catch (Exception e) { feedback.Text = e is ArgumentException or InvalidOperationException ? e.Message : "保存失败，请检查本地数据权限或凭证文件。"; }
         finally { saving = false; if (!IsDisposed) apply.Enabled = connectHere.Enabled = true; }
     }
-    private void QueuePrintSave() { printDirty = true; autosave.Stop(); autosave.Start(); }
-    private bool PersistPrinting()
+    private AppSettings ReadSettings()
     {
-        if (!printDirty) return true;
+        var selected = printers.SelectedItem as PrinterChoice;
+        return initial with {
+            Server = url.Text.Trim(), OwnerKeyFile = key.Text.Trim(), AuthenticationMode = "owner", DeviceKey = "", AllowHttp = http.Checked,
+            PrinterAddress = selected?.Address.ToString("X12") ?? "", PrinterName = selected?.Name ?? "",
+            AutoConnect = autoConnect.Checked, AutoAllowPrint = autoPrint.Checked, KeepReconnecting = reconnect.Checked, StartAtLogin = startup.Checked,
+            Style = style.SelectedItem as string ?? "便签", Density = (int)density.Value, Feed = (int)feed.Value,
+            IncludeSender = senderField.Checked, IncludeTime = timeField.Checked, IncludeId = idField.Checked,
+            Templates = templates, TemplateId = (template.SelectedItem as RelayTemplate)?.Id ?? ""
+        };
+    }
+    private void SaveUi(Func<UiPreferences, UiPreferences> update)
+    {
+        try { ui = update(local.LoadUi()); local.SaveUi(ui); }
+        catch { feedback.Text = "界面偏好保存失败，请检查本地数据权限。"; }
+    }
+    private void ExportConfiguration()
+    {
+        if (!PersistSettings()) return;
+        using var pick = new SaveFileDialog { Filter = "Paperang 配置 JSON|*.json", FileName = "paperang-winlite-config.json", Title = "导出配置（含私钥路径，不含私钥文件）" };
+        if (pick.ShowDialog(this) != DialogResult.OK) return;
+        try {
+            if (!string.IsNullOrWhiteSpace(key.Text) && string.Equals(Path.GetFullPath(pick.FileName), Path.GetFullPath(key.Text), StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("配置导出不能覆盖私钥文件。");
+            string temp = pick.FileName + ".tmp";
+            File.WriteAllText(temp, ConfigurationExport.Serialize(ReadSettings(), local.LoadUi()), new System.Text.UTF8Encoding(false));
+            File.Move(temp, pick.FileName, true);
+            feedback.Text = "配置已导出（含模板和密钥路径）；私钥文件请单独保管。";
+        } catch (InvalidOperationException e) { feedback.Text = e.Message; }
+          catch { feedback.Text = "导出失败，请检查目标目录权限。"; }
+    }
+    private void QueueSave() { settingsDirty = true; autosave.Stop(); autosave.Start(); }
+    private bool PersistSettings()
+    {
+        if (!settingsDirty) return true;
         try
         {
-            var value = initial with { Style = style.Text, TemplateId = (template.SelectedItem as RelayTemplate)?.Id ?? "", Templates = templates,
-                Density = (int)density.Value, Feed = (int)feed.Value, IncludeSender = senderField.Checked,
-                IncludeTime = timeField.Checked, IncludeId = idField.Checked, AutoAllowPrint = autoPrint.Checked };
-            savePrinting(value); initial = value; printDirty = false;
-            feedback.Text = "当前模板和打印设置已自动保存，下次启动会恢复。";
+            var value = ReadSettings();
+            feedback.Text = savePreferences(value, startup.Checked); initial = value; settingsDirty = false;
             return true;
         }
-        catch { feedback.Text = "自动保存失败，请检查本地数据权限。"; return false; }
+        catch { feedback.Text = "自动保存失败，请检查本地数据权限或启动项权限。"; return false; }
     }
     public void UpdateStatus()
     {

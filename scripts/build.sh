@@ -3,7 +3,7 @@ set -eu
 cd "${0:A:h}/.."
 ROOT="$PWD"
 APP_VERSION="$(tr -d '\r\n' < VERSION)"
-APP_BUILD_VERSION="3000"
+APP_BUILD_VERSION="3103"
 APP_SHORT_VERSION="${APP_VERSION%%-*}"
 WORK="${PAPERANG_WORK_DIR:-${ROOT:h}/PaperangStudio-Development}"
 mkdir -p "$WORK/build" "$WORK/Release"

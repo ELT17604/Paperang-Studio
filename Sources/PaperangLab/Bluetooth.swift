@@ -31,6 +31,10 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  @Published var relayOnline=false;@Published var relayFailures=0;@Published var relayLastSeen:Date?;@Published var relayWarning=false
  @Published var relayAdminKey="";@Published var relayManagedKeys=[RelayManagedKey]();@Published var relayKeyName="";@Published var relayNewRole="submit";@Published var relayKeyDevice="p2";@Published var relayCreatedToken="";@Published var relayAdminMessage="";@Published var relayAdminBusy=false
  var relaySession=UUID();var relayFlushing=false
+ @Published var relayAutoConnect=false;@Published var relayReconnectPrinter=false;@Published var relayPrinterID=""
+ var relayPrinterRetryAt=Date.distantPast;var configurationObserver:AnyCancellable?;var configurationDraftBytes=Data();var configurationLastError=""
+ @Published var relayAuthMode="owner";@Published var relayOwnerPath=""
+ var relayOwner:RelayOwnerAuthentication?;var relayIdentityFingerprint=""
  @Published var relayURL="";@Published var relayKey="";@Published var relayAllowHTTP=false;@Published var relayRunning=false;@Published var relayAutoPrint=false
  @Published var relayMessage="尚未连接中转服务器";@Published var relayJobs=[RelayJob]();@Published var relaySelection="";@Published var relayStyle=UserDefaults.standard.string(forKey:"relay.style") ?? "便签" {didSet{UserDefaults.standard.set(relayStyle,forKey:"relay.style")}}
  @Published var relayIncludeID=false;@Published var relayIncludeText=true;@Published var relayIncludeSender=true;@Published var relayIncludeTime=true;@Published var relayIncludeIP=false;@Published var relayIncludeUA=false;@Published var relayIncludeDevice=false
@@ -49,7 +53,8 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  var central:CBCentralManager!;var peripheral:CBPeripheral?;var known=[UUID:CBPeripheral]();var write:CBCharacteristic?
  var decoder=Decoder();var credits=0;var packetLimit=20;var notifyCount=0;var queue=[Data]();var pumping=false;var ackCommand:UInt8?;var ackResult:Bool?;var response:Data?;var request:UInt8?;var work:Task<Void,Never>?;var generation=0
  override convenience init(){self.init(offline:false)}
- init(offline:Bool){super.init();if !offline{central=CBCentralManager(delegate:self,queue:.main)}else{state="离线API模式：不访问蓝牙"};schedulePreview();let root=Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent();let candidates=[root,root.deletingLastPathComponent().appendingPathComponent("PaperangStudio")];ttyDirectory=candidates.first{FileManager.default.fileExists(atPath:$0.appendingPathComponent("Package.swift").path)}?.path ?? FileManager.default.homeDirectoryForCurrentUser.path;configureLaunchAPI();do{if let saved=try RelayVault.read("connection",as:RelaySavedConnection.self){relayURL=saved.server;relayKey=saved.credential}}catch{relayMessage="中转凭证恢复失败，请检查 Keychain"}}
+ init(offline:Bool,restore:Bool?=nil){super.init();if !offline{central=CBCentralManager(delegate:self,queue:.main)}else{state="离线API模式：不访问蓝牙"};schedulePreview();let root=Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent();let candidates=[root,root.deletingLastPathComponent().appendingPathComponent("PaperangStudio")];ttyDirectory=candidates.first{FileManager.default.fileExists(atPath:$0.appendingPathComponent("Package.swift").path)}?.path ?? FileManager.default.homeDirectoryForCurrentUser.path;configureLaunchAPI();if restore ?? !offline{restoreRelayConfiguration();observeRelayConfiguration()}}
+
  var visibleDevices:[DeviceRow] {devices.filter{showAllDevices || DeviceMatcher.paperang($0.name)}}
  func log(_ type:String,_ s:String){logs.append(.init(type:type,text:s));if logs.count>4000{logs.removeFirst(logs.count-4000)}}
  func centralManagerDidUpdateState(_ central:CBCentralManager){
@@ -92,7 +97,7 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
   scanSummary="扫描中：\(scanBroadcastIDs.count)个广播设备，\(visibleDevices.count)个当前筛选结果"
   if DeviceMatcher.paperang(name){var recent=UserDefaults.standard.dictionary(forKey:"ble.recentPrinters") as? [String:String] ?? [:];recent[p.identifier.uuidString]=name;if recent.count>16{for key in recent.keys.sorted().prefix(recent.count-16){recent.removeValue(forKey:key)}};UserDefaults.standard.set(recent,forKey:"ble.recentPrinters")}
  }
- func connect(_ id:UUID){disconnect();guard let p=known[id] else{return};stopScan();peripheral=p;p.delegate=self;state="连接 \(p.name ?? id.uuidString)";central.connect(p);Task{let g=generation;try? await Task.sleep(for:.seconds(20));if g==generation && !ready {error="连接/握手超时";disconnect()}}}
+ func connect(_ id:UUID){relayPrinterID=id.uuidString;disconnect();guard let p=known[id] else{return};stopScan();peripheral=p;p.delegate=self;state="连接 \(p.name ?? id.uuidString)";central.connect(p);Task{let g=generation;try? await Task.sleep(for:.seconds(20));if g==generation && !ready {error="连接/握手超时";disconnect()}}}
  func centralManager(_ central:CBCentralManager,didConnect p:CBPeripheral){guard peripheral?.identifier==p.identifier else{return};state="发现服务";log("CONNECTED",p.identifier.uuidString);p.discoverServices(nil)}
  func centralManager(_ central:CBCentralManager,didFailToConnect p:CBPeripheral,error:Error?){guard peripheral?.identifier==p.identifier else{return};self.error=error?.localizedDescription ?? "连接失败";reset()}
  func centralManager(_ central:CBCentralManager,didDisconnectPeripheral p:CBPeripheral,error:Error?){guard peripheral?.identifier==p.identifier else{return};log("DISCONNECT",error?.localizedDescription ?? "连接已断开");reset();state="未连接"}

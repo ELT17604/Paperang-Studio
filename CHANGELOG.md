@@ -6,6 +6,37 @@
 - Support explicitly authorized text and pre-rendered raster1, server-side A/B identity verification, B own-status and UUID idempotency; never retry ambiguous POST.
 - Add offline HTTP contract tests, bilingual guides and security/deployment boundaries. OAuth gateway, live ChatGPT connection and paper testing remain pending; no new released distribution or shared protocol change.
 
+## v0.3.1-macclient-fix3 — 2026-11-09
+
+- Native macOS build restored; paired owner-file execution, renewable RSA-PSS proof, stable recovery identity and legacy M compatibility.
+- Native paginated C management, private history/raster details, scoped quotas, safe owner creation and streamed JSONL export.
+- Autosaved settings/drafts, credential-free configuration export, optional startup/printer reconnect and immutable active-job layout. Known sent results survive disconnects without replay.
+- Native arm64 build/GUI/local relay integration and 39 server tests passed. No new physical print or production deployment. [Upgrade notes](doc/MACCLIENT-v0.3.1.md).
+
+## v0.3.1-macclient-fix2 — 2026-11-09
+
+- macOS 应用菜单和托盘加入手动检查 GitHub 更新，只比较最近 100 条中的正式 MacClient 标签，发现新版后打开下载页面。无发行版、网络失败均提示；不自动安装。按要求未运行 macOS 验证。
+
+## v0.3.1-winlite-fix3 / linuxrelayserver-fix1 / macclient-fix1 — 2026-11-09
+
+- Windows 标准按用户安装包，内置 .NET、系统卸载入口和可选数据清除，托盘手动检查 GitHub 正式 WinLite 发行版。
+- 自定义口令移除长度/复杂度规则，留空自动生成；保留传输边界和登录限流。
+- C 管理匿名/注册默认及单身份的小时任务数、内容量和单次大小限额；SQLite 持久化与原子计数，轮换不清零。网页、WinLite 界面及 Swift 管理源代码同步。
+- Windows 61 项、服务器 39 项测试通过。macOS 原生编译与线上服务器部署待验证，见交接文档。
+
+
+## v0.3.1-winlite-fix2 — 2026-11-09
+
+Autosave all settings, including the paired owner-file path, startup preferences, remembered printer and reconnect options. Encrypt unfinished connection drafts separately from active recovery settings. Remember settings/management tabs, page size, revoked-row visibility and identity filters. Add versioned JSON configuration export with templates and UI preferences; raw credentials, private-key contents, sessions and pending tasks are excluded. Valid settings are restored on startup; live connection changes still use Save and Connect.
+
+## v0.3.1-winlite-fix1 — 2026-11-09
+
+Redesign the native management center with category navigation, contextual actions, readable tables, 25/50/100-row pages, previous/next navigation and optional hiding of revoked credentials/identities. Credential creation uses a dedicated form and server-generated IDs; existing identities are selected rather than typed. Key generation requires an unlocked owner and writes the registered ID automatically, without placeholder JSON. Add backwards-compatible relay pagination/filtering and content-free C history summaries with selected-record details. Legacy relays remain usable through bounded client paging.
+
+## v0.3.1 — 2026-11-08
+
+Fix anonymous own-job progress without content disclosure; restore IP/UA to active render payloads; default WinLite to paired owner private-key authentication and renewable sessions. Merge verified Linux security corrections and add safe owner cutover tooling.
+
 ## v0.3.0 — 2026-11-08
 
 Coordinated API v2 identity/authentication update, A/B/C/M permissions, persistent browser sessions, RSA owner files, native WinLite/SwiftUI C administration, filtered JSONL history/export and migration safeguards. RelaySkill upgraded; local Mac API v1 retained. Windows tested; native Mac/Linux deployment validation pending. [Complete upgrade record](doc/UPGRADE-v0.3.0.zh-CN.md).
@@ -95,3 +126,5 @@ Native print workspace, image preview/rendering, presets, and tasks. The user ph
 ## 0.1
 
 Verified legacy P2 BLE handshake, read-only fields, raw raster printing, feed, and engineering tools.
+
+Linux Relay v0.3.0: enforce session-only cookies and browser owner-proof cookies; retire v1 before authentication; bound job history to state transitions; validate Ubuntu migration, cold restart and public HTTPS. Native receiver/paper/extended soak remain pending.

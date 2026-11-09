@@ -32,6 +32,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
     public void InvalidatePrinter() => reconnectPrinter = true;
     public void ApplyTemplates(List<RelayTemplate> templates, string id) => settings = settings with { Templates = templates, TemplateId = id, Style = "自定义" };
     public void ApplyPrintingPreferences(AppSettings value) => settings = settings.WithPrintingFrom(value);
+    public void ApplySavedPreferences(AppSettings value) => settings = settings.WithPrintingFrom(value) with { KeepReconnecting = value.KeepReconnecting, AutoConnect = value.AutoConnect, StartAtLogin = value.StartAtLogin };
     public async Task StartAsync(AppSettings value)
     {
         value.Validate();
@@ -40,7 +41,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
         {
         await StopCoreAsync().ConfigureAwait(false);
         pending = journal.Load();
-        string fingerprint = Fingerprint(value.DeviceKey);
+        string fingerprint = CredentialFingerprint(value);
         if (pending != null && (pending.Server != value.Validate().AbsoluteUri || pending.KeyFingerprint != fingerprint))
             throw new InvalidOperationException("有尚未回报的任务，请先用原服务器与设备密钥连接完成回报");
         settings = value; allowed = value.AutoAllowPrint; Retries = 0; NextRetryAt = null;
@@ -149,7 +150,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
             try { claim = await relay.Post($"v2/device/jobs/{job.Id}/claim", new { }, ct).ConfigureAwait(false); }
             catch (RelayHttpException e) when (e.Status == 409) { return; }
             string token = claim.GetProperty("claim").GetString() ?? throw new InvalidDataException("缺少认领凭据");
-            pending = new(settings.Validate().AbsoluteUri, Fingerprint(settings.DeviceKey), job.Id, token);
+            pending = new(settings.Validate().AbsoluteUri, CredentialFingerprint(settings), job.Id, token);
             // Persist uncertainty before fetching/rendering the claimed payload.
             journal.Save(pending);
             var full = (await relay.RequestAsync(HttpMethod.Get, "v2/device/jobs/" + job.Id, null, ct,
@@ -202,6 +203,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
         state = printer.Status, progress = printer.Progress, jobStatus = PrintMessage,
         printingEnabled = allowed, workspacePrintingEnabled = false, charging = "unknown"
     };
+    public static string CredentialFingerprint(AppSettings s) => s.AuthenticationMode == "owner" ? OwnerAuthentication.Fingerprint(s.OwnerKeyFile, s.Validate()) : Fingerprint(s.DeviceKey);
     public static string Fingerprint(string key) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(key)));
     private static string SafeMessage(Exception e) => e switch {
         RelayHttpException => e.Message, HttpRequestException => "网络连接失败", TaskCanceledException => "请求超时",

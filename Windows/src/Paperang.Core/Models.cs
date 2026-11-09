@@ -8,6 +8,8 @@ namespace Paperang.Core;
 public sealed record AppSettings
 {
     public string Server { get; init; } = "";
+    public string AuthenticationMode { get; init; } = "owner";
+    public string OwnerKeyFile { get; init; } = "";
     public string DeviceKey { get; init; } = "";
     public bool AllowHttp { get; init; }
     public string PrinterAddress { get; init; } = "";
@@ -15,6 +17,7 @@ public sealed record AppSettings
     public bool AutoConnect { get; init; } = true;
     public bool AutoAllowPrint { get; init; } = true;
     public bool KeepReconnecting { get; init; } = true;
+    public bool? StartAtLogin { get; init; }
     public string Style { get; init; } = "便签";
     public int Density { get; init; } = 100;
     public int Feed { get; init; } = 150;
@@ -34,7 +37,14 @@ public sealed record AppSettings
             !string.IsNullOrEmpty(u.UserInfo) || !string.IsNullOrEmpty(u.Query) || !string.IsNullOrEmpty(u.Fragment) ||
             u.AbsolutePath != "/" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.IsLoopback || AllowHttp))))
             throw new ArgumentException("请输入服务器根地址；公网 HTTP 需显式允许");
-        if (!(DeviceKey.StartsWith("psr_", StringComparison.Ordinal) || DeviceKey.StartsWith("pss_", StringComparison.Ordinal)) || DeviceKey.Length > 256 || DeviceKey.Any(char.IsWhiteSpace))
+        if (AuthenticationMode == "owner")
+        {
+            if (string.IsNullOrWhiteSpace(OwnerKeyFile) || !File.Exists(OwnerKeyFile))
+                throw new ArgumentException("请选择已完成服务器配对的所有者私钥文件；旧 M 密钥不能用于管理");
+            OwnerAuthentication.Read(OwnerKeyFile, u);
+        }
+        else if (AuthenticationMode != "legacy") throw new ArgumentException("不支持的鉴权方式");
+        else if (!(DeviceKey.StartsWith("psr_", StringComparison.Ordinal) || DeviceKey.StartsWith("pss_", StringComparison.Ordinal)) || DeviceKey.Length > 256 || DeviceKey.Any(char.IsWhiteSpace))
             throw new ArgumentException("请输入 psr_ 开头的设备密钥");
         if (Density is < 0 or > 100 || Feed is < 0 or > 2000 || !new[] { "便签", "小票", "复古电传", "访客纪念", "自定义" }.Contains(Style))
             throw new ArgumentException("打印设置超出范围");

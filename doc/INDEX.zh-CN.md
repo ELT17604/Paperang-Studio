@@ -1,12 +1,14 @@
 # 文档目录
 
+
+[MacClient 0.3.1 fix3 upgrade / 升级与验证](MACCLIENT-v0.3.1.zh-CN.md)
 [English](README.md) · [中文文档目录](INDEX.zh-CN.md)
 
 从 [项目首页](README.zh-CN.md) 开始。
 
 - ChatGPT 集成（实验性源码）：[中文说明](CHATGPT.zh-CN.md) · [English](CHATGPT.md) · [适配器源码](../Integrations/ChatGPT/README.md)。当前尚未部署网关或在 ChatGPT 中安装。
 
-- 独立技能：[RelaySkill 中转打印](RELAY-SKILL.zh-CN.md)，与 Client、Relay、Lite 共用 0.3.0 基线，版本独立维护。
+- 独立技能：[RelaySkill 中转打印](RELAY-SKILL.zh-CN.md)，与 Client、Relay、Lite 共用 0.3.1 基线，版本独立维护。
 
 - 跨端同步：[版本命名与兼容规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)、[版本登记表](../VERSIONS.json)
 

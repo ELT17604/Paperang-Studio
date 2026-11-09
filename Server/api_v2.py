@@ -16,15 +16,22 @@ class APIv2:
         raise self.Problem(status,text)
 
     @staticmethod
+    def can_read_status(key):
+        return bool(key and (key['role'] in ('B','C') or key['role']=='A' and key.get('anonymous')))
+
+    @staticmethod
     def state(row):
-        return {k:row[k] for k in ('id','state','created','updated')} | {'shortID':row['short_id']}
+        value={k:row[k] for k in ('id','state','created','updated')} | {'shortID':row['short_id'],'lastStage':row['last_stage']}
+        progress=json.loads(row['progress']) if row['progress'] else None
+        value['progress']={**progress,'percent':round(100*progress['completed']/progress['total'],1)} if progress else None
+        return value
 
     def route(self, method, path, body, key, ip, headers):
         s, a = self.store, self.auth
         if path.startswith('/v1/'):
-            self.fail(410,'api_v1_retired_upgrade_to_v0.3.0')
+            self.fail(410,'api_v1_retired_upgrade_to_v0.3.1')
         if method=='GET' and path=='/v2/public/status':
-            return 200,dict(version='0.3.0',status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2))
+            return 200,dict(version=s.version,status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2,anonymousOwnStatus=True,ownerExecution=True,quotaManagement=True,customPassphrasePolicy="unrestricted"))
         if method=='POST' and path=='/v2/auth/anonymous':
             if not s.c['allow_anonymous']: self.fail(403,'anonymous_disabled')
             a.limit('register:'+ip,20)
@@ -38,7 +45,8 @@ class APIv2:
         if method=='POST' and path=='/v2/auth/prove': return 200,a.prove(body,ip)
         if path=='/v2/auth/me' and method=='GET':
             if not key: self.fail(401,'identity_required')
-            return 200,{k:key.get(k) for k in ('id','user_id','browser_id','role','name','csrf','anonymous')}
+            quota=a.quota_status('user:'+key['user_id'])
+            return 200,{k:key.get(k) for k in ('id','user_id','browser_id','role','name','csrf','anonymous')} | dict(quota={k:quota[k] for k in ('effective','usage','resetAt')})
         if path=='/v2/auth/logout' and method=='POST':
             if key:
                 with s.connect() as db: db.execute('DELETE FROM sessions WHERE credential_id=?',(key['id'],))
@@ -53,27 +61,13 @@ class APIv2:
                 if previous:
                     with s.connect() as db: row=db.execute('SELECT * FROM jobs WHERE id=?',(previous['job_id'],)).fetchone()
                     if not row: self.fail(409,'idempotent_job_expired')
-                    return 202,dict(id=row['id'],shortID=row['short_id'],accepted=True,statusReadable=key['role'] in ('B','C'))
+                    return 202,dict(id=row['id'],shortID=row['short_id'],accepted=True,statusReadable=self.can_read_status(key))
                 legacy={**key,'role':'submit','request_id':request_id}
-                # Quotas: IP + stable identity + credential + aggregate, including anonymous.
-                prefix='anonymous' if key['anonymous'] else 'authenticated'
-                units=len(body.get('text','')) if isinstance(body.get('text',''),str) else 0
-                units+=body.get('content',{}).get('height',0) if isinstance(body.get('content'),dict) and type(body['content'].get('height')) is int else 0
-                window=int(time.time()//3600)
-                buckets=['user:'+key['user_id'],'credential:'+key['id'],'global']
-                with s.connect() as db:
-                    for bucket in buckets:
-                        use=db.execute('SELECT * FROM usage WHERE ip=? AND window=?',(bucket,window)).fetchone()
-                        max_jobs=s.c['global_hourly_limit'] if bucket=='global' else s.c[prefix+'_hourly_limit']
-                        max_chars=s.c['global_hourly_chars'] if bucket=='global' else s.c[prefix+'_hourly_chars']
-                        if use and (use['jobs']>=max_jobs or use['chars']+units>max_chars): self.fail(429,'identity_or_global_quota_reached')
-                # Anonymous has an identity but must retain the anonymous limits.
-                if key['anonymous'] and units>s.c['anonymous_max_length']: self.fail(400,'anonymous_size_limit')
                 result=s.submit(body,legacy,ip,headers)
-                return 202,dict(id=result['id'],shortID=result['shortID'],accepted=True,statusReadable=key['role'] in ('B','C'))
+                return 202,dict(id=result['id'],shortID=result['shortID'],accepted=True,statusReadable=self.can_read_status(key))
         lookup=re.fullmatch(r'/v2/jobs/(?:lookup/)?([A-Fa-f0-9-]{12,40})',path)
         if method=='GET' and lookup:
-            a.require(key,['B','C'])
+            if not self.can_read_status(key): self.fail(403,'status_read_forbidden')
             value=lookup.group(1).replace('-','')
             with s.connect() as db:
                 row=db.execute('SELECT * FROM jobs WHERE id=? OR short_id=?',(lookup.group(1),value.upper())).fetchone()
@@ -81,18 +75,27 @@ class APIv2:
             return 200,self.state(row)
         if path.startswith('/v2/admin/'):
             a.require(key,['C'])
+            limit=body.get('limit',100)
+            if type(limit) is not int or not 1<=limit<=100: self.fail(400,'invalid_page_size')
+            hidden=body.get('hide_revoked',False)
+            if type(hidden) is not bool: self.fail(400,'invalid_hide_revoked')
+            if method=='POST' and path=='/v2/admin/quotas/get':return 200,a.quota_status(body.get('scope','anonymous'))
+            if method=='POST' and path=='/v2/admin/quotas/set':return 200,a.set_quota(body.get('scope'),body.get('limits'),key)
             if method=='POST' and path in ('/v2/admin/keys/search','/v2/admin/identities/search','/v2/admin/sessions/search'):
                 before=body.get('before',1e20)
                 if type(before) not in (int,float): self.fail(400,'invalid_cursor')
                 collection=path.split('/')[3]
                 with s.connect() as db:
                     if collection=='keys':
-                        rows=db.execute('SELECT c.rowid AS cursor,c.id,c.user_id,i.name,c.role,c.device,c.kind,c.revoked,c.created FROM credentials c JOIN identities i ON i.id=c.user_id WHERE c.rowid<? ORDER BY c.rowid DESC LIMIT 100',(before,)).fetchall()
+                        rows=db.execute('SELECT c.rowid AS cursor,c.id,c.user_id,i.name,c.role,c.device,c.kind,c.revoked,c.created FROM credentials c JOIN identities i ON i.id=c.user_id WHERE c.rowid<? AND (?=0 OR (c.revoked=0 AND i.revoked=0)) ORDER BY c.rowid DESC LIMIT ?',(before,hidden,limit)).fetchall()
                     elif collection=='identities':
-                        rows=db.execute('SELECT rowid AS cursor,* FROM identities WHERE rowid<? ORDER BY rowid DESC LIMIT 100',(before,)).fetchall()
+                        rows=db.execute('SELECT rowid AS cursor,* FROM identities WHERE rowid<? AND (?=0 OR revoked=0) ORDER BY rowid DESC LIMIT ?',(before,hidden,limit)).fetchall()
                     else:
-                        rows=db.execute('SELECT rowid AS cursor,credential_id,browser_id,expires FROM sessions WHERE rowid<? AND expires>? ORDER BY rowid DESC LIMIT 100',(before,time.time())).fetchall()
+                        rows=db.execute('SELECT rowid AS cursor,credential_id,browser_id,expires FROM sessions WHERE rowid<? AND expires>? ORDER BY rowid DESC LIMIT ?',(before,time.time(),limit)).fetchall()
                 return 200,{collection:[{k:r[k] for k in r.keys() if k!='cursor'} for r in rows], 'next':rows[-1]['cursor'] if rows else None}
+            if path=='/v2/admin/security/retire-others' and method=='POST':
+                if body.get('keep')!=key['id'] or body.get('confirm') is not True: self.fail(400,'explicit_owner_confirmation_required')
+                return 200,a.retire_others(key)
             if path=='/v2/admin/keys' and method=='GET':
                 with s.connect() as db: rows=db.execute('SELECT c.id,c.user_id,i.name,c.role,c.device,c.kind,c.revoked,c.created FROM credentials c JOIN identities i ON i.id=c.user_id ORDER BY c.created DESC LIMIT 500').fetchall()
                 return 200,dict(keys=[dict(r) for r in rows])
@@ -148,22 +151,34 @@ class APIv2:
             if path=='/v2/admin/audit' and method=='POST':
                 before=body.get('before',2**63-1)
                 if type(before) is not int: self.fail(400,'invalid_cursor')
-                with s.connect() as db: rows=db.execute('SELECT * FROM audit_events WHERE id<? ORDER BY id DESC LIMIT 100',(before,)).fetchall()
+                with s.connect() as db: rows=db.execute('SELECT * FROM audit_events WHERE id<? ORDER BY id DESC LIMIT ?',(before,limit)).fetchall()
                 return 200,dict(events=[dict(r) for r in rows],next=rows[-1]['id'] if rows else None)
             if path in ('/v2/admin/jobs/search','/v2/admin/jobs/export') and method=='POST':
                 before=body.get('before',1e20); uid=body.get('user_id',''); job_id=body.get('job_id','')
                 if type(before) not in (int,float) or not isinstance(uid,str) or not isinstance(job_id,str): self.fail(400,'invalid_filter')
-                # Bounded pages; export streams pages in the native client.
-                with s.connect() as db: rows=db.execute('SELECT rowid AS cursor,* FROM jobs WHERE rowid<? AND (?=\'\' OR user_id=?) AND (?=\'\' OR id=?) ORDER BY rowid DESC LIMIT 5',(before,uid,uid,job_id,job_id)).fetchall()
+                # Summary pages never load text/raster blobs. Full export remains
+                # capped at five records to bound response bytes for image jobs.
+                summary=body.get('summary',False)
+                if type(summary) is not bool: self.fail(400,'invalid_summary')
+                summary=summary and path.endswith('/search')
+                columns='rowid AS cursor,id,short_id,user_id,state,created' if summary else 'rowid AS cursor,*'
+                page_limit=limit if summary else min(body.get('limit',5),5)
+                with s.connect() as db: rows=db.execute('SELECT '+columns+' FROM jobs WHERE rowid<? AND (?=\'\' OR user_id=?) AND (?=\'\' OR id=?) ORDER BY rowid DESC LIMIT ?',(before,uid,uid,job_id,job_id,page_limit)).fetchall()
                 jobs=[]
                 for row in rows:
+                    if summary:
+                        jobs.append(dict(id=row['id'],shortID=row['short_id'],user_id=row['user_id'],state=row['state'],created=row['created'])); continue
                     detail=s.job(row); detail.update(user_id=row['user_id'],browser_id=row['browser_id'],credential_id=row['credential_id'])
                     with s.connect() as db: detail['events']=[dict(r) for r in db.execute('SELECT at,state FROM job_events WHERE job_id=? ORDER BY id',(row['id'],))]
                     jobs.append(detail)
                 a.audit(key,'export' if path.endswith('export') else 'history',uid)
                 return 200,dict(jobs=jobs,next=rows[-1]['cursor'] if rows else None)
         if path.startswith('/v2/device/'):
-            a.require(key,['M'])
+            if method=='POST' and path.endswith('/claim') and s.c.get('execution_paused'):
+                self.fail(503,'execution_paused_for_owner_cutover')
+            a.require(key,['M','C'])
+            if key['role']=='C' and not (key.get('session') and key.get('kind')=='publickey'):
+                self.fail(403,'owner_private_key_required_for_execution')
             legacy={**key,'role':'device'}
             if method=='GET' and path=='/v2/device/jobs':
                 with s.connect() as db:
@@ -179,16 +194,18 @@ class APIv2:
                 if not row or row['state'] not in ('claimed','printing') or row['updated']<time.time()-300 or row['claim_key']!=key['id'] or not claim or not __import__('hmac').compare_digest(row['claim_hash'] or '',hashlib.sha256(claim.encode()).hexdigest()): self.fail(403,'active_claim_required')
                 value=s.job(row)
                 # Render fields only. No arbitrary browser metadata or full delivery record.
-                meta=value['metadata']; value['metadata']={k:meta[k] for k in ('identity','authenticated') if k in meta}
+                meta=value['metadata']; value['metadata']={k:meta[k] for k in ('identity','authenticated','ip','userAgent','language','browser') if k in meta}
                 return 200,value
             if path.endswith('/confirm'): self.fail(403,'manual_confirmation_requires_C')
             status,result=s.route_legacy(method,path.replace('/v2/','/v1/',1),body,legacy,ip,headers)
-            if method=='POST' and re.search(r'/(claim|result|reject)$',path):
-                with s.connect() as db: db.execute('INSERT INTO job_events(job_id,at,state) VALUES(?,?,?)',(path.split('/')[4],time.time(),result.get('state','claimed')))
             return status,result
         confirm=re.fullmatch(r'/v2/admin/jobs/([a-f0-9-]{36,40})/confirm',path)
         if method=='POST' and confirm:
             a.require(key,['C'])
+            limit=body.get('limit',100)
+            if type(limit) is not int or not 1<=limit<=100: self.fail(400,'invalid_page_size')
+            hidden=body.get('hide_revoked',False)
+            if type(hidden) is not bool: self.fail(400,'invalid_hide_revoked')
             with s.connect() as db:
                 row=db.execute("SELECT device FROM jobs WHERE id=? AND state IN ('sent','confirmed')",(confirm.group(1),)).fetchone()
             if not row: self.fail(409,'only_sent_can_be_confirmed')

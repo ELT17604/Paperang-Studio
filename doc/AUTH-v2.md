@@ -6,7 +6,8 @@ This coordinated pre-1.0 minor release breaks relay API v1. Local Mac HTTP API v
 
 | Role | Submit | Read status | Read historical body/delivery metadata | Manage |
 |---|---|---|---|---|
-| A / anonymous | Yes | No (403 `status_read_forbidden`) | No | No |
+| A key | Yes | No (403 `status_read_forbidden`) | No | No |
+| Anonymous browser | Yes | Own identity only | No | No |
 | B | Yes | Own stable identity only | No | No |
 | C | Yes | All | All, paginated/filterable/exportable | Credentials, names, sessions, identities, trusted keys |
 | M | No | Active device queue only | Claimed active payload only, with claim secret | Report its claim results |
@@ -17,7 +18,7 @@ An accepted A submission returns `accepted`, `id`, `shortID`, `statusReadable:fa
 
 Stable `user_id` belongs to the sender identity; credentials rotate without changing it. Shared passphrases represent a shared identity, not proven individuals. Names are mutable; submitted metadata retains its original name snapshot. `browser_id` is a random instance label, not a fingerprint. IP/UA are delivery/rate metadata, not authenticated hardware identity. Clearing cookies/incognito can create a new anonymous identity.
 
-Random keys use `psr_` and SHA-256 storage. Human phrases use `psp_<credential UUID>.<phrase>`, Argon2id (19 MiB, t=2, p=1, random salt), minimum 12 characters, generated high-entropy phrases by default. Login and anonymous registration are rate limited. No API reveals an old secret. Newly created/rotated credentials are shown once.
+Random keys use `psr_` and SHA-256 storage. Human phrases use `psp_<credential UUID>.<phrase>`, Argon2id (19 MiB, t=2, p=1, random salt), no custom length or character-complexity policy; blank generates a random phrase (HTTP request-body bounds still apply). Login and anonymous registration are rate limited. No API reveals an old secret. Newly created/rotated credentials are shown once.
 
 Web login creates a persistent Secure/HttpOnly/SameSite=Strict cookie, normally 180 days (`session_days`, bounded 1–180); C sessions last ten minutes. JavaScript stores only the nonsecret `psb_` + 32 hex browser ID and the last twenty task IDs. `GET auth/me` confirms the server identity before submission. Cookie-authenticated POST requires same-origin Origin and X-CSRF-Token. Browser login does not return the session token in JSON. The native header `X-Paperang-Native: 1` without Origin returns a token instead of setting a cookie. Production web access requires HTTPS.
 
@@ -53,3 +54,13 @@ Windows build and local v2 integration are validated on Windows. Swift/AppKit/Se
 Primary implementation references: [cryptography RSA](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/), [argon2-cffi](https://argon2-cffi.readthedocs.io/en/stable/api.html), [OWASP sessions](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
 
 A late valid result from the same claim can move a timeout-generated unknown to sent when the client already durably recorded transport completion. This updates a report only; it never reclaims or physically resends a job. Stale claims cannot fetch payload after the five-minute activity window.
+
+## v0.3.1 correction
+
+Anonymous browser identities may read only their own fixed state/progress responses. Explicit A tokens remain mailbox-only. The active payload rendering whitelist includes IP and User-Agent for local template fields; customer-facing routes still never return body/content/metadata. WinLite defaults to a paired RSA owner file for both management and execution, automatically renewing short-lived native proof sessions. C bearer/passphrase credentials alone cannot enter device execution routes; only a proven public-key C session can, still scoped to its registered device. Existing M execution routes remain for other compatible receivers. An owner-only retire-others action refuses active claims, preserves the current proven owner, invalidates other credentials/sessions and audits the cutover.
+
+## Per-identity quotas (relay fix1)
+
+C-only `POST /v2/admin/quotas/get {scope}` and `/set {scope,limits}` accept scopes `anonymous`, `authenticated`, `user:<UUID>`. Fields: `hourly_limit` jobs, `hourly_chars` text characters + raster rows, `max_length` units/submission (hard maximum 10000). Null inherits; zero blocks. Config defaults → class defaults → individual identity. SQLite persistence and transactional acceptance counters; stable identity usage survives rotation/additional credentials. Idempotent retries do not consume quota twice. Independent credential, IP and global limits still apply. Class usage is aggregate information; class limits apply separately per identity. Counters reset at the next epoch-hour boundary (`resetAt`). `auth/me` returns only the caller's effective quota/usage.
+
+WinLite: select a credential/identity and “用量与限额…”. Swift source adds a quota editor; native macOS verification pending. Online server deployment is required for enforcement; old servers return unsupported rather than silently saving locally.

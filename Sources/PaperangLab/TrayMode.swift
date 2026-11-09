@@ -8,7 +8,7 @@ import AppKit
   // Only the explicit menu action exits background mode. Reopen events must not stop its listener.
   return Self.lab?.trayMode != true
  }
- func applicationWillTerminate(_ notification:Notification){guard let lab=Self.lab else{return};lab.stopTTY();lab.stopAPI();lab.stopRelay();lab.disconnect()}
+ func applicationWillTerminate(_ notification:Notification){guard let lab=Self.lab else{return};lab.flushRelayConfiguration();lab.stopTTY();lab.stopAPI();lab.stopRelay();lab.disconnect()}
 }
 
 extension Lab {
@@ -76,6 +76,7 @@ struct TrayMenu:View {
   }.keyboardShortcut("o",modifiers:[.command])
   Divider()
   Text(AppIdentity.copyright)
+  Button("检查 GitHub 更新…",action:ReleaseUpdates.check)
   Button("退出 Paperang Studio"){NSApp.terminate(nil)}.keyboardShortcut("q",modifiers:[.command])
  }
 }

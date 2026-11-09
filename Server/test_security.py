@@ -17,6 +17,18 @@ from relay import Store, Server, Problem
 
 
 class SecurityTests(unittest.TestCase):
+    def owner(self):
+        private=rsa.generate_private_key(public_exponent=65537,key_size=3072)
+        pem=private.public_key().public_bytes(serialization.Encoding.PEM,serialization.PublicFormat.SubjectPublicKeyInfo).decode()
+        identifier=str(uuid.uuid4())
+        entry=self.auth.public_key_add('owner',pem,identifier)
+        self.assertEqual(entry['id'],identifier)
+        self.assertEqual(self.auth.public_key_add('owner',pem,identifier)['id'],identifier)
+        challenge=self.auth.challenge({'id':identifier},'127.0.0.1')
+        signature=private.sign(challenge['message'].encode(),padding.PSS(mgf=padding.MGF1(hashes.SHA256()),salt_length=32),hashes.SHA256())
+        result=self.auth.prove({'challenge':challenge['challenge'],'signature':base64.b64encode(signature).decode()},'127.0.0.1')
+        return self.auth.authenticate('Bearer '+result['token']),result['token']
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.s = Store(dict(database=str(Path(self.temp.name)/'relay.db'),port=8177))
@@ -41,9 +53,42 @@ class SecurityTests(unittest.TestCase):
             self.blocked(410,'GET',path,'C',headers={'X-Job-Receipt':'old-secret'})
         self.blocked(403,'POST','/v2/jobs',None,dict(text='x',request_id=str(uuid.uuid4())))
 
+    def test_anonymous_own_progress_only_no_content(self):
+        session=self.route('POST','/v2/auth/anonymous',body={'browser_id':'psb_'+uuid.uuid4().hex})
+        self.keys['anon']=self.auth.authenticate('Bearer '+session['token'])
+        own=self.submit('anon');other=self.submit('B')
+        self.assertTrue(own['statusReadable'])
+        state=self.route('GET','/v2/jobs/lookup/'+own['shortID'],'anon')
+        self.assertEqual(state['state'],'queued');self.assertIn('progress',state)
+        self.assertNotIn('text',state);self.assertNotIn('metadata',state);self.assertNotIn('content',state)
+        self.blocked(404,'GET','/v2/jobs/'+other['id'],'anon')
+        self.blocked(403,'POST','/v2/admin/jobs/search','anon')
+        self.blocked(403,'GET','/v2/jobs/'+own['id'],'A')
+
+    def test_owner_execution_and_safe_retirement(self):
+        owner,token=self.owner();self.keys['owner']=owner
+        self.route('GET','/v2/device/jobs','owner')
+        self.blocked(403,'GET','/v2/device/jobs','C')
+        job=self.submit('B');path='/v2/device/jobs/'+job['id']
+        claim=self.route('POST',path+'/claim','owner')['claim']
+        full=self.route('GET',path,'owner',headers={'X-Job-Claim':claim})
+        self.assertIn('ip',full['metadata']);self.assertIn('userAgent',full['metadata'])
+        self.blocked(409,'POST','/v2/admin/security/retire-others','owner',{'keep':owner['id'],'confirm':True})
+        self.route('POST',path+'/result','owner',{'claim':claim,'state':'unknown'})
+        result=self.route('POST','/v2/admin/security/retire-others','owner',{'keep':owner['id'],'confirm':True})
+        self.assertEqual(result['kept'],owner['id'])
+        for value in self.credentials.values():
+            with self.assertRaises(Problem):self.auth.authenticate('Bearer '+value['token'])
+        self.assertEqual(self.auth.authenticate('Bearer '+token)['role'],'C')
+
+    def test_cutover_pauses_claims_without_exposing_payload(self):
+        job=self.submit('B');self.s.c['execution_paused']=True
+        self.blocked(503,'POST','/v2/device/jobs/'+job['id']+'/claim','M')
+        self.assertEqual(self.route('GET','/v2/jobs/'+job['id'],'B')['state'],'queued')
+
     def test_B_own_state_only(self):
         job=self.submit('B');state=self.route('GET','/v2/jobs/'+job['id'],'B')
-        self.assertEqual(set(state),{'id','shortID','state','created','updated'})
+        self.assertEqual(set(state),{'id','shortID','state','created','updated','lastStage','progress'})
         other=self.submit('A');self.blocked(404,'GET','/v2/jobs/'+other['id'],'B')
         self.blocked(403,'POST','/v2/admin/jobs/search','B')
 
@@ -53,7 +98,7 @@ class SecurityTests(unittest.TestCase):
         self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M')
         claim=self.route('POST','/v2/device/jobs/'+job['id']+'/claim','M')['claim']
         full=self.route('GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})
-        self.assertIn('中文',full['text']);self.assertEqual(set(full['metadata']),{'identity','authenticated'})
+        self.assertIn('中文',full['text']);self.assertEqual(set(full['metadata']),{'identity','authenticated','ip','userAgent','language','browser'})
         self.blocked(403,'POST','/v2/jobs','M',dict(text='x',request_id=str(uuid.uuid4())))
         self.route('POST','/v2/device/jobs/'+job['id']+'/result','M',dict(claim=claim,state='sent'))
         self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})
@@ -166,10 +211,16 @@ class SecurityTests(unittest.TestCase):
     def test_anonymous_limits_and_minimal_metadata(self):
         result=self.route('POST','/v2/auth/anonymous',body={'browser_id':'psb_'+uuid.uuid4().hex})
         self.keys['anon']=self.auth.authenticate('Bearer '+result['token'])
-        for _ in range(5):self.submit('anon')
+        first=self.route('POST','/v2/jobs','anon',dict(text='browser fields',request_id=str(uuid.uuid4()),browser=dict(language='zh-CN',platform='Windows',timezone='discard',screen='discard',secret='discard')),headers={'User-Agent':'Firefox/132.0'})
+        claim=self.route('POST','/v2/device/jobs/'+first['id']+'/claim','M')['claim']
+        payload=self.route('GET','/v2/device/jobs/'+first['id'],'M',headers={'X-Job-Claim':claim})
+        self.assertEqual(payload['metadata']['browser'],dict(language='zh-CN',platform='Windows'))
+        self.assertEqual(payload['metadata']['userAgent'],'Firefox/132.0')
+        self.assertNotIn('metadata',self.route('GET','/v2/jobs/'+first['id'],'anon'))
+        for _ in range(4):self.submit('anon')
         self.blocked(429,'POST','/v2/jobs','anon',dict(text='sixth',request_id=str(uuid.uuid4())))
         job=self.route('POST','/v2/admin/jobs/search','C')['jobs'][0]
-        self.assertEqual(set(job['metadata']),{'ip','userAgent','identity','authenticated'})
+        self.assertEqual(set(job['metadata']),{'ip','userAgent','language','browser','identity','authenticated'})
         self.assertFalse(job['metadata']['authenticated'])
 
     def test_legacy_migration_backup_mapping_and_repeat(self):
@@ -189,6 +240,142 @@ class SecurityTests(unittest.TestCase):
         Store(dict(database=path))
         self.assertEqual(len(list(Path(self.temp.name).glob('legacy.db.pre-v0.3.0-*.bak'))),1)
 
+    def test_raw_token_cannot_be_used_as_cookie(self):
+        with self.assertRaises(Problem) as exc:
+            self.auth.authenticate(cookie='psr_session='+self.credentials['C']['token'])
+        self.assertEqual(exc.exception.status,401)
+
+    def test_repeated_heartbeat_does_not_inflate_events(self):
+        job=self.submit('B');path='/v2/device/jobs/'+job['id']
+        claim=self.route('POST',path+'/claim','M')['claim']
+        for _ in range(20):
+            self.route('POST',path+'/result','M',dict(claim=claim,state='printing'))
+        with self.s.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM job_events WHERE job_id=?',(job['id'],)).fetchone()[0],3)
+
+    def test_prune_removes_related_rows_in_one_pass(self):
+        import time
+        job=self.submit('B')
+        with self.s.connect() as db:
+            db.execute('UPDATE jobs SET updated=0 WHERE id=?',(job['id'],))
+            self.s.prune(db,time.time())
+            for table in ('job_events','submission_ids'):
+                self.assertEqual(db.execute('SELECT count(*) FROM '+table+' WHERE job_id=?',(job['id'],)).fetchone()[0],0)
+
+    def test_admin_creation_generates_ids_and_optional_passphrase(self):
+        token=self.route('POST','/v2/admin/keys','C',dict(name='Automatic identity',role='A',kind='token'))
+        uuid.UUID(token['id']);uuid.UUID(token['user_id'])
+        self.assertNotEqual(token['id'],token['user_id']);self.assertTrue(token['token'].startswith('psr_'))
+        phrase=self.route('POST','/v2/admin/keys','C',dict(name='Automatic phrase',role='B',kind='passphrase'))
+        self.assertTrue(phrase['token'].startswith('psp_'+phrase['id']+'.'))
+        linked=self.route('POST','/v2/admin/keys','C',dict(name='Existing identity',role='B',kind='token',user_id=token['user_id']))
+        self.assertEqual(linked['user_id'],token['user_id']);self.assertNotEqual(linked['id'],token['id'])
+
+    def test_admin_table_limits_filter_before_paging_and_summary(self):
+        for index in range(7):
+            entry=self.auth.create('table '+str(index),'A')
+            if index%2==0:self.auth.revoke(entry['id'],self.keys['C'])
+        first=self.route('POST','/v2/admin/keys/search','C',dict(limit=2,hide_revoked=True))
+        second=self.route('POST','/v2/admin/keys/search','C',dict(limit=2,hide_revoked=True,before=first['next']))
+        self.assertEqual(len(first['keys']),2);self.assertEqual(len(second['keys']),2)
+        self.assertFalse({r['id'] for r in first['keys']}&{r['id'] for r in second['keys']})
+        self.assertTrue(all(not r['revoked'] for r in first['keys']+second['keys']))
+        all_rows=self.route('POST','/v2/admin/keys/search','C',dict(limit=100,hide_revoked=False))
+        self.assertTrue(any(r['revoked'] for r in all_rows['keys']))
+        for limit in (0,101,True,'25'):
+            self.blocked(400,'POST','/v2/admin/keys/search','C',dict(limit=limit))
+        self.blocked(400,'POST','/v2/admin/identities/search','C',dict(hide_revoked='true'))
+        jobs=[self.submit('B') for _ in range(6)]
+        summary=self.route('POST','/v2/admin/jobs/search','C',dict(summary=True,limit=4))
+        self.assertEqual(len(summary['jobs']),4)
+        for row in summary['jobs']:self.assertFalse(set(row)&{'text','content','metadata','events'})
+        remaining=self.route('POST','/v2/admin/jobs/search','C',dict(summary=True,limit=4,before=summary['next']))
+        self.assertEqual(len(remaining['jobs']),2)
+        full=self.route('POST','/v2/admin/jobs/search','C',dict(job_id=jobs[0]['id'],limit=1))
+        self.assertEqual(len(full['jobs']),1);self.assertIn('text',full['jobs'][0])
+        for path in ('/v2/admin/identities/search','/v2/admin/sessions/search','/v2/admin/audit'):
+            result=self.route('POST',path,'C',dict(limit=1))
+            self.assertLessEqual(len(result[next(k for k in result if k!='next')]),1)
+
+    def test_custom_passphrase_without_length_or_complexity_policy(self):
+        for phrase in ('a','aaaa','中','x'*1000):
+            entry=self.auth.create('Custom','B',kind='passphrase',password=phrase)
+            session=self.auth.login({'credential':entry['token']},'127.0.0.1')
+            self.assertEqual(session['user_id'],entry['user_id'])
+        rotated=self.route('POST','/v2/admin/keys/'+entry['id']+'/rotate','C',dict(password='1'))
+        self.assertTrue(self.auth.login({'credential':rotated['token']},'127.0.0.1'))
+        for invalid in (0,False,[],{}):
+            with self.assertRaises(Problem):self.auth.create('Bad','B',kind='passphrase',password=invalid)
+
+    def test_individual_quota_shared_by_keys_rotation_and_idempotency(self):
+        uid=self.keys['B']['user_id'];scope='user:'+uid
+        result=self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=1)))
+        self.assertEqual(result['effective']['hourly_limit'],1)
+        identifier=str(uuid.uuid4());first=self.submit('B',identifier)
+        self.assertEqual(first['id'],self.submit('B',identifier)['id'])
+        entry=self.auth.create('B extra','B',user_id=uid);self.keys['extra']=self.auth.authenticate('Bearer '+entry['token'])
+        self.blocked(429,'POST','/v2/jobs','extra',dict(text='second',request_id=str(uuid.uuid4())))
+        rotated=self.route('POST','/v2/admin/keys/'+entry['id']+'/rotate','C')
+        self.keys['extra']=self.auth.authenticate('Bearer '+rotated['token'])
+        self.blocked(429,'POST','/v2/jobs','extra',dict(text='second',request_id=str(uuid.uuid4())))
+        status=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))
+        self.assertEqual(status['usage']['jobs'],1)
+        own=self.route('GET','/v2/auth/me','B')['quota']
+        self.assertEqual(own['usage']['jobs'],1);self.assertNotIn('overrides',own)
+        self.assertTrue(self.submit('A')['accepted'])
+
+    def test_anonymous_defaults_individual_override_inheritance_and_persistence(self):
+        session=self.route('POST','/v2/auth/anonymous',body=dict(browser_id='psb_'+uuid.uuid4().hex))
+        self.keys['anon']=self.auth.authenticate('Bearer '+session['token']);scope='user:'+self.keys['anon']['user_id']
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope='anonymous',limits=dict(hourly_limit=0,max_length=20)))
+        self.blocked(429,'POST','/v2/jobs','anon',dict(text='x',request_id=str(uuid.uuid4())))
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=2)))
+        self.submit('anon')
+        result=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))
+        self.assertEqual(result['effective']['max_length'],20);self.assertEqual(result['usage']['jobs'],1)
+        restarted=Store(dict(database=self.s.db))
+        self.assertEqual(restarted.api.auth.quota_status(scope)['effective']['hourly_limit'],2)
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=None)))
+        self.assertEqual(self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))['effective']['hourly_limit'],0)
+        self.blocked(429,'POST','/v2/jobs','anon',dict(text='x',request_id=str(uuid.uuid4())))
+        group=self.route('POST','/v2/admin/quotas/get','C',dict(scope='anonymous'))
+        self.assertTrue(group['usage']['aggregate']);self.assertEqual(group['usage']['jobs'],1)
+
+    def test_quota_units_raster_first_request_and_failed_jobs_not_counted(self):
+        scope='user:'+self.keys['B']['user_id']
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_chars=5,max_length=10)))
+        self.blocked(429,'POST','/v2/jobs','B',dict(text='123456',request_id=str(uuid.uuid4())))
+        pixels=b'\0'*72*2
+        content=dict(type='raster1',schemaVersion=1,width=576,height=2,bitOrder='msb-first',blackIsOne=True,encoding='base64',data=base64.b64encode(pixels).decode(),sha256=__import__('hashlib').sha256(pixels).hexdigest())
+        self.route('POST','/v2/jobs','B',dict(text='123',content=content,request_id=str(uuid.uuid4())))
+        self.blocked(429,'POST','/v2/jobs','B',dict(text='x',request_id=str(uuid.uuid4())))
+        status=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))
+        self.assertEqual(status['usage']['jobs'],1);self.assertEqual(status['usage']['units'],5)
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(max_length=1)))
+        self.blocked(400,'POST','/v2/jobs','B',dict(text='12',request_id=str(uuid.uuid4())))
+
+    def test_quota_permissions_validation_and_concurrent_reservation(self):
+        for role in ('A','B','M'):
+            self.blocked(403,'POST','/v2/admin/quotas/get',role,dict(scope='anonymous'))
+            self.blocked(403,'POST','/v2/admin/quotas/set',role,dict(scope='anonymous',limits=dict(hourly_limit=0)))
+        for limits in (dict(hourly_limit=-1),dict(hourly_limit=True),dict(hourly_chars='5'),dict(max_length=10001),dict(unknown=1)):
+            self.blocked(400,'POST','/v2/admin/quotas/set','C',dict(scope='anonymous',limits=limits))
+        self.blocked(404,'POST','/v2/admin/quotas/get','C',dict(scope='user:'+str(uuid.uuid4())))
+        scope='user:'+self.keys['B']['user_id']
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=3)))
+        def submit(_):
+            try:self.submit('B');return True
+            except Problem as e:self.assertEqual(e.status,429);return False
+        with ThreadPoolExecutor(max_workers=8) as pool:results=list(pool.map(submit,range(10)))
+        self.assertEqual(sum(results),3)
+        self.assertEqual(self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))['usage']['jobs'],3)
+
+    def test_registered_default_and_global_ceiling_still_apply(self):
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope='authenticated',limits=dict(hourly_limit=1)))
+        self.submit('A');self.blocked(429,'POST','/v2/jobs','A',dict(text='x',request_id=str(uuid.uuid4())))
+        self.s.c['global_hourly_limit']=1
+        self.blocked(429,'POST','/v2/jobs','B',dict(text='x',request_id=str(uuid.uuid4())))
+
     def test_HTTP_cookie_csrf_and_native_login(self):
         self.s.c['port']=0;server=Server(self.s);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         base='http://127.0.0.1:'+str(server.server_port)
@@ -197,6 +384,10 @@ class SecurityTests(unittest.TestCase):
             req=urllib.request.Request(base+path,data=wire,headers={'Content-Type':'application/json',**(headers or {})})
             return urllib.request.urlopen(req)
         try:
+            for path in ('/v1/public/status','/v1/device/jobs'):
+                with self.assertRaises(urllib.error.HTTPError) as exc:
+                    call(path,headers={'Authorization':'Bearer revoked'})
+                self.assertEqual(exc.exception.code,410);exc.exception.close()
             with call('/v2/auth/login',{'credential':self.credentials['B']['token']}) as res:
                 cookie=res.headers['Set-Cookie'];data=json.load(res)
             self.assertIn('HttpOnly; Secure; SameSite=Strict',cookie);self.assertNotIn('token',data)

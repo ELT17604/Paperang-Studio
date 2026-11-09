@@ -1,3 +1,5 @@
+> 后续 v0.3.1 修正：[所有者切换](OWNER-CUTOVER-v0.3.1.zh-CN.md)。匿名浏览器可读本身份进度；IP/UA 恢复到活动渲染 payload；WinLite 默认只用配对私钥。下方 v0.3.0 交接保留为历史，不要恢复旧限制或忽略 Linux 已验证分支的安全修正。
+
 # v0.3.0 跨平台 Agent 接手 Prompt
 
 两端使用同一仓库，未重命名：**ELT17604/Paperang-Studio**，https://github.com/ELT17604/Paperang-Studio 。最新入口 main：https://github.com/ELT17604/Paperang-Studio/tree/main 。先 fetch 并记录实际 SHA，不依赖旧聊天的代码副本。不要把 Windows 工作目录名当成新远程仓库名。

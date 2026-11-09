@@ -11,6 +11,13 @@ extension RelayJob {
    guard content["type"] as? String=="raster1",content["schemaVersion"] as? Int==1,content["width"] as? Int==576,let height=content["height"] as? Int,content["bitOrder"] as? String=="msb-first",content["blackIsOne"] as? Bool==true,content["encoding"] as? String=="base64",let encoded=content["data"] as? String,encoded.utf8.count<=134400,let data=Data(base64Encoded:encoded),let checksum=content["sha256"] as? String,SHA256.hash(data:data).map({String(format:"%02x",$0)}).joined()==checksum else{throw PrintFailure("远程内容类型、尺寸或校验和不正确，请更新客户端或重新提交")}
   return try Raster.packed(data,height:height)
  }
+ var browserDescription:String {
+  let browser=metadata["browser"] as? [String:Any] ?? [:]
+  let structured=browser.keys.sorted().map{"\($0)=\(browser[$0]!)"}.joined(separator:" · ")
+  if !structured.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{return structured}
+  var fallback=[String]();if let ua=metadata["userAgent"] as? String,!ua.isEmpty{fallback.append(ua)};if let language=metadata["language"] as? String,!language.isEmpty{fallback.append("language="+language)}
+  return fallback.isEmpty ? "浏览器信息未提供":fallback.joined(separator:" · ")
+ }
  var layoutSignature:String {
   id+shortID+text+rawMetadata+String(created.timeIntervalSince1970)+String(hasFullText)+(content?["sha256"] as? String ?? "")+String(content?["data"] != nil)
  }
@@ -21,8 +28,7 @@ struct RelayBlock:Codable,Identifiable,Equatable {
  static let kinds=["标题","正文","投稿身份","时间","任务编号","IP","UA","浏览器信息","分隔线","自定义文字"]
  static func make(_ kind:String,_ text:String="",size:Double=24)->Self {var b=Self();b.kind=kind;b.text=text;b.size=size;return b}
  func value(_ job:RelayJob)->String {
-  let browser=job.metadata["browser"] as? [String:Any] ?? [:]
-  let fields=["text":job.text,"sender":job.sender,"id":job.printableID,"time":ISO8601DateFormatter().string(from:job.created),"ip":job.metadata["ip"] as? String ?? "unknown","ua":job.metadata["userAgent"] as? String ?? "unknown","device":browser.keys.sorted().map{"\($0)=\(browser[$0]!)"}.joined(separator:" · ")]
+  let fields=["text":job.text,"sender":job.sender,"id":job.printableID,"time":ISO8601DateFormatter().string(from:job.created),"ip":job.metadata["ip"] as? String ?? "unknown","ua":job.metadata["userAgent"] as? String ?? "unknown","device":job.browserDescription]
   switch kind {
   case "正文":return fields["text"]!
   case "投稿身份":return "From: "+fields["sender"]!
@@ -86,16 +92,8 @@ struct RelayRenderedBlock:Identifiable {let id:UUID;let raster:Raster;let gap:In
 
 extension Lab {
  var currentRelayTemplate:RelayTemplate {relayTemplates.first{$0.id.uuidString==relayTemplateID} ?? relayTemplates.first ?? .preset("便签")}
- func relayRaster(_ job:RelayJob,settings:PrintSettings)throws->Raster {
-  if relayStyle=="自定义"{return try currentRelayTemplate.raster(job,settings:settings)}
-  if let image=try job.verifiedRaster() {
-   let footer=relayDocument(job)
-   if footer.isEmpty{return image}
-   let text=try Renderer.render(text:footer,image:nil,mode:"文字",settings:settings)
-   return try Raster.stack([(image,0),(text,8)])
-  }
-  return try Renderer.render(text:relayDocument(job),image:nil,mode:"文字",settings:settings)
- }
+ func relayRaster(_ job:RelayJob,settings:PrintSettings)throws->Raster {try relayRenderPlan(settings:settings).raster(job)}
+
  var relaySampleJob:RelayJob {if let job=selectedRelayJob,job.hasFullText{return job};return RelayJob(id:String(repeating:"a",count:40),shortID:"A1B2C3D4E5F6",text:"Hello Paperang!\n这是一条用于设计版式的示例纸条。",metadata:["identity":"Sample visitor","ip":"192.0.2.1","userAgent":"Example browser","browser":["platform":"Sample device"]],created:Date(timeIntervalSince1970:1793740800))}
 }
 
