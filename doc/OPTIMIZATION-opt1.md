@@ -45,3 +45,11 @@ No new physical P2 output, deployed Linux update, native Windows build/UI run or
 ## Windows follow-up — 2026-11-10
 
 Windows x64 self-contained setup built from opt1. All 61 historical Windows regression checks passed in an external workspace. Real installed fix3-to-opt1 overlay upgrade passed: stable AppId/path, graceful shutdown, updated uninstall registration, byte-identical settings/templates/owner key and running new tray process. Final payload rebuilt without temporary test access. No physical print or long-duration soak was performed. See the Chinese companion for package details.
+
+## Linux terminal management follow-up
+
+The opt1 relay is deployed on the owner's Linux host. The explicitly requested factory reset retained one selected Windows public-key C identity and removed the other prior credentials/users, 33 historical tasks, old application logs/backups/releases. A new non-root systemd start/cold restart, public HTTPS, source hashes and the service-account console worker passed. The existing Windows identity reconnected, including a Windows opt2 receiver using the same Relay v2 contract. No physical print was submitted as part of this reset.
+
+The root-only Python curses terminal is installed at the deployment root. It supports creation/distribution/rotation/revocation, identities/sessions, quota settings, paged history/export and service-policy editing. Changes are draft-based with input validation, active-claim refusal, atomic config writes, health verification and config-only rollback. Deployment paths/ports/device identity remain read-only in ordinary settings. Root UI operations delegate DB writes to the service identity; no HTTP listener or permanent console credential exists. See [guide](../Server/ADMIN-CONSOLE.md).
+
+The configuration editor passed six isolated configuration paths, four console-backend checks, an installer success/failure fixture and real PTY editing/navigation. On-host installation verified atomic writing of identical configuration bytes and actual worker access, without changing live policies, restarting the relay or resetting data. Actual policy-restart rollback was exercised in isolation; it was not forced against the production service. Operational source IDs are recorded separately for the immutable server release and the independently updated root console.
