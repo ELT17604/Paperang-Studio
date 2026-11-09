@@ -76,6 +76,7 @@ struct TrayMenu:View {
   }.keyboardShortcut("o",modifiers:[.command])
   Divider()
   Text(AppIdentity.copyright)
+  Button("检查 GitHub 更新…",action:ReleaseUpdates.check)
   Button("退出 Paperang Studio"){NSApp.terminate(nil)}.keyboardShortcut("q",modifiers:[.command])
  }
 }

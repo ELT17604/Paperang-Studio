@@ -17,7 +17,7 @@ import PrintCore
  @StateObject var lab:Lab
  init(){let model=Lab();_lab=StateObject(wrappedValue:model);StudioLifecycle.lab=model}
  var body:some Scene{Window("Paperang Studio",id:"main"){Content(lab:lab).frame(minWidth:1120,minHeight:760)}.defaultSize(width:1420,height:940).commands{
- CommandGroup(replacing:.appInfo){Button("About Paperang Studio",action:lab.showAbout)}
+ CommandGroup(replacing:.appInfo){Button("About Paperang Studio",action:lab.showAbout);Button("检查 GitHub 更新…",action:ReleaseUpdates.check)}
  CommandGroup(after:.newItem){Divider();Button("进入托盘模式",action:lab.enterTray);Button("关于 Paperang Studio",action:lab.showAbout)}
  }
  MenuBarExtra(isInserted:Binding(get:{lab.trayMode},set:{if !$0{lab.exitTray()}})) {

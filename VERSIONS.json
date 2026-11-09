@@ -15,10 +15,10 @@
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.1-macclient-fix1",
-      "runtimeVersion": "0.3.1-macclient-fix1",
+      "version": "v0.3.1-macclient-fix2",
+      "runtimeVersion": "0.3.1-macclient-fix2",
       "versionSource": "VERSION",
-      "verification": "Source updated; native macOS validation pending"
+      "verification": "Manual GitHub release check source updated; native validation intentionally deferred"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
