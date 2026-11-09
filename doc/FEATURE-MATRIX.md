@@ -55,3 +55,7 @@ Server source ready; live deployment pending. Compatible API v2 baseline remains
 ## MacClient fix3 validation
 
 Native build, SwiftUI window review, isolated owner/C/M HTTP integration and 39 server tests passed. See [upgrade and exact scope](MACCLIENT-v0.3.1.md). No new physical print or production deployment.
+
+## opt1
+
+[Current source cleanup, per-platform validation and regression archive](OPTIMIZATION-opt1.md). All implemented distribution runtime versions now end in opt1; this does not assert new Windows/hardware/deployment validation.

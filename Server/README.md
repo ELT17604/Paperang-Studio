@@ -1,5 +1,7 @@
 # Paperang Studio LinuxRelayServer v0.3.0
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](../doc/OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 [Authentication and all API routes](../doc/AUTH-v2.md) · [中文升级指南](../doc/UPGRADE-v0.3.0.zh-CN.md) · [Agent handoff](../doc/HANDOFF-v0.3.0.zh-CN.md)
 
 Python 3.10+, SQLite, argon2-cffi and cryptography. Relay API v2 is incompatible with v0.2.x; old relay /v1 routes return 410. The Mac local API v1 is separate. Receivers use scoped M keys; C administration is available in native clients. Public submissions require a registered browser identity; Explicit A keys cannot read print status; anonymous browser identities and B can read only their own states. Task content is available only in C history or a matching device-scoped active claim (M or proven public-key C).
@@ -44,6 +46,6 @@ Configuration defaults: loopback:8177, device p2, anonymous 500 units/job, 5 job
 
 key-add prints a newly generated secret once; redirect to a private file rather than logging it. key-import accepts existing offline keygen JSON for legacy role aliases (submit→B, admin→C, device→M). Use C UI/API to create A/passphrase credentials. Fixed owner keys are local RSA PEM files; register only their public key, then prove possession. Never upload the private JSON.
 
-Run `python -m unittest discover -s Server -p 'test_*.py'` in the configured venv. See the full auth contract for route schemas, status-only responses, CSRF, pagination, revocation, retention and proof limitations. Tests run with temporary databases; do not run them against a production config.
+Run regression validation from the external archive described above. See the full auth contract for route schemas, status-only responses, CSRF, pagination, revocation, retention and proof limitations. Tests run with temporary databases; do not run them against a production config.
 
 Quota/passphrase revision: `v0.3.1-linuxrelayserver-fix1`. C-only class and stable-identity limits persist in SQLite. Follow [deployment handoff](../doc/HANDOFF-QUOTAS-v0.3.1.zh-CN.md); never rerun owner cutover for a routine upgrade. Local 39-test validation does not mean the production service is deployed.

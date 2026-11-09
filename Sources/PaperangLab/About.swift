@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 
 enum AppIdentity {
- static let version = Bundle.main.object(forInfoDictionaryKey:"PaperangDistributionVersion") as? String ?? "0.3.1-macclient-fix3"
+ static let version = Bundle.main.object(forInfoDictionaryKey:"PaperangDistributionVersion") as? String ?? "0.3.1-macclient-opt1"
  static let copyright = "© 2026 ELT Group"
  static let statement = """
 Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any of their related companies or affiliates. All third-party names and trademarks belong to their respective owners.

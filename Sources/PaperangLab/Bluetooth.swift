@@ -29,23 +29,24 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  @Published var ttyIdleSeconds=3;@Published var ttyFeed=0;@Published var ttyFontSize=12.0;@Published var ttyPrivateInput=false
  @Published var apiRunning=false;@Published var apiPort=8176;@Published var apiToken=UUID().uuidString+UUID().uuidString;@Published var apiOrigins="http://localhost:3000,http://127.0.0.1:3000"
  @Published var relayOnline=false;@Published var relayFailures=0;@Published var relayLastSeen:Date?;@Published var relayWarning=false
- @Published var relayAdminKey="";@Published var relayManagedKeys=[RelayManagedKey]();@Published var relayKeyName="";@Published var relayNewRole="submit";@Published var relayKeyDevice="p2";@Published var relayCreatedToken="";@Published var relayAdminMessage="";@Published var relayAdminBusy=false
+ @Published var relayAdminKey=""
+ @Published var relayTab="任务"
  var relaySession=UUID();var relayFlushing=false
  @Published var relayAutoConnect=false;@Published var relayReconnectPrinter=false;@Published var relayPrinterID=""
  var relayPrinterRetryAt=Date.distantPast;var configurationObserver:AnyCancellable?;var configurationDraftBytes=Data();var configurationLastError=""
  @Published var relayAuthMode="owner";@Published var relayOwnerPath=""
  var relayOwner:RelayOwnerAuthentication?;var relayIdentityFingerprint=""
  @Published var relayURL="";@Published var relayKey="";@Published var relayAllowHTTP=false;@Published var relayRunning=false;@Published var relayAutoPrint=false
- @Published var relayMessage="尚未连接中转服务器";@Published var relayJobs=[RelayJob]();@Published var relaySelection="";@Published var relayStyle=UserDefaults.standard.string(forKey:"relay.style") ?? "便签" {didSet{UserDefaults.standard.set(relayStyle,forKey:"relay.style")}}
+ @Published var relayMessage="尚未连接中转服务器";@Published var relayJobs=[RelayJob]();@Published var relaySelection="";@Published var relayStyle=UserDefaults.standard.string(forKey:"relay.style") ?? "便签"
  @Published var relayIncludeID=false;@Published var relayIncludeText=true;@Published var relayIncludeSender=true;@Published var relayIncludeTime=true;@Published var relayIncludeIP=false;@Published var relayIncludeUA=false;@Published var relayIncludeDevice=false
  @Published var relayPreviewLoading=false;@Published var relayPreviewRenderedSignature=""
  var relayPreviewTask:Task<Void,Never>?;var relayPreviewSession=UUID()
  @Published var relayDensity=100;@Published var relayFeed=150;@Published var relayPreview:NSImage?;@Published var relayMutating=false
- @Published var relayKeepReconnecting=UserDefaults.standard.object(forKey:"relay.keepReconnecting") as? Bool ?? true {didSet{UserDefaults.standard.set(relayKeepReconnecting,forKey:"relay.keepReconnecting")}}
- @Published var relayDefaultAutoPrint=UserDefaults.standard.bool(forKey:"relay.defaultAutoPrint") {didSet{UserDefaults.standard.set(relayDefaultAutoPrint,forKey:"relay.defaultAutoPrint")}}
- @Published var relayTemplates=RelayTemplate.load();@Published var relayTemplateID=UserDefaults.standard.string(forKey:"relay.templateID") ?? "" {didSet{UserDefaults.standard.set(relayTemplateID,forKey:"relay.templateID")}}
+ @Published var relayKeepReconnecting=UserDefaults.standard.object(forKey:"relay.keepReconnecting") as? Bool ?? true
+ @Published var relayDefaultAutoPrint=UserDefaults.standard.bool(forKey:"relay.defaultAutoPrint")
+ @Published var relayTemplates=RelayTemplate.load();@Published var relayTemplateID=UserDefaults.standard.string(forKey:"relay.templateID") ?? ""
  @Published var relayEditorOpen=false;@Published var relayFilter="全部";@Published var relaySearch=""
- var relayDetailTask:Task<Void,Never>?;var relayDetailCache=[String:RelayJob]()
+ var relayDetailTask:Task<Void,Never>?
  var relayTask:Task<Void,Never>?;var relayEndpoint:URL?;var relayCredential="";var relayFlight:RelayFlight?
  var terminal:PTYSession?;var terminalBuffer=PaperTerminalBuffer();var terminalTimer:Task<Void,Never>?;var ttyLastOutput=Date();var ttyFlight:(UUID,String)?
  var api:LocalAPI?
@@ -109,16 +110,15 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  func peripheral(_ p:CBPeripheral,didUpdateValueFor c:CBCharacteristic,error:Error?){guard peripheral?.identifier==p.identifier else{return};if let error{log("READ ERROR","\(c.uuid): \(error)");return};guard let d=c.value else{return};log("RX \(c.uuid)",Wire.hex(d));if c.uuid==CBUUID(string:"FF03"){let b=[UInt8](d);if b.count>=2 && b[0]==1{credits+=Int(b[1])};if b.count>=3 && b[0]==2{packetLimit=min(packetLimit,Int(b[1])|Int(b[2])<<8)};pump();return};if c.uuid != CBUUID(string:"FF01"){services.append("读取 \(c.uuid): \(String(data:d,encoding:.utf8) ?? "") [\(Wire.hex(d))]");return};for f in decoder.push(d){log(f.valid ? "FRAME":"CRC ERROR",String(format:"cmd=%02X index=%d ",f.command,f.index)+Wire.hex(f.payload));guard f.valid else{continue};if f.command==ackCommand && f.payload.count==1 {ackResult=f.payload.first==0};if f.command==13 {record(12,f.payload)};if let req=request,Command.expected[req]==f.command {response=f.payload;record(req,f.payload)}}}
  func peripheralIsReady(toSendWriteWithoutResponse p:CBPeripheral){pump()}
  func pump(){guard !pumping,!queue.isEmpty,credits>0,let p=peripheral,let w=write,p.canSendWriteWithoutResponse else{return};pumping=true;credits-=1;let d=queue.removeFirst();log("TX BLE",Wire.hex(d));p.writeValue(d,for:w,type:.withoutResponse);Task{let g=generation;try? await Task.sleep(for:.milliseconds((activeSettings ?? settings).writePauseMS));guard g==generation else{return};pumping=false;pump()}}
- enum Failure:LocalizedError{case message(String);var errorDescription:String?{if case .message(let s)=self{return s};return nil}}
  func send(_ c:UInt8,_ payload:Data,seed:UInt32=0,index:UInt8=0,ack:Bool=true) async throws {
-  guard write != nil,peripheral?.state == .connected else{throw Failure.message("蓝牙未连接")};try Task.checkCancellation();let g=generation
+  guard write != nil,peripheral?.state == .connected else{throw PrintFailure("蓝牙未连接")};try Task.checkCancellation();let g=generation
   ackCommand=c;ackResult=nil;let data=Wire.frame(c,payload,seed:seed,index:index);log("TX FRAME",Wire.hex(data));let size=max(1,min(packetLimit,(activeSettings ?? settings).bleChunk))
   for offset in stride(from:0,to:data.count,by:size){queue.append(Data(data[offset..<min(offset+size,data.count)]))};pump()
   let end=Date().addingTimeInterval(Double((activeSettings ?? settings).timeoutSeconds))
-  while !queue.isEmpty || pumping || (ack && ackResult==nil){try Task.checkCancellation();if g != generation{throw Failure.message("连接已改变")};if Date()>end {queue=[];throw Failure.message(String(format:"0x%02X 超时：未收到完整确认或流控额度",c))};try await Task.sleep(for:.milliseconds(5))}
-  if ack && ackResult != true {throw Failure.message(String(format:"0x%02X 返回失败 ACK",c))};ackCommand=nil
+  while !queue.isEmpty || pumping || (ack && ackResult==nil){try Task.checkCancellation();if g != generation{throw PrintFailure("连接已改变")};if Date()>end {queue=[];throw PrintFailure(String(format:"0x%02X 超时：未收到完整确认或流控额度",c))};try await Task.sleep(for:.milliseconds(5))}
+  if ack && ackResult != true {throw PrintFailure(String(format:"0x%02X 返回失败 ACK",c))};ackCommand=nil
  }
- func handshake() async throws {try await send(24,Data([0x21,0x95,0x76,0x35]),seed:0x35769521);try await query(6);guard let name=response.flatMap({String(data:$0,encoding:.utf8)}),["Paperang_P2","P2"].contains(name.trimmingCharacters(in:.controlCharacters)) else{throw Failure.message("此版本只验证了Paperang P2，型号未确认")};try await query(16);try await query(12);try await query(28);ready=true;state="P2 会话已就绪";log("SESSION","CRC key=0；传统协议，非A5")}
+ func handshake() async throws {try await send(24,Data([0x21,0x95,0x76,0x35]),seed:0x35769521);try await query(6);guard let name=response.flatMap({String(data:$0,encoding:.utf8)}),["Paperang_P2","P2"].contains(name.trimmingCharacters(in:.controlCharacters)) else{throw PrintFailure("此版本只验证了Paperang P2，型号未确认")};try await query(16);try await query(12);try await query(28);ready=true;state="P2 会话已就绪";log("SESSION","CRC key=0；传统协议，非A5")}
  func run(_ block:@escaping @MainActor () async throws -> Void){guard !busy else{return};busy=true;error="";let g=generation;work=Task{do{try await block()}catch{if g==generation {self.error=error.localizedDescription;queue=[];log("ERROR",error.localizedDescription)}};if g==generation{busy=false;activeSettings=nil}}}
  func query(_ c:UInt8) async throws {request=c;response=nil;defer{request=nil};try await send(c,Data([1]));let end=Date().addingTimeInterval(1);while response==nil && Date()<end{try await Task.sleep(for:.milliseconds(50))};if response==nil{record(c,nil)}}
  func querySelected(){guard ready else{return};run{try await self.query(self.selected)}}

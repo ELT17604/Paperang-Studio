@@ -1,5 +1,7 @@
 > v0.3.1: [Owner-file authentication](../doc/OWNER-CUTOVER-v0.3.1.zh-CN.md). WinLite defaults to a paired owner private key.
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](../doc/OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 # Paperang Studio for Windows
 
 > v0.3.0 uses [relay API v2](../doc/AUTH-v2.md). Settings → 管理 opens the native C panel for keys, identities, sessions, history and JSONL export. Keep the background M token separate.
@@ -14,7 +16,6 @@ A native WinForms tray client for the existing Paperang relay and legacy BLE P2.
 
 ```powershell
 dotnet build Windows/src/Paperang.WinLite -c Release
-dotnet run --project Windows/tests/Paperang.Tests -c Release
 ./Windows/scripts/build.ps1
 ./Windows/scripts/build.ps1 -SelfContained
 ```

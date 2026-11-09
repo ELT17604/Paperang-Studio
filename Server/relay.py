@@ -5,10 +5,9 @@ import argparse, contextlib, hashlib, hmac, ipaddress, json, os, re, secrets, si
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-APP_VERSION = '0.3.1-linuxrelayserver-fix1'
+APP_VERSION = '0.3.1-linuxrelayserver-opt1'
 
 JOB_PATTERN = r'(?:[a-f0-9]{40}|[a-f0-9-]{36})'
-SHORT_JOB_PATTERN = r'(?:[A-Fa-f0-9]{12}|[A-Fa-f0-9]{4}(?:-[A-Fa-f0-9]{4}){2})'
 
 def transport_progress(detail):
     """Read existing Mac reports; these are raster sends, not paper confirmation."""
@@ -95,32 +94,6 @@ class Store:
                 db.execute('INSERT INTO identities VALUES(?,?,0,0,?)',(identifier,name,time.time()))
                 db.execute('INSERT INTO credentials VALUES(?,?,?,?,?,?,NULL,0,?)',(identifier,identifier,{'submit':'B','admin':'C','device':'M'}[role],device,'token',digest(token),time.time()))
         return dict(id=identifier,name=name,role=role,device=device,token=token)
-    def key_revoke(self,identifier,actor=None,allow_lockout=False):
-        if actor and identifier==actor['id']:
-            raise Problem(409,'Cannot revoke the administrator key currently in use')
-        with self.connect() as db:
-            db.execute('BEGIN IMMEDIATE')
-            try:
-                row=db.execute('SELECT * FROM keys WHERE id=?',(identifier,)).fetchone()
-                if not row:raise Problem(404,'Key not found')
-                if not row['revoked'] and not allow_lockout:
-                    if row['role'] in ['admin','device']:
-                        remaining=db.execute('SELECT count(*) FROM keys WHERE role=? AND device=? AND revoked=0 AND id<>?',(row['role'],row['device'],identifier)).fetchone()[0]
-                        if not remaining:raise Problem(409,'Create and configure a replacement '+row['role']+' key before revoking the last active key')
-                    if row['role']=='device':
-                        device=db.execute('SELECT * FROM devices WHERE id=?',(row['device'],)).fetchone()
-                        if device and time.time()-device['seen']<15 and json.loads(device['status']).get('_relay_key_id')==identifier:
-                            raise Problem(409,'This device key is in use. Switch the Mac to its replacement key and reconnect before revoking it')
-                db.execute('UPDATE keys SET revoked=1 WHERE id=?',(identifier,))
-                db.execute('COMMIT')
-            except Exception:db.execute('ROLLBACK');raise
-        return dict(revoked=True)
-    def authenticate(self,authorization):
-        if not authorization: return None
-        if not authorization.startswith('Bearer ') or len(authorization)>256: raise Problem(401,'Invalid access key')
-        with self.connect() as db: row=db.execute('SELECT * FROM keys WHERE hash=? AND revoked=0',(digest(authorization[7:]),)).fetchone()
-        if row is None: raise Problem(401,'Invalid or revoked access key')
-        return dict(row)
     def require(self,key,roles):
         if key is None or key['role'] not in roles: raise Problem(403,'This operation requires a '+('/'.join(roles))+' key')
     def client_ip(self,peer,forwarded):
@@ -155,22 +128,15 @@ class Store:
         if content.get('sha256',checksum)!=checksum:raise Problem(400,'Raster checksum mismatch')
         meta=dict(schemaVersion=1,type='raster1',width=width,height=height,encoding='base64',bitOrder='msb-first',blackIsOne=True,sha256=checksum,byteLength=len(raw))
         return meta,raw,height
-    def public_status(self):
-        with self.connect() as db: row=db.execute('SELECT * FROM devices WHERE id=?',(self.c['device_id'],)).fetchone()
-        data=json.loads(row['status']) if row else {}
-        online=bool(row and time.time()-row['seen']<15)
-        return dict(online=online,printerConnected=online and data.get('connected',False),busy=online and data.get('busy',False),automaticPrinting=online and data.get('relayAutomaticPrinting',data.get('automaticNetworkConsent',False)),lastSeen=row['seen'] if row else None,serverTime=time.time(),staleAfter=15)
     def prune(self,db,now):
         db.execute('DELETE FROM usage WHERE window<?',(int(now//3600)-48,))
         db.execute("DELETE FROM jobs WHERE updated<? AND state NOT IN ('claimed','printing')",(now-self.c['retention_days']*86400,))
-        if hasattr(self,'api'):
-            db.execute('DELETE FROM job_events WHERE job_id NOT IN (SELECT id FROM jobs)')
-            db.execute('DELETE FROM submission_ids WHERE job_id NOT IN (SELECT id FROM jobs)')
-            db.execute('DELETE FROM audit_events WHERE at<?',(now-90*86400,))
-            db.execute('DELETE FROM sessions WHERE expires<?',(now,))
-            db.execute('DELETE FROM challenges WHERE expires<?',(now,))
-        if hasattr(self,'api'):
-            db.execute("INSERT INTO job_events(job_id,at,state) SELECT id,?,'unknown' FROM jobs WHERE state IN ('claimed','printing') AND updated<?",(now,now-300))
+        db.execute('DELETE FROM job_events WHERE job_id NOT IN (SELECT id FROM jobs)')
+        db.execute('DELETE FROM submission_ids WHERE job_id NOT IN (SELECT id FROM jobs)')
+        db.execute('DELETE FROM audit_events WHERE at<?',(now-90*86400,))
+        db.execute('DELETE FROM sessions WHERE expires<?',(now,))
+        db.execute('DELETE FROM challenges WHERE expires<?',(now,))
+        db.execute("INSERT INTO job_events(job_id,at,state) SELECT id,?,'unknown' FROM jobs WHERE state IN ('claimed','printing') AND updated<?",(now,now-300))
         # A disconnected sender is never automatically retried: the paper outcome is uncertain.
         db.execute("UPDATE jobs SET state='unknown',detail='Device did not report completion; inspect paper before retrying',updated=? WHERE state IN ('claimed','printing') AND updated<?",(now,now-300))
     def submit(self,body,key,ip,headers):
@@ -236,66 +202,13 @@ class Store:
                 if not summary and include_payload:result['content']['data']=base64.b64encode(row['payload']).decode('ascii')
         if private:result.update(text=row['text'][:120] if summary else row['text'],metadata=json.loads(row['meta']),device=row['device'],truncated=summary and (len(row['text'])>120 or bool(row['content_meta'])))
         return result
-    def lookup_job(self,short_id,key,headers):
-        identifier=short_id.replace('-','').upper()
-        with self.connect() as db:
-            self.prune(db,time.time())
-            row=db.execute('SELECT * FROM jobs WHERE short_id=?',(identifier,)).fetchone()
-        if row is None:raise Problem(404,'Job not found or expired')
-        receipt=headers.get('X-Job-Receipt','')
-        if receipt and not hmac.compare_digest(row['receipt'],digest(receipt)):raise Problem(404,'Job not found or expired')
-        authorized=bool(receipt) or bool(key and (key['role']=='admin' or (key['role']=='device' and key['device']==row['device']) or (key['role']=='submit' and key['id']==row['submit_key'])))
-        result=self.job(row,private=authorized,include_payload=headers.get('X-Paperang-Content-Summary')!='1')
-        result['detailsAvailable']=authorized
-        if not authorized:
-            # The printed ID is a locator, not a secret. Device-supplied detail
-            # may contain private text, so only expose fixed fields publicly.
-            result.pop('id');result.pop('detail')
-        return result
     def route(self,method,path,body,key,ip,headers):
         return self.api.route(method,path,body,key,ip,headers)
-    def route_legacy(self,method,path,body,key,ip,headers):
+    def route_device(self,method,path,body,key,headers):
         now=time.time()
-        if method=='GET' and path=='/v1/public/status':return 200,dict(version=APP_VERSION,status=self.public_status(),policy=self.policies(),capabilities=dict(partitionProgress='transport',shortIDLookup=True,contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840))
-        if method=='POST' and path=='/v1/jobs':return 202,self.submit(body,key,ip,headers)
-        lookup=re.fullmatch(r'/v1/jobs/lookup/('+SHORT_JOB_PATTERN+')',path)
-        if method=='GET' and lookup:return 200,self.lookup_job(lookup.group(1),key,headers)
-        if method=='GET' and re.fullmatch(r'/v1/jobs/'+JOB_PATTERN,path):
-            with self.connect() as db:
-                self.prune(db,now)
-                row=db.execute('SELECT * FROM jobs WHERE id=?',(path.rsplit('/',1)[1],)).fetchone()
-            receipt=headers.get('X-Job-Receipt','')
-            if not row or not receipt or not hmac.compare_digest(row['receipt'],digest(receipt)):raise Problem(404,'Job not found')
-            return 200,self.job(row,False)
-        if path.startswith('/v1/admin/'):
-            self.require(key,['admin'])
-            if method=='GET' and path=='/v1/admin/keys':
-                with self.connect() as db:rows=db.execute('SELECT id,name,role,device,revoked,created FROM keys ORDER BY created DESC').fetchall()
-                return 200,dict(keys=[dict(v) for v in rows])
-            if method=='POST' and path=='/v1/admin/keys':
-                try:return 201,self.key_add(body.get('name'),body.get('role'),body.get('device',self.c['device_id']))
-                except ValueError as e:raise Problem(400,str(e))
-            if method=='POST' and re.fullmatch(r'/v1/admin/keys/[a-f0-9-]{36}/revoke',path):
-                identifier=path.split('/')[4]
-                return 200,self.key_revoke(identifier,key)
-            change=re.fullmatch(r'/v1/admin/keys/([a-f0-9-]{36})/(rename|delete)',path)
-            if method=='POST' and change:
-                identifier,action=change.groups()
-                if identifier==key['id']:raise Problem(409,'Cannot modify the current administrator key')
-                with self.connect() as db:
-                    row=db.execute('SELECT * FROM keys WHERE id=?',(identifier,)).fetchone()
-                    if not row:raise Problem(404,'Key not found')
-                    if action=='rename':
-                        name=body.get('name')
-                        if not isinstance(name,str) or not 1<=len(name.strip())<=80:raise Problem(400,'Name must contain 1–80 characters')
-                        db.execute('UPDATE keys SET name=? WHERE id=?',(name.strip(),identifier))
-                    else:
-                        if not row['revoked']:raise Problem(409,'Revoke the key before deleting it')
-                        db.execute('DELETE FROM keys WHERE id=?',(identifier,))
-                return 200,dict(updated=True)
-        if path.startswith('/v1/device/'):
+        if path.startswith('/v2/device/'):
             self.require(key,['device'])
-            if method=='POST' and path=='/v1/device/status':
+            if method=='POST' and path=='/v2/device/status':
                 status=body.get('status',{})
                 if not isinstance(status,dict) or len(compact(status).encode())>16384:raise Problem(400,'Invalid status')
                 status={**status,'_relay_key_id':key['id']}
@@ -303,18 +216,7 @@ class Store:
                     db.execute('INSERT INTO devices VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET status=excluded.status,seen=excluded.seen',(key['device'],compact(status),now))
                     self.prune(db,now)
                 return 200,dict(accepted=True)
-            if method=='GET' and path=='/v1/device/jobs':
-                supported='raster1' in headers.get('X-Paperang-Content-Types','').split(',')
-                with self.connect() as db:
-                    self.prune(db,now)
-                    rows=db.execute("SELECT id,state,created,updated,detail,short_id,last_stage,progress,content_meta,text,meta,device FROM jobs WHERE device=? AND (content_meta IS NULL OR ?=1) ORDER BY CASE WHEN state IN ('queued','claimed','printing') THEN 0 ELSE 1 END,CASE WHEN state IN ('queued','claimed','printing') THEN created ELSE -created END LIMIT 100",(key['device'],int(supported))).fetchall()
-                return 200,dict(jobs=[self.job(r,summary=True) for r in rows])
-            detail=re.fullmatch(r'/v1/device/jobs/('+JOB_PATTERN+')',path)
-            if method=='GET' and detail:
-                with self.connect() as db:row=db.execute('SELECT * FROM jobs WHERE id=? AND device=?',(detail.group(1),key['device'])).fetchone()
-                if not row:raise Problem(404,'Job not found')
-                return 200,self.job(row)
-            match=re.fullmatch(r'/v1/device/jobs/('+JOB_PATTERN+r')/(claim|result|reject|confirm)',path)
+            match=re.fullmatch(r'/v2/device/jobs/('+JOB_PATTERN+r')/(claim|result|reject|confirm)',path)
             if method=='POST' and match:
                 identifier,action=match.groups()
                 with self.connect() as db:
@@ -445,7 +347,7 @@ def main():
     add=sub.add_parser('key-add');add.add_argument('--name',required=True);add.add_argument('--role',choices=['admin','device','submit','A','B','C','M'],required=True);add.add_argument('--device')
     imp=sub.add_parser('key-import');imp.add_argument('--file',required=True)
     pub=sub.add_parser('trust-public-key');pub.add_argument('--name',required=True);pub.add_argument('--file',required=True)
-    sub.add_parser('key-list');rev=sub.add_parser('key-revoke');rev.add_argument('id');rev.add_argument('--allow-lockout',action='store_true',help='Explicit local emergency override for revoking the last or connected key')
+    sub.add_parser('key-list');rev=sub.add_parser('key-revoke');rev.add_argument('id')
     args=parser.parse_args();config=json.loads(Path(args.config).read_text());store=Store(config)
     if args.action=='key-add':print(compact(store.api.auth.create(args.name,{'admin':'C','device':'M','submit':'B'}.get(args.role,args.role),args.device or store.c['device_id'])))
     elif args.action=='trust-public-key':print(compact(store.api.auth.public_key_add(args.name,Path(args.file).read_text())))

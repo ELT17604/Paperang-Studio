@@ -1,5 +1,7 @@
 # ChatGPT integration · experimental v0.3.0
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 [简体中文](CHATGPT.zh-CN.md) · [Documentation](README.md) · [Source](../Integrations/ChatGPT/README.md) · [RelaySkill](RELAY-SKILL.md)
 
 Paperang Studio adds a **source-level** ChatGPT bridge. It reuses the v0.3.0 Linux Relay API v2, sender roles A/B and raster1 schema 1. It is **not** a fifth released distribution, an installed ChatGPT plugin, or a deployed public service. No changes to BLE framing, receiver templates, Mac-local API v1 or relay contract.
@@ -24,7 +26,7 @@ This integration does **not** process PNG/JPEG uploads, render fonts, configure 
 
 See [the full deployment guide](../Integrations/ChatGPT/README.md). Requirements: Python 3.10+, the repository's compatible v0.3.0 relay, a dedicated revocable A/B `psr_` key, an online MacClient/WinLite receiver and a separately deployed authenticated HTTPS gateway. A dedicated B key is recommended if status reads are desired. ChatGPT plugin creation/connection is a separate account-specific action. For legacy GPT Actions, see the optional `openapi.yaml` compatibility file (direct relay HTTPS path; no MCP server).
 
-Source tests: `python3 -m unittest discover -s Integrations/ChatGPT -p 'test_*.py' -v`. These tests use a mock transport and do not access hardware. Linux deployment, MCP-to-ChatGPT connection and physical paper verification remain **unvalidated**, not implicitly successful.
+Regression sources are in the external archive described above. These tests use a mock transport and do not access hardware. Linux deployment, MCP-to-ChatGPT connection and physical paper verification remain **unvalidated**, not implicitly successful.
 
 ## Security and terminology
 

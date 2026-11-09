@@ -50,7 +50,18 @@ struct Content:View {
    switch lab.page{case "打印机":devices;case "打印记录":history;case "工程界面":engineering;case "纸带终端":terminalPage;case "本地 API":apiPage;case "远程打印":relayPage;default:workspace}
   }.padding(22)}
  }
- var header:some View{HStack(alignment:.firstTextBaseline){VStack(alignment:.leading,spacing:4){Text(lab.page).font(.largeTitle.bold());Text(lab.page=="打印工作台" ? "先预览，再打印。所有内容固定在576点画布内。":"本地蓝牙 · 原生macOS").font(.callout).foregroundStyle(.secondary)};Spacer();if lab.busy{ProgressView().controlSize(.small)};Text("P2 / 300 DPI").font(.system(.caption,design:.monospaced)).padding(8).background(.quaternary,in:RoundedRectangle(cornerRadius:8))}}
+ var header:some View{HStack(alignment:.firstTextBaseline){VStack(alignment:.leading,spacing:4){Text(lab.page).font(.largeTitle.bold());Text(pageSubtitle).font(.callout).foregroundStyle(.secondary)};Spacer();if lab.busy{ProgressView().controlSize(.small)};Text("P2 / 300 DPI").font(.system(.caption,design:.monospaced)).padding(8).background(.quaternary,in:RoundedRectangle(cornerRadius:8))}}
+ var pageSubtitle:String {
+  switch lab.page {
+  case "打印机":return "扫描附近设备，查看电量与纸仓状态"
+  case "打印记录":return "当前会话的打印结果"
+  case "纸带终端":return "将本地终端输出到真实纸带"
+  case "本地 API":return "在本机集成打印、送纸与设备查询"
+  case "远程打印":return "接收纸条，管理样式与访问权限"
+  case "工程界面":return "设备字段、协议与原始传输记录"
+  default:return "编辑内容，预览后打印"
+  }
+ }
  var workspace:some View{VStack(spacing:12){
   HStack{Menu("快捷预设"){ForEach(["默认","照片","标签","线稿"],id:\.self){name in Button(name){lab.applyPreset(name)}}};Button("导入预设",action:lab.importPreset);Button("保存预设",action:lab.exportPreset);Spacer();Text(lab.mediaSummary).font(.caption).foregroundStyle(.secondary)}.disabled(lab.busy)
   HSplitView {
@@ -84,10 +95,10 @@ struct Content:View {
   Toggle("黑白反相",isOn:$lab.settings.invert)
   Text("文字、线稿适合阈值；照片可尝试抖动。预览和实际发送共用同一份最终位图。").font(.caption).foregroundStyle(.secondary)
  }}label:{Label("黑白处理",systemImage:"circle.lefthalf.filled")}}
- var output:some View{GroupBox{VStack(alignment:.leading,spacing:12){integer("打印浓度",value:$lab.settings.density,range:0...100);integer("份数",value:$lab.settings.copies,range:1...20);integer("打印前送纸 行",value:$lab.settings.feedBefore,range:0...2000);integer("打印后送纸 行",value:$lab.settings.feedAfter,range:0...2000);Toggle("每份后都送纸",isOn:$lab.settings.feedBetweenCopies);Text("关闭时仅整批末尾送纸。当前机器确认150行便于撕取；过期纸测试默认浓度100。").font(.caption).foregroundStyle(.secondary);Button("仅应用浓度并回读",action:lab.applyDensity).disabled(!lab.ready)} }label:{Label("打印与送纸",systemImage:"printer")}}
+ var output:some View{GroupBox{VStack(alignment:.leading,spacing:12){integer("打印浓度",value:$lab.settings.density,range:0...100);integer("份数",value:$lab.settings.copies,range:1...20);integer("打印前送纸 行",value:$lab.settings.feedBefore,range:0...2000);integer("打印后送纸 行",value:$lab.settings.feedAfter,range:0...2000);Toggle("每份后都送纸",isOn:$lab.settings.feedBetweenCopies);Text("关闭时仅在整批末尾送纸。推荐浓度100、批后送纸150行。").font(.caption).foregroundStyle(.secondary);Button("仅应用浓度并回读",action:lab.applyDensity).disabled(!lab.ready)} }label:{Label("打印与送纸",systemImage:"printer")}}
  var footer:some View{VStack(alignment:.leading,spacing:10){if lab.busy{ProgressView(value:lab.progress);Text(lab.jobStatus).font(.caption)}else if !lab.jobs.isEmpty{Label(lab.jobStatus,systemImage:"checkmark.circle").font(.caption).foregroundStyle(.secondary)}
   HStack{Spacer();Button("仅送纸 \(lab.settings.feedAfter)行",action:lab.feedPaper).disabled(!lab.ready || lab.busy || !lab.allowPaper);if lab.busy{Button("停止并断开",role:.destructive,action:lab.stopJob)};Button("打印 \(lab.settings.copies)份",action:lab.submitJob).buttonStyle(.borderedProminent).disabled(!lab.canPrint)}
-  Text(lab.busy ? "停止会阻止后续发送，无法撤回已进入打印机的内容。":"先检查盖子/纸张与浓度。发送完成后请核对纸面；300 DPI为固定规格，毫米尺寸尚未尺量校准。").font(.caption).foregroundStyle(.secondary)
+  Text(lab.busy ? "停止会阻止后续发送，无法撤回已进入打印机的内容。":"576点固定画布 · 300 DPI · 发送后请核对实际纸面").font(.caption).foregroundStyle(.secondary)
  }}
  var devices:some View{VStack(alignment:.leading,spacing:14){HStack{Button(lab.scanning ? "扫描中…":"扫描附近设备",action:lab.scan).disabled(lab.scanning || lab.busy);Button("重新初始化扫描",action:lab.restartScanner).disabled(lab.ready || lab.busy || lab.peripheral != nil);Button("刷新电量与纸仓",action:lab.refreshDevice).disabled(!lab.ready || lab.busy);Toggle("展示全部蓝牙设备",isOn:$lab.showAllDevices)}
   Text(lab.scanSummary).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)

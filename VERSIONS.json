@@ -15,34 +15,34 @@
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.1-macclient-fix3",
-      "runtimeVersion": "0.3.1-macclient-fix3",
+      "version": "v0.3.1-macclient-opt1",
+      "runtimeVersion": "0.3.1-macclient-opt1",
       "versionSource": "VERSION",
-      "verification": "Native arm64 build and GUI inspected; local Python relay API v2 integration and 39 server tests passed; no new physical print or production deployment"
+      "verification": "Native arm64 build/UI and isolated owner/C/M integration passed; no new physical print"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
       "status": "implemented",
-      "version": "v0.3.1-linuxrelayserver-fix1",
-      "runtimeVersion": "0.3.1-linuxrelayserver-fix1",
+      "version": "v0.3.1-linuxrelayserver-opt1",
+      "runtimeVersion": "0.3.1-linuxrelayserver-opt1",
       "versionSource": "Server/relay.py",
-      "verification": "39 local security/quota HTTP tests passed; live fix1 deployment pending"
+      "verification": "39 local regression checks and isolated browser text/raster tracking passed; no opt1 production deployment"
     },
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.1-winlite-fix3",
-      "runtimeVersion": "0.3.1-winlite-fix3",
+      "version": "v0.3.1-winlite-opt1",
+      "runtimeVersion": "0.3.1-winlite-opt1",
       "versionSource": "Windows/VERSION",
-      "verification": "61 Windows regression checks passed; per-user self-contained installer, uninstall and settings preservation tested on Windows"
+      "verification": "opt1 version/update parsing and removal of test-only assembly access reviewed in source; native opt1 Windows build pending"
     },
     "relayskill": {
       "name": "RelaySkill",
       "status": "implemented",
-      "version": "v0.3.1-relayskill",
-      "runtimeVersion": "0.3.1-relayskill",
+      "version": "v0.3.1-relayskill-opt1",
+      "runtimeVersion": "0.3.1-relayskill-opt1",
       "versionSource": "Skills/paperang-relay-print/VERSION",
-      "verification": "Local protocol and rendering tests validated"
+      "verification": "12 local regressions passed on macOS, including restored CJK font discovery"
     },
     "winclient": {
       "name": "WinClient",

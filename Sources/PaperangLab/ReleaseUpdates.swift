@@ -5,11 +5,11 @@ import Foundation
  private static var busy=false
  private struct Release:Decodable {let tag_name:String;let html_url:String;let draft:Bool;let prerelease:Bool}
  private static func version(_ tag:String)->[Int]? {
-  guard tag.range(of:"^v?[0-9]+\\.[0-9]+\\.[0-9]+-macclient(?:-fix[0-9]+)?$",options:.regularExpression) != nil else{return nil}
+  guard tag.range(of:"^v?[0-9]+\\.[0-9]+\\.[0-9]+-macclient(?:-(?:fix|opt)[0-9]+)?$",options:.regularExpression) != nil else{return nil}
   let parts=tag.hasPrefix("v") ? String(tag.dropFirst()).split(separator:"-"):tag.split(separator:"-")
   var numbers=parts[0].split(separator:".").compactMap{Int($0)}
   guard numbers.count==3 else{return nil}
-  if parts.count>2 {guard let fix=Int(parts[2].dropFirst(3)) else{return nil};numbers.append(fix)}else{numbers.append(0)}
+  if parts.count>2 {guard let revision=Int(parts[2].dropFirst(3)) else{return nil};numbers += [parts[2].hasPrefix("opt") ? 1:0,revision]}else{numbers += [0,0]}
   return numbers
  }
  static func check() {
@@ -23,12 +23,14 @@ import Foundation
     let (data,response)=try await URLSession.shared.data(for:request)
     guard let http=response as? HTTPURLResponse,http.statusCode==200,data.count<=2*1024*1024 else{throw URLError(.badServerResponse)}
     let releases=try JSONDecoder().decode([Release].self,from:data)
-    let latest=releases.filter{!$0.draft && !$0.prerelease && version($0.tag_name) != nil}.max{version($0.tag_name)!.lexicographicallyPrecedes(version($1.tag_name)!)}
+    let latest=releases.compactMap{release -> (Release,[Int])? in
+     guard !release.draft,!release.prerelease,let number=version(release.tag_name) else{return nil};return (release,number)
+    }.max{$0.1.lexicographicallyPrecedes($1.1)}
     guard let latest else{show("GitHub 尚未发布 MacClient 正式发行版。");return}
     guard let current=version(AppIdentity.version) else{show("当前版本格式无法比较，请查看 GitHub 发行页面。");return}
-    guard current.lexicographicallyPrecedes(version(latest.tag_name)!) else{show("当前已是最新 MacClient 正式版。");return}
-    guard latest.html_url.hasPrefix("https://github.com/ELT17604/Paperang-Studio/releases/tag/"),let url=URL(string:latest.html_url) else{throw URLError(.badURL)}
-    let alert=NSAlert();alert.messageText="发现新版本 "+latest.tag_name
+    guard current.lexicographicallyPrecedes(latest.1) else{show("当前已是最新 MacClient 正式版。");return}
+    guard latest.0.html_url.hasPrefix("https://github.com/ELT17604/Paperang-Studio/releases/tag/"),let url=URL(string:latest.0.html_url) else{throw URLError(.badURL)}
+    let alert=NSAlert();alert.messageText="发现新版本 "+latest.0.tag_name
     alert.informativeText="当前版本：v"+AppIdentity.version+"\n打开 GitHub 发行页面下载安装包？"
     alert.addButton(withTitle:"打开下载页面");alert.addButton(withTitle:"稍后")
     if alert.runModal() == .alertFirstButtonReturn{NSWorkspace.shared.open(url)}

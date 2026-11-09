@@ -1,5 +1,7 @@
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.zh-CN.md). Historical test paths below refer to Git revision `4393ae0`.
 # Paperang Studio · V0.3.0-winlite
 
 > **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。
@@ -54,7 +56,6 @@ fix1 共 51 项检查，增加持久化/重启恢复、旧配置默认值、一�
 
 ```powershell
 dotnet build Windows/src/Paperang.WinLite -c Release
-dotnet run --project Windows/tests/Paperang.Tests -c Release
 ./Windows/scripts/build.ps1
 ./Windows/scripts/build.ps1 -SelfContained
 ```
@@ -63,7 +64,6 @@ dotnet run --project Windows/tests/Paperang.Tests -c Release
 
 ```powershell
 # 在当前仓库根目录运行
-python Windows/tests/relay_integration.py
 ```
 
 测试覆盖协议黄金向量、分片/CRC/流控、开盖/缺纸/浓度拦截、任务领取与结果重报、重启未知结果、暂停与心跳、中文渲染、模板变量与图片合成、预览/打印一致性和 DPAPI。2026-11-06 已在当前 Windows 与实体 P2 上完成连接、中文打印、150 行送纸及连续两次重连，用户确认纸面完整；其他蓝牙适配器仍需各自验证。研究和移植对应关系见 [移植记录](WINDOWS-PORTING.zh-CN.md)。

@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-__version__ = '0.3.1-relayskill'
+__version__ = '0.3.1-relayskill-opt1'
 
 
 class PrintError(Exception):
@@ -211,7 +211,10 @@ def clusters(text):
 def find_font(explicit, text):
     candidates = [explicit] if explicit else [
         str(Path(os.environ.get('WINDIR', 'C:/Windows')) / 'Fonts/msyh.ttc'),
-        '/System/Library/Fonts/PingFang.ttc', '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+        '/System/Library/Fonts/PingFang.ttc',
+        '/System/Library/Fonts/STHeiti Medium.ttc',
+        '/System/Library/Fonts/Supplemental/Arial Unicode.ttf',
+        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
         '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf']
     for path in candidates:
         if path and Path(path).is_file():

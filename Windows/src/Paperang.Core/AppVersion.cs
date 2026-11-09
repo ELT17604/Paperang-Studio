@@ -2,7 +2,7 @@ namespace Paperang.Core;
 
 public static class AppVersion
 {
-    public const string Current = "0.3.1-winlite-fix3";
+    public const string Current = "0.3.1-winlite-opt1";
 }
 
 // Injected only by diagnostics/tests; production uses 2 s polling and 60 s cooldown.

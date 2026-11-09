@@ -1,6 +1,6 @@
 # Version naming and compatibility policy
 
-> **0.x policy approved for v0.3.0:** a coordinated MINOR baseline may break the relay contract before 1.0.0. All participants must upgrade together. MAJOR breaking rules apply from 1.0.0; fix notes never break contracts. Current baseline is 0.3.0/API v2; the 0.2.3 section below is historical.
+> **0.x policy approved for v0.3.0:** a coordinated MINOR baseline may break the relay contract before 1.0.0. All participants must upgrade together. MAJOR breaking rules apply from 1.0.0; fix notes never break contracts. Current baseline is 0.3.1/API v2; the 0.2.3 section below is historical.
 
 [简体中文](VERSIONING.zh-CN.md) · [Feature implementation matrix](FEATURE-MATRIX.md) · [Release registry](../VERSIONS.json)
 
@@ -31,3 +31,7 @@ Windows font substitution, startup facilities and reconnect scheduling may vary 
 3. Test client/server compatibility, template round trips, state transitions and no-replay behavior. Full clients must meet their required matrix rows; WinLite exclusions stay explicit.
 4. Run `python scripts/check-versions.py` and implementation tests. Verify packaging; exclude credentials, raw identifiers and build output; retain notices.
 5. Use a unique tag/artifact, e.g. `v0.2.3-winlite-fix1` and `PaperangStudio-v0.2.3-winlite-fix1-win-x64-lite.zip`. Never overwrite another distribution's release or imply a planned client exists.
+
+## optN revisions
+
+`optN` identifies a compatible optimization revision. For stable update checks at the same baseline, initial/fix revisions precede opt revisions; opt counters compare numerically. After opt1, use opt2 or a newer numeric baseline. Historical tags are unchanged. See [opt1 review](OPTIMIZATION-opt1.md).

@@ -1,5 +1,12 @@
 # 变更记录
 
+## `v0.3.1-<distribution>-opt1` — 2026-11-09
+
+- Remove unused Mac management state/cache, unreachable retired relay handlers and redundant preference writes; move regression sources outside the shipping tree.
+- Group Mac remote printing into tasks/connection/style/management; fix preview/active-job refresh and improve responsive web identity/status UI.
+- Support optN update tags; restore macOS CJK font discovery in RelaySkill. Preserve authentication and no-replay boundaries.
+- [Review and validation / 审阅与验证](OPTIMIZATION-opt1.zh-CN.md). Native Windows/hardware/deployment validation not claimed.
+
 ## 未发布 · ChatGPT 发送端实验性集成
 
 - 新增仅监听本机的 MCP 发送端适配器与传统 GPT Actions OpenAPI 兼容定义，保持中转 API v2。

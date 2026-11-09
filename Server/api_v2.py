@@ -197,7 +197,7 @@ class APIv2:
                 meta=value['metadata']; value['metadata']={k:meta[k] for k in ('identity','authenticated','ip','userAgent','language','browser') if k in meta}
                 return 200,value
             if path.endswith('/confirm'): self.fail(403,'manual_confirmation_requires_C')
-            status,result=s.route_legacy(method,path.replace('/v2/','/v1/',1),body,legacy,ip,headers)
+            status,result=s.route_device(method,path,body,legacy,headers)
             return status,result
         confirm=re.fullmatch(r'/v2/admin/jobs/([a-f0-9-]{36,40})/confirm',path)
         if method=='POST' and confirm:
@@ -209,6 +209,6 @@ class APIv2:
             with s.connect() as db:
                 row=db.execute("SELECT device FROM jobs WHERE id=? AND state IN ('sent','confirmed')",(confirm.group(1),)).fetchone()
             if not row: self.fail(409,'only_sent_can_be_confirmed')
-            result=s.route_legacy('POST','/v1/device/jobs/'+confirm.group(1)+'/confirm',body,{**key,'role':'device','device':row['device']},ip,headers)
+            result=s.route_device('POST','/v2/device/jobs/'+confirm.group(1)+'/confirm',body,{**key,'role':'device','device':row['device']},headers)
             a.audit(key,'paper_confirm',confirm.group(1)); return result
         self.fail(404,'unknown_route')

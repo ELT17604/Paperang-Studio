@@ -2,6 +2,8 @@
 
 # Paperang Studio
 
+**Current optimization: opt1.** [Code cleanup, interface changes and validation](doc/OPTIMIZATION-opt1.md).
+
 <p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT integration</p>
 <p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.1 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
@@ -39,12 +41,12 @@ Choose **one active Bluetooth receiver per printer**. The relay handles identity
 
 ## MacClient upgrade
 
-[0.3.1-macclient-fix3 upgrade and validation](doc/MACCLIENT-v0.3.1.md). Native owner-file reception, paginated C management and saved configuration now align with the current relay and WinLite contract.
+Current **0.3.1-macclient-opt1**: [optimization review](doc/OPTIMIZATION-opt1.md) · [owner-file upgrade guide](doc/MACCLIENT-v0.3.1.md). Native owner-file reception, paginated C management and saved configuration now align with the current relay and WinLite contract.
 
 <img src="doc/assets/macclient-v0.3.1-fix3-workspace.png" width="776" alt="Native Mac workspace, offline example">
 <img src="doc/assets/macclient-v0.3.1-fix3-management.png" width="776" alt="Native Mac management, offline example">
 
-Screenshots show offline example data; no printer was connected during this validation.
+Screenshots show the previous fix3 workspace with offline example data. Current opt1 reorganizes remote printing into Tasks, Connection, Style and Management.
 
 ## Windows Lite in action
 

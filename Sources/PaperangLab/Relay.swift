@@ -43,7 +43,6 @@ struct RelayRenderPlan {
  }
 }
 
-struct RelayManagedKey:Identifiable {let id:String;var name:String;let role:String;let device:String;let revoked:Bool}
 struct RelayFlight {let serverID:String;let claim:String;var localID:UUID?;var outcome:String?}
 
 extension Lab {
@@ -77,7 +76,7 @@ extension Lab {
    try RelayVault.save("connection",RelaySavedConnection(server:url.absoluteString,credential:relayAuthMode=="owner" ? "":relayKey,authMode:relayAuthMode,ownerPath:relayOwnerPath))
    relayEndpoint=url;relayOwner=owner;relayCredential=relayAuthMode=="owner" ? "":relayKey;relayIdentityFingerprint=fingerprint
   }catch{relayMessage=error.localizedDescription;return}
-  relaySession=UUID();relayOnline=false;relayFailures=0;relayLastSeen=nil;relayManagedKeys=[];relayCreatedToken="";relayRunning=true;relayMessage="正在连接…";relayAutoPrint=trayMode ? !trayPrintPaused:relayDefaultAutoPrint
+  relaySession=UUID();relayOnline=false;relayFailures=0;relayLastSeen=nil;relayRunning=true;relayMessage="正在连接…";relayAutoPrint=trayMode ? !trayPrintPaused:relayDefaultAutoPrint
   let session=relaySession
   relayTask=Task{
    var health=RelayHealth()
@@ -127,18 +126,18 @@ extension Lab {
   guard relayRunning else{return}
   let descriptors=result["jobs"] as? [[String:Any]] ?? []
   guard descriptors.count<=100,descriptors.allSatisfy({RelayJob.decode($0) != nil}) else{throw PrintFailure("队列描述无效")}
+  let active=relayFlight.flatMap{flight in relayJobs.first{$0.id==flight.serverID}}
   relayJobs=descriptors.compactMap(RelayJob.decode)
-  relayDetailCache.removeAll()
+  if let active,!relayJobs.contains(where:{$0.id==active.id}){relayJobs.append(active)}
   if !relayJobs.contains(where:{$0.id==relaySelection}){relaySelection=relayJobs.first?.id ?? ""}
   relayMessage="中转已连接 · 待处理 \(relayJobs.filter{$0.state=="queued"}.count) / 队列 \(relayJobs.count) 项 · 每2秒上报/刷新"
   maybeReconnectRelayPrinter()
   if relayAutoPrint,networkPrintAllowed,ready,!busy,relayFlight==nil,let job=relayJobs.filter({$0.state=="queued"}).min(by:{$0.created<$1.created}){await printRelay(job)}
  }
- var relayPreviewSignature:String {(selectedRelayJob?.layoutSignature ?? relaySelection)+relayStyle+String(relayDensity)+String(relayFeed)+[relayIncludeText,relayIncludeSender,relayIncludeTime,relayIncludeID,relayIncludeIP,relayIncludeUA,relayIncludeDevice].map{String($0)}.joined()+currentRelayTemplate.layoutSignature}
+ var relayPreviewSignature:String {let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys];let settingsKey=(try? encoder.encode(relayPrintSettings()).base64EncodedString()) ?? "";return relaySelection+settingsKey+relayStyle+String(relayDensity)+String(relayFeed)+[relayIncludeText,relayIncludeSender,relayIncludeTime,relayIncludeID,relayIncludeIP,relayIncludeUA,relayIncludeDevice].map{String($0)}.joined()+currentRelayTemplate.layoutSignature}
  func abandonRelayReport(){guard !relayMutating else{return};if let id=relayFlight?.localID,jobs.first(where:{$0.id==id})?.status=="发送中"{return};do{try RelayVault.remove("pending")}catch{relayMessage=error.localizedDescription;return};relayFlight=nil;relayMessage="已清除本地结果关联，不会重新打印旧任务"}
  var selectedRelayJob:RelayJob? {relayJobs.first{$0.id==relaySelection}}
  func relayRenderPlan(settings override:PrintSettings?=nil)->RelayRenderPlan {RelayRenderPlan(settings:override ?? relayPrintSettings(),template:currentRelayTemplate,relayStyle:relayStyle,relayIncludeText:relayIncludeText,relayIncludeSender:relayIncludeSender,relayIncludeTime:relayIncludeTime,relayIncludeID:relayIncludeID,relayIncludeIP:relayIncludeIP,relayIncludeUA:relayIncludeUA,relayIncludeDevice:relayIncludeDevice)}
- func relayDocument(_ job:RelayJob)->String {relayRenderPlan().document(job)}
 
  func relayPrintSettings()->PrintSettings {
   var s=settings;s.copies=1;s.density=relayDensity;s.feedAfter=relayFeed;s.feedBefore=0;s.feedBetweenCopies=false
@@ -204,11 +203,10 @@ extension Lab {
    result=row
   }
   guard let full=RelayJob.decode(result),full.id==job.id,full.hasFullText else{throw PrintFailure("无法获取完整任务正文，已阻止打印摘要")}
-  relayDetailCache[job.id]=full
   if let i=relayJobs.firstIndex(where:{$0.id==job.id}){relayJobs[i]=full}
   return full
  }
- func loadRelaySelection(){relayDetailTask?.cancel();guard let job=selectedRelayJob,!job.hasFullText else{return};relayDetailTask=Task{do{_ = try await self.relayFullJob(job)}catch{if !Task.isCancelled{self.relayMessage=error.localizedDescription}}}}
+ func loadRelaySelection(){relayDetailTask?.cancel();guard !relayAdminKey.isEmpty,let job=selectedRelayJob,!job.hasFullText else{return};relayDetailTask=Task{do{_ = try await self.relayFullJob(job)}catch{if !Task.isCancelled{self.relayMessage=error.localizedDescription}}}}
  func copyRelayToWorkspace(){guard let job=selectedRelayJob else{return};Task{do{let full=try await self.relayFullJob(job);if full.content != nil{let image=try self.relayRaster(full,settings:self.relayPrintSettings());guard let png=image.png else{throw PrintFailure("位图转换失败")};self.sourceImage=try Renderer.loadImageData(png);self.imageName="远程绘图 · "+full.printableID;self.mode="图片"}else{self.text=full.text;self.mode="文字"};self.page="打印工作台"}catch{self.relayMessage=error.localizedDescription}}}
 }
 

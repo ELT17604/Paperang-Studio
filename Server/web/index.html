@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="A small note, delivered to real paper.">
-  <meta name="application-version" content="0.3.1">
+  <meta name="application-version" content="0.3.1-linuxrelayserver-opt1">
   <meta name="theme-color" content="#f6f5f0">
-  <title>etel — Leave a note · v0.3.1</title>
+  <title>etel — Leave a note · v0.3.1-linuxrelayserver-opt1</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
@@ -24,7 +24,7 @@
         <section id="drawing" hidden aria-label="Drawing editor">
           <div class="draw-tools"><label>Pen <input id="pen-size" type="range" min="1" max="24" value="4"></label><label>Height <select id="draw-height"><option>192</option><option selected>384</option><option>576</option><option>768</option><option>1024</option></select></label><button id="draw-undo" type="button">Undo</button><button id="draw-clear" type="button">Clear</button></div>
           <canvas id="draw-canvas" width="576" height="384" aria-label="Draw here with a finger, stylus or mouse"></canvas>
-          <p class="draw-hint">576-pixel print area. Draw with a finger, stylus or mouse. Each row uses one quota unit; a caption uses one per character. The Mac adds the owner's selected footer.</p>
+          <p class="draw-hint">576-pixel print area. Draw with a finger, stylus or mouse. Each row uses one quota unit; a caption uses one per character. The receiving client applies the owner's template.</p>
         </section>
         <textarea id="text" name="message" rows="8" placeholder="Something worth putting on paper…" aria-describedby="count privacy" required></textarea>
         <div class="note-meta"><span>To a real piece of paper.</span><span id="count">0 / —</span></div>
@@ -33,11 +33,11 @@
             <summary id="key-label">Use a submission key</summary>
             <label class="sr-only" for="key">Submission key</label>
             <input id="key" type="password" name="submission-key" autocomplete="off" spellcheck="false" placeholder="Paste your key" aria-describedby="key-help">
-            <p id="key-help">Enter a key or complete passphrase once. This browser remembers a secure session, never the password.</p><button id="login" type="button">Remember identity</button><button id="logout" type="button">Forget identity</button>
+            <p id="key-help">Use a key or full passphrase. Only the session is remembered.</p><div class="identity-actions"><button id="login" type="button">Sign in</button><button id="logout" type="button">Sign out</button></div>
           </details>
           <button id="send" type="submit" disabled><span id="send-label">Send note</span><span aria-hidden="true">↗</span></button>
         </div>
-        <p id="identity-status" role="status">Preparing identity…</p><p id="privacy">A random browser identity is required. The owner can inspect content and delivery metadata; this page returns only your own task status, including anonymous submissions; task content is never returned.</p>
+        <div class="identity-summary"><span id="identity-status" role="status">Preparing identity…</span><span id="quota-status"></span></div><details class="privacy-details"><summary>Identity &amp; privacy</summary><p id="identity-reference"></p><p id="privacy">The owner can inspect your note and delivery metadata. This page shows only your own task status. Task content is never returned.</p></details>
       </form>
     </section>
 
@@ -48,23 +48,20 @@
       <input id="lookup-id" name="note-id" type="text" maxlength="14" autocomplete="off" spellcheck="false" placeholder="Track ID · ABCD-EF12-3456" required>
       <button id="track" type="submit">Track</button>
     </form>
-    <p id="lookup-error" class="lookup-error" role="alert" hidden></p>
 
     <section id="delivery" class="delivery" aria-label="Delivery progress" hidden>
       <div class="delivery-heading"><span id="result" role="status" aria-live="polite">In the inbox</span><span id="reference" class="reference"></span></div>
       <div class="progress-heading" hidden><span id="progress-label">Delivery stage</span><span id="progress-count">1 of 5</span></div>
       <div class="progress-track" hidden><progress id="progress" max="100" value="20" aria-label="Delivery workflow">Queued</progress></div>
-      <ol hidden class="stages" aria-label="Delivery stages"><li>Queued</li><li>Accepted</li><li>Printing</li><li>Sent</li><li>Confirmed</li></ol>
       <p id="detail">Waiting for the recipient to accept your note.</p>
       <details id="task-details" class="task-details">
         <summary>Task details</summary>
         <dl><div><dt>Created</dt><dd id="task-created">—</dd></div><div><dt>Updated</dt><dd id="task-updated">—</dd></div></dl>
         <p id="detail-access">The note content is private.</p>
-        <pre id="task-text" hidden></pre>
       </details>
     </section>
 
-    <footer><span>© 2026 ELT Group · Paperang Studio v0.3.1</span><a href="mailto:vox@calx.cc">Contact</a></footer>
+    <footer><span>© 2026 ELT Group · Paperang Studio v0.3.1-linuxrelayserver-opt1</span><a href="mailto:vox@calx.cc">Contact</a></footer>
     <noscript><p class="error">JavaScript is needed to send a note and check its progress.</p></noscript>
   </main>
 </body>

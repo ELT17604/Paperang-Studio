@@ -46,3 +46,7 @@ Server source ready; live deployment pending. Compatible API v2 baseline remains
 当前 Mac 原生构建、管理分页/配额/私钥续期及恢复已验证；上方 fix1 的待验标签为历史记录。服务器 39 项测试通过，未新增实机出纸或生产部署验证。[详细范围](MACCLIENT-v0.3.1.zh-CN.md)。
 
 **实验性集成（非正式分发版本）：** [ChatGPT 适配器](CHATGPT.zh-CN.md) 复用 A/B Relay API v2，提供文字、预渲染 raster1 与 B 级本人任务查询；已提供模拟 HTTP 测试，但尚未完成 MCP/OAuth 网关部署、ChatGPT 账户连接或实机纸面验证。不增加兼容基线或正式分发版本。
+
+## opt1
+
+[当前源码清理、各端验证与测试归档](OPTIMIZATION-opt1.zh-CN.md)。四个已实现分发统一 opt1；不新增 Windows 原生、硬件或部署验证声明。

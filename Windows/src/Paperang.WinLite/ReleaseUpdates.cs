@@ -9,14 +9,16 @@ internal static class ReleaseUpdates
     private static int busy;
     internal static int Compare(string left, string right)
     {
-        static (Version Base, int Fix) Parse(string value) {
+        static (Version Base, int Stage, int Revision) Parse(string value) {
             var parts = value.TrimStart('v', 'V').Split('-');
             if (!Version.TryParse(parts[0], out var number)) throw new FormatException();
             int fix = parts.Length > 2 ? int.Parse(parts[2][3..]) : 0;
-            return (number, fix);
+            return (number, parts.Length > 2 && parts[2].StartsWith("opt", StringComparison.Ordinal) ? 1 : 0, fix);
         }
         var a = Parse(left); var b = Parse(right);
-        int result = a.Base.CompareTo(b.Base); return result != 0 ? result : a.Fix.CompareTo(b.Fix);
+        int result = a.Base.CompareTo(b.Base);
+        if (result != 0) return result;
+        result = a.Stage.CompareTo(b.Stage); return result != 0 ? result : a.Revision.CompareTo(b.Revision);
     }
     public static async Task Check()
     {
@@ -31,7 +33,7 @@ internal static class ReleaseUpdates
             foreach (var release in document.RootElement.EnumerateArray()) {
                 if (release.GetProperty("draft").GetBoolean() || release.GetProperty("prerelease").GetBoolean()) continue;
                 string tag = release.GetProperty("tag_name").GetString() ?? "";
-                if (!System.Text.RegularExpressions.Regex.IsMatch(tag, @"^v?\d+\.\d+\.\d+-winlite(?:-fix\d+)?$")) continue;
+                if (!System.Text.RegularExpressions.Regex.IsMatch(tag, @"^v?\d+\.\d+\.\d+-winlite(?:-(?:fix|opt)\d+)?$")) continue;
                 if (newest == null || Compare(tag, newest) > 0) { newest = tag; url = release.GetProperty("html_url").GetString(); }
             }
             if (newest == null) { MessageBox.Show("GitHub 尚未发布 WinLite 正式发行版。当前版本：v" + AppVersion.Current, "检查更新"); return; }

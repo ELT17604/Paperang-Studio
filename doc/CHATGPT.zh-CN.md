@@ -1,5 +1,7 @@
 # ChatGPT 集成 · v0.3.0 实验性源码
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.zh-CN.md). Historical test paths below refer to Git revision `4393ae0`.
 [English](CHATGPT.md) · [中文文档目录](INDEX.zh-CN.md) · [集成源码与部署](../Integrations/ChatGPT/README.md) · [现有 RelaySkill](RELAY-SKILL.zh-CN.md)
 
 Paperang Studio 新增一个面向 ChatGPT 的**源码级适配层**，复用现有 LinuxRelayServer **API v2**、A/B 提交权限和 raster1 schema 1。它**不是已经发布的新平台版本，也不会自动安装到 ChatGPT 账户中**。本次不修改 BLE 协议、原生客户端打印模板、Mac 本机 HTTP API v1 或 Relay API v2 合同。

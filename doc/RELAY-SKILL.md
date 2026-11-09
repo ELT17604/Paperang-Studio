@@ -1,5 +1,7 @@
 # RelaySkill · v0.3.0-relayskill
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 > **v0.3.0:** [API v2 authentication](AUTH-v2.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Handoff](HANDOFF-v0.3.0.zh-CN.md). WinLite includes a C management panel; web receipts no longer grant content access.
 
 [简体中文](RELAY-SKILL.zh-CN.md) · [Skill entrypoint](../Skills/paperang-relay-print/SKILL.md) · [Version policy](VERSIONING.md) · [Feature matrix](FEATURE-MATRIX.md)
@@ -32,7 +34,6 @@ Baseline 0.3.0 uses relay API v2; raster1 schema 1 remains. A is acceptance-only
 
 ```sh
 python -m pip install Pillow
-python Skills/paperang-relay-print/scripts/test_relay_print.py -v
 python scripts/check-versions.py
 python Skills/paperang-relay-print/scripts/relay_print.py --version
 ```

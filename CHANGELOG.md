@@ -1,5 +1,12 @@
 # Changelog
 
+## `v0.3.1-<distribution>-opt1` — 2026-11-09
+
+- Remove unused Mac management state/cache, unreachable retired relay handlers and redundant preference writes; move regression sources outside the shipping tree.
+- Group Mac remote printing into tasks/connection/style/management; fix preview/active-job refresh and improve responsive web identity/status UI.
+- Support optN update tags; restore macOS CJK font discovery in RelaySkill. Preserve authentication and no-replay boundaries.
+- [Review and validation / 审阅与验证](doc/OPTIMIZATION-opt1.md). Native Windows/hardware/deployment validation not claimed.
+
 ## Unreleased · ChatGPT sender integration (experimental)
 
 - Add loopback MCP sender adapter and optional GPT Actions OpenAPI schema targeting existing Relay API v2.

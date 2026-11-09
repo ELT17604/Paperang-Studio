@@ -2,6 +2,8 @@
 
 # Paperang Studio
 
+**当前优化：opt1。** [代码清理、界面调整与验证](OPTIMIZATION-opt1.zh-CN.md)。
+
 <p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT 集成</p>
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.1 共同基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
 

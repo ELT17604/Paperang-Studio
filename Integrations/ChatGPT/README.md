@@ -1,5 +1,7 @@
 # Paperang Studio · ChatGPT integration
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](../../doc/OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 [Project](../../README.md) · [English guide](../../doc/CHATGPT.md) · [简体中文](../../doc/CHATGPT.zh-CN.md) · [RelaySkill](../../doc/RELAY-SKILL.md)
 
 Experimental **source integration**, not a released distribution or a connected
@@ -92,7 +94,6 @@ OAuth-authenticated multiuser MCP gateway.
 ## Validation
 
 ```sh
-python3 -m unittest discover -s Integrations/ChatGPT -p 'test_*.py' -v
 python3 scripts/check-versions.py
 ```
 

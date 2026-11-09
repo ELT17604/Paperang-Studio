@@ -1,5 +1,7 @@
 # RelaySkill · v0.3.0-relayskill
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.zh-CN.md). Historical test paths below refer to Git revision `4393ae0`.
 > **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。
 
 [English](RELAY-SKILL.md) · [技能入口](../Skills/paperang-relay-print/SKILL.md) · [版本规则](VERSIONING.zh-CN.md) · [功能矩阵](FEATURE-MATRIX.zh-CN.md)
@@ -32,7 +34,6 @@ Python 3.10+；状态、回执和原生文字提交只需标准库，文字/图�
 
 ```sh
 python -m pip install Pillow
-python Skills/paperang-relay-print/scripts/test_relay_print.py -v
 python scripts/check-versions.py
 python Skills/paperang-relay-print/scripts/relay_print.py --version
 ```

@@ -1,5 +1,7 @@
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 
+
+> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 # Windows tray client · V0.3.0-winlite
 
 > **v0.3.0:** [API v2 authentication](AUTH-v2.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Handoff](HANDOFF-v0.3.0.zh-CN.md). WinLite includes a C management panel; web receipts no longer grant content access.
@@ -55,8 +57,6 @@ From the repository root:
 
 ```powershell
 dotnet build Windows/src/Paperang.WinLite -c Release
-dotnet run --project Windows/tests/Paperang.Tests -c Release
-python Windows/tests/relay_integration.py
 ./Windows/scripts/build.ps1
 ./Windows/scripts/build.ps1 -SelfContained
 ```
@@ -72,7 +72,6 @@ The observed Windows stack returned `Success` with no results for UUID-filtered 
 To reproduce hardware diagnostics, first quit the tray app:
 
 ```powershell
-dotnet run --project Windows/tests/Paperang.Tests -c Release -- --ble
 # Add --print only when paper use is authorized.
 ```
 

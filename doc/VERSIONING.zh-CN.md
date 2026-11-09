@@ -31,3 +31,7 @@
 3. 客户端/服务器互通、模板往返、任务状态和不重复打印检查。完整客户端满足必需行；WinLite 主动裁剪保留说明。
 4. 运行 `python scripts/check-versions.py` 和对应实现测试。验证打包、不提交凭证/原始个人标识/构建产物，保留许可证。
 5. 使用唯一标签/产物名，如 `v0.2.3-winlite-fix1`、`PaperangStudio-v0.2.3-winlite-fix1-win-x64-lite.zip`；不覆盖其他发行版或把规划中的客户端当已实现。
+
+## optN revisions
+
+`optN` identifies a compatible optimization revision. For stable update checks at the same baseline, initial/fix revisions precede opt revisions; opt counters compare numerically. After opt1, use opt2 or a newer numeric baseline. Historical tags are unchanged. See [opt1 review](OPTIMIZATION-opt1.md).

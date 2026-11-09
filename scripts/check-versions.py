@@ -14,7 +14,7 @@ for name, item in registry['distributions'].items():
     if item['status'] == 'planned':
         assert item['version'] is None and item['runtimeVersion'] is None
         continue
-    assert re.fullmatch(r'v' + re.escape(baseline) + '-' + name + r'(?:-(?:fix|alpha|beta|rc)[1-9]\d*)?', item['version'])
+    assert re.fullmatch(r'v' + re.escape(baseline) + '-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
     source = (root / item['versionSource']).read_text(encoding='utf-8').strip()
     runtime = item['runtimeVersion']
     assert runtime.split('-')[0] == baseline
