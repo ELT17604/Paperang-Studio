@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate distribution labels without changing deployed legacy runtime aliases."""
+"""Validate 0.3.2 targets separately from unverified platform runtime labels."""
 import json
 import re
 from pathlib import Path
@@ -14,10 +14,12 @@ for name, item in registry['distributions'].items():
     if item['status'] == 'planned':
         assert item['version'] is None and item['runtimeVersion'] is None
         continue
-    assert re.fullmatch(r'v' + re.escape(baseline) + '-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
+    assert item.get('targetVersion') == baseline
+    assert item['validation032'] in ('pending', 'passed', 'blocked')
+    assert (name == 'macclient' and item['version'] == 'v' + baseline) or re.fullmatch(r'v\d+\.\d+\.\d+-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
     source = (root / item['versionSource']).read_text(encoding='utf-8').strip()
     runtime = item['runtimeVersion']
-    assert runtime.split('-')[0] == baseline
+    assert item['version'] == 'v' + runtime
     if name == 'linuxrelayserver':
         assert re.search(r"APP_VERSION\s*=\s*['\"]" + re.escape(runtime) + r"['\"]", source)
     else:
@@ -29,4 +31,6 @@ for doc in ('VERSIONING', 'FEATURE-MATRIX'):
     assert (root / f'doc/{doc}.md').exists() and (root / f'doc/{doc}.zh-CN.md').exists()
 skill = registry['distributions']['relayskill']['runtimeVersion']
 assert f"__version__ = '{skill}'" in (root / 'Skills/paperang-relay-print/scripts/relay_print.py').read_text(encoding='utf-8')
-print('PASS distribution naming, runtime aliases, baseline and bilingual policy/matrix')
+assert registry['compatibility']['localApi'] == registry['compatibility']['relayApi'] == 'v2'
+assert (root / 'VERSION').read_text().strip() == baseline
+print('PASS product targets, historical platform runtimes, API baseline and policy/matrix')

@@ -19,16 +19,16 @@ export class PaperangClient {
       return value;
     } finally { clearTimeout(timer); }
   }
-  status() { return this.request('GET', '/v1/status'); }
-  devices(all = false) { return this.request('GET', `/v1/devices${all ? '?all=true' : ''}`); }
+  status() { return this.request('GET', '/v2/status'); }
+  devices(all = false) { return this.request('GET', `/v2/devices${all ? '?all=true' : ''}`); }
   render(text, settings = {}, includeRaw = false) {
-    return this.request('POST', '/v1/render', { text, settings, includeRaw });
+    return this.request('POST', '/v2/render', { text, settings, includeRaw });
   }
   printText(text, { settings = {}, allowPaper } = {}) {
-    return this.request('POST', '/v1/jobs', { text, settings, allowPaper });
+    return this.request('POST', '/v2/jobs', { text, settings, allowPaper });
   }
   printImage(imageBase64, { settings = {}, allowPaper } = {}) {
-    return this.request('POST', '/v1/jobs', { imageBase64, settings, allowPaper });
+    return this.request('POST', '/v2/jobs', { imageBase64, settings, allowPaper });
   }
-  job(id) { return this.request('GET', `/v1/jobs/${encodeURIComponent(id)}`); }
+  job(id) { return this.request('GET', `/v2/jobs/${encodeURIComponent(id)}`); }
 }

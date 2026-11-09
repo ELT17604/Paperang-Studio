@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseline": "0.3.1",
+  "baseline": "0.3.2",
   "compatibility": {
     "relayApi": "v2",
     "contentTypes": [
@@ -9,16 +9,19 @@
     ],
     "contentSchemaVersion": 1,
     "templateSchemaVersion": 1,
-    "printerProfile": "legacy-p2-576-ble"
+    "printerProfile": "legacy-p2-576-ble",
+    "localApi": "v2"
   },
   "distributions": {
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.1-macclient-opt1",
-      "runtimeVersion": "0.3.1-macclient-opt1",
+      "version": "v0.3.2",
+      "runtimeVersion": "0.3.2",
       "versionSource": "VERSION",
-      "verification": "Native arm64 build/UI and isolated owner/C/M integration passed; no new physical print"
+      "verification": "arm64 native build/signing, 47 local HTTP requests, isolated Relay HTTP/native owner-management-recovery/config-template checks passed; physical T1 text density60 and I1 image density100 each printed once and owner confirmed both normal; live Relay public v2 status HTTP200 only",
+      "targetVersion": "0.3.2",
+      "validation032": "passed"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
@@ -26,7 +29,9 @@
       "version": "v0.3.1-linuxrelayserver-opt1",
       "runtimeVersion": "0.3.1-linuxrelayserver-opt1",
       "versionSource": "Server/relay.py",
-      "verification": "Opt1 fresh host reset, sole Windows key retention/reconnect and terminal/config editor installed; 39 regressions, 4 backend, 6 config checks plus console update/rollback and PTY checks passed; root atomic config/worker access verified"
+      "verification": "Opt1 fresh host reset, sole Windows key retention/reconnect and terminal/config editor installed; 39 regressions, 4 backend, 6 config checks plus console update/rollback and PTY checks passed; root atomic config/worker access verified",
+      "targetVersion": "0.3.2",
+      "validation032": "pending"
     },
     "winlite": {
       "name": "WinLite",
@@ -34,7 +39,9 @@
       "version": "v0.3.1-winlite-opt2",
       "runtimeVersion": "0.3.1-winlite-opt2",
       "versionSource": "Windows/VERSION",
-      "verification": "61 historical Windows regressions and 3 configuration recovery checks passed; overlay upgrade preserves private files; live .NET owner C proof and identity query verified"
+      "verification": "61 historical Windows regressions and 3 configuration recovery checks passed; overlay upgrade preserves private files; live .NET owner C proof and identity query verified",
+      "targetVersion": "0.3.2",
+      "validation032": "pending"
     },
     "relayskill": {
       "name": "RelaySkill",
@@ -42,7 +49,9 @@
       "version": "v0.3.1-relayskill-opt1",
       "runtimeVersion": "0.3.1-relayskill-opt1",
       "versionSource": "Skills/paperang-relay-print/VERSION",
-      "verification": "12 local regressions passed on macOS, including restored CJK font discovery"
+      "verification": "12 local regressions passed on macOS, including restored CJK font discovery",
+      "targetVersion": "0.3.2",
+      "validation032": "pending"
     },
     "winclient": {
       "name": "WinClient",
@@ -59,5 +68,7 @@
       "versionSource": null
     }
   },
-  "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together."
+  "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
+  "releaseStatus": "stage1-macos-validated; Windows and Ubuntu native validation pending; unreleased",
+  "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged."
 }

@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 
 enum AppIdentity {
- static let version = Bundle.main.object(forInfoDictionaryKey:"PaperangDistributionVersion") as? String ?? "0.3.1-macclient-opt1"
+ static let version = Bundle.main.object(forInfoDictionaryKey:"PaperangDistributionVersion") as? String ?? "0.3.2"
  static let copyright = "© 2026 ELT Group"
  static let statement = """
 Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any of their related companies or affiliates. All third-party names and trademarks belong to their respective owners.
@@ -16,7 +16,7 @@ Contact: vox@calx.cc
 extension Lab {
  func showAbout(){
   let alert=NSAlert()
-  alert.messageText="Paperang Studio \(AppIdentity.version)"
+  alert.messageText="Paperang Studio v\(AppIdentity.version)"
   alert.informativeText=AppIdentity.copyright+"\n\n"+AppIdentity.statement
   if let path=Bundle.main.path(forResource:"AppIcon",ofType:"icns"),let icon=NSImage(contentsOfFile:path){alert.icon=icon}
   alert.addButton(withTitle:"OK")
