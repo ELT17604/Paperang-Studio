@@ -1,5 +1,5 @@
 #ifndef AppVersion
-#define AppVersion "0.3.1-winlite-opt1"
+#define AppVersion "0.3.1-winlite-opt2"
 #endif
 [Setup]
 AppId={{BF30D1A7-D03B-434C-A51B-718507439EC8}

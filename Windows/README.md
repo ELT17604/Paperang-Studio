@@ -39,3 +39,7 @@ Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. 
 管理面板 **用量与限额…** 支持匿名/注册默认及所选身份覆盖。0 禁止投稿，继承恢复默认；轮换不清零。需要服务器 fix1，旧服务器会明确提示不支持。
 
 参见 [发布物说明](../doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md) 与 [服务器/macOS 交接](../doc/HANDOFF-QUOTAS-v0.3.1.zh-CN.md)。
+
+### opt2 连接恢复与管理登录
+
+升级后保留同一 AppData 数据目录。连接草稿不完整时沿用已保存连接；可点“重新读取已保存的连接”。配置替换保留 `.previous` 加密备份，读取失败阻止默认值覆盖。管理中心提供“登录 / 重新登录”，失败后无需重新生成私钥即可重试；使用现有 C 所有者身份。

@@ -14,6 +14,16 @@ internal sealed class LocalStore : IJournal
     public LocalStore(string? directory = null) => this.directory = directory ?? Root;
     public AppSettings LoadSettings() => Read<AppSettings>("settings.dat") ?? new();
     public void SaveSettings(AppSettings value) => Write("settings.dat", value);
+    public AppSettings LoadForEditing()
+    {
+        var saved = LoadSettings(); var draft = LoadDraft();
+        if (draft == null) return saved;
+        // An incomplete connection draft must not hide an existing paired connection.
+        if ((string.IsNullOrWhiteSpace(draft.Server) || string.IsNullOrWhiteSpace(draft.OwnerKeyFile)) &&
+            !string.IsNullOrWhiteSpace(saved.Server) && !string.IsNullOrWhiteSpace(saved.OwnerKeyFile))
+            return draft with { Server = saved.Server, OwnerKeyFile = saved.OwnerKeyFile, AuthenticationMode = saved.AuthenticationMode, DeviceKey = saved.DeviceKey, AllowHttp = saved.AllowHttp };
+        return draft;
+    }
     public AppSettings? LoadDraft() => Read<AppSettings>("settings-draft.dat");
     public void SaveDraft(AppSettings value) => Write("settings-draft.dat", value);
     public UiPreferences LoadUi() => Read<UiPreferences>("ui.dat") ?? new();
@@ -43,7 +53,8 @@ internal sealed class LocalStore : IJournal
         byte[] bytes = Protect(JsonSerializer.SerializeToUtf8Bytes(value, RelayClient.Json), true);
         string destination = Path.Combine(directory, name), temp = destination + ".tmp";
         using (var f = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough)) { f.Write(bytes); f.Flush(true); }
-        File.Move(temp, destination, true);
+        if (File.Exists(destination)) File.Replace(temp, destination, destination + ".previous", true);
+        else File.Move(temp, destination);
         }
     }
     [StructLayout(LayoutKind.Sequential)] private struct Blob { public int Size; public IntPtr Data; }

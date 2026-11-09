@@ -70,7 +70,13 @@ internal sealed class SettingsForm : Form
         Add(connection.Body, "所有者私钥文件（最高权限 · 仅保存在本机）", key);
         var chooseKey = new Button { Text = "选择已配对的私钥文件…", AutoSize = true };
         chooseKey.Click += (_, _) => { using var pick = new OpenFileDialog { Filter = "Paperang 所有者文件|*.json" }; if (pick.ShowDialog(this) == DialogResult.OK) key.Text = pick.FileName; };
-        Add(connection.Body, "", chooseKey); Add(connection.Body, "", http);
+        Add(connection.Body, "", chooseKey);
+        var restoreConnection = new Button { Text = "重新读取已保存的连接", AutoSize = true };
+        restoreConnection.Click += (_, _) => {
+            try { var saved = local.LoadSettings(); url.Text = saved.Server; key.Text = saved.OwnerKeyFile; feedback.Text = "已重新读取本机保存的连接。"; }
+            catch { feedback.Text = "读取失败，原文件已保留；请确认当前 Windows 用户及数据目录权限。"; }
+        };
+        Add(connection.Body, "", restoreConnection); Add(connection.Body, "", http);
         Add(connection.Body, "", Hint("默认仅使用已配对的 RSA 所有者私钥。会话自动续期，管理与打印共用已验证的所有者身份。旧 M 设备密钥没有管理权限，不再作为默认连接凭证。"));
         Add(connection.Body, "本地 P2 打印机", printers);
         var scanRow = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Top };

@@ -128,7 +128,10 @@ internal sealed class TrayContext : ApplicationContext
     private void ShowSettings()
     {
         if (form is { IsDisposed: false }) { form.WindowState = FormWindowState.Normal; form.Show(); form.Activate(); return; }
-        form = new SettingsForm(store.LoadDraft() ?? settings, engine, async (value, startup) => {
+        AppSettings editing;
+        try { editing = store.LoadForEditing(); }
+        catch { Notify("已保存配置读取失败，已阻止默认设置覆盖原文件。请检查 Windows 用户和文件权限。"); return; }
+        form = new SettingsForm(editing, engine, async (value, startup) => {
             value.Validate();
             if (engine.Busy) throw new InvalidOperationException("请等待当前打印完成后保存");
             // Validate journal affinity before replacing credentials on disk.

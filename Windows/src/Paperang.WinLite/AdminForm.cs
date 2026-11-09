@@ -49,15 +49,15 @@ internal sealed class AdminForm : Form
         StartPosition = FormStartPosition.CenterParent; BackColor = Color.FromArgb(246, 248, 252);
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Padding = new Padding(20) };
         root.RowStyles.Add(new(SizeType.AutoSize)); root.RowStyles.Add(new(SizeType.Percent, 100)); root.RowStyles.Add(new(SizeType.AutoSize));
-        var header = new TableLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, ColumnCount = 2, Padding = new Padding(0, 0, 0, 18) };
-        header.ColumnStyles.Add(new(SizeType.Percent, 100)); header.ColumnStyles.Add(new(SizeType.AutoSize));
+        var header = new TableLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, ColumnCount = 1, Padding = new Padding(0, 0, 0, 18) };
+        header.ColumnStyles.Add(new(SizeType.Percent, 100));
         var title = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, Dock = DockStyle.Fill };
         title.Controls.Add(new Label { Text = "管理中心", AutoSize = true, Font = new Font(Font.FontFamily, 23, FontStyle.Bold), ForeColor = Color.FromArgb(26, 43, 69) });
         title.Controls.Add(new Label { Text = "所有者私钥 · 安全连接   /   " + settings.Server, AutoSize = true, ForeColor = Color.DimGray });
-        var login = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Anchor = AnchorStyles.Right };
-        AddButton(login, "切换私钥…", PrivateLogin); AddButton(login, "生成并配对私钥…", GenerateKey);
+        var login = new FlowLayoutPanel { AutoSize = true, WrapContents = true, Dock = DockStyle.Fill };
+        AddButton(login, "登录 / 重新登录", LoginSaved); AddButton(login, "切换私钥…", PrivateLogin); AddButton(login, "生成并配对私钥…", GenerateKey);
         AddButton(login, "锁定", () => { Lock(); return Task.CompletedTask; });
-        header.Controls.Add(title, 0, 0); header.Controls.Add(login, 1, 0); root.Controls.Add(header, 0, 0);
+        header.Controls.Add(title, 0, 0); header.Controls.Add(login, 0, 1); root.Controls.Add(header, 0, 0);
         var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2 };
         workspace.ColumnStyles.Add(new(SizeType.Absolute, 160)); workspace.ColumnStyles.Add(new(SizeType.Percent, 100));
         string[] categories = ["凭证", "身份", "浏览器会话", "任务历史", "审计记录"];
@@ -103,7 +103,7 @@ internal sealed class AdminForm : Form
         pageSize.SelectedIndexChanged += async (_, _) => { SaveUi(); if (client != null) await Work(() => RefreshRows(false)); };
         hideRevoked.CheckedChanged += async (_, _) => { SaveUi(); if (client != null) await Work(() => RefreshRows(false)); };
         FormClosed += (_, _) => { lifetime.Cancel(); client?.Dispose(); sessionTimer.Dispose(); ClearDetails(); rows.Clear(); pages.Clear(); lifetime.Dispose(); };
-        Shown += async (_, _) => { if (File.Exists(settings.OwnerKeyFile)) await Work(() => LoginOwnerFile(settings.OwnerKeyFile)); };
+        Shown += async (_, _) => await Work(LoginSaved);
         sessionTimer.Tick += (_, _) => { if (!busy) Lock(); };
         UpdateContext(); message.Text = "请选择已配对的所有者私钥。密钥留在本机，短期会话仅保存在内存。";
         ResumeLayout(true);
@@ -131,10 +131,21 @@ internal sealed class AdminForm : Form
     {
         if (busy) return; busy = true; UseWaitCursor = true; actions.Enabled = filters.Enabled = paging.Enabled = false; navigation.Enabled = grid.Enabled = false;
         try { await action(); }
-        catch (OperationCanceledException) { }
-        catch (RelayHttpException e) { if (IsDisposed) return; if (e.Status is 401 or 403) Lock(); message.Text = e.Message; }
+        catch (OperationCanceledException) { if (!IsDisposed && !lifetime.IsCancellationRequested) message.Text = "请求超时，请点击“登录 / 重新登录”重试。"; }
+        catch (RelayHttpException e) { if (IsDisposed) return; if (e.Status is 401 or 403) Lock(); message.Text = "操作失败：" + e.Message + "；可点击“登录 / 重新登录”重试。"; }
+        catch (HttpRequestException) { if (!IsDisposed) message.Text = "网络或 TLS 连接失败，请检查代理/网络后点击“登录 / 重新登录”。"; }
         catch (Exception e) { if (IsDisposed) return; message.Text = e is ArgumentException or InvalidDataException or CryptographicException ? e.Message : "操作失败；请检查网络、服务器版本和所选数据。"; }
         finally { busy = false; if (!IsDisposed) { UseWaitCursor = false; actions.Enabled = filters.Enabled = paging.Enabled = client != null; navigation.Enabled = grid.Enabled = true; } }
+    }
+    private async Task LoginSaved()
+    {
+        if (!File.Exists(settings.OwnerKeyFile)) {
+            var saved = local.LoadSettings();
+            if (File.Exists(saved.OwnerKeyFile) && saved.Server == settings.Server) settings = settings with { OwnerKeyFile = saved.OwnerKeyFile };
+        }
+        if (!File.Exists(settings.OwnerKeyFile)) { message.Text = "未登录：未找到已配对私钥，请点击“切换私钥…”选择已有文件，无需重新生成。"; return; }
+        message.Text = "正在使用本机已保存私钥登录…";
+        await LoginOwnerFile(settings.OwnerKeyFile);
     }
     private async Task PrivateLogin()
     {
@@ -144,18 +155,19 @@ internal sealed class AdminForm : Form
     }
     private async Task LoginOwnerFile(string path)
     {
-        using var authorized = new RelayClient(settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" });
-        var me = await authorized.Get("v2/auth/me", lifetime.Token);
-        if (me.GetProperty("role").GetString() != "C") throw new InvalidDataException("私钥未获得 C 权限");
-        if (!string.Equals(settings.OwnerKeyFile, path, StringComparison.OrdinalIgnoreCase))
-        {
-            if (rememberOwner != null && !rememberOwner(path)) throw new InvalidOperationException("私钥路径保存失败，请检查本地配置权限。");
-            settings = settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" };
-        }
-        // Each management request can renew its proof session without storing a token.
-        client?.Dispose(); client = new RelayClient(settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" });
-        actions.Enabled = filters.Enabled = paging.Enabled = true; sessionTimer.Stop(); sessionTimer.Start(); await RefreshRows(false);
-        message.Text = "所有者私钥已验证；后台使用同一公钥身份，会话自动续期。";
+        RelayClient? authorized = new RelayClient(settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" });
+        try {
+            var me = await authorized.Get("v2/auth/me", lifetime.Token);
+            if (me.GetProperty("role").GetString() != "C") throw new InvalidDataException("私钥未获得 C 权限");
+            if (!string.Equals(settings.OwnerKeyFile, path, StringComparison.OrdinalIgnoreCase)) {
+                if (rememberOwner != null && !rememberOwner(path)) throw new InvalidOperationException("私钥路径保存失败，请检查本地配置权限。");
+                settings = settings with { OwnerKeyFile = path, AuthenticationMode = "owner", DeviceKey = "" };
+            }
+            client?.Dispose(); client = authorized; authorized = null;
+            actions.Enabled = filters.Enabled = paging.Enabled = true; sessionTimer.Stop(); sessionTimer.Start();
+            await RefreshRows(false);
+            message.Text = "已登录：所有者私钥已验证，管理信息已加载。";
+        } finally { authorized?.Dispose(); }
     }
     private async Task GenerateKey()
     {

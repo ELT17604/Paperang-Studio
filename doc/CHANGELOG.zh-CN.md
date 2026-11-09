@@ -1,5 +1,13 @@
 # 变更记录
 
+## v0.3.1-winlite-opt2 — 2026-11-10
+
+- 设置窗口重新读取磁盘配置；空连接草稿不再遮盖已保存的服务器与私钥路径，新增“重新读取已保存的连接”。读取失败阻止默认配置覆盖原文件。
+- 配置原子替换时保留 `.previous` 加密备份；不自动生成、替换或配对私钥。
+- 修复所有者登录仍受 4 秒 HTTP 超时限制，以及超时被吞掉导致界面停留“正在登录”；复用已验证会话，避免重复鉴权。
+- 管理中心新增独立“登录 / 重新登录”，登录工具栏分行避免挤出窗口；自动登录失败可重试，缺少文件和权限失败给出提示。
+- 针对空草稿、加密备份和损坏读取新增 3 项隔离验证。首次空路径的具体触发链尚未复现，此版增加加载与恢复防护。
+
 ## `v0.3.1-<distribution>-opt1` — 2026-11-09
 
 - Remove unused Mac management state/cache, unreachable retired relay handlers and redundant preference writes; move regression sources outside the shipping tree.

@@ -31,10 +31,10 @@
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.1-winlite-opt1",
-      "runtimeVersion": "0.3.1-winlite-opt1",
+      "version": "v0.3.1-winlite-opt2",
+      "runtimeVersion": "0.3.1-winlite-opt2",
       "versionSource": "Windows/VERSION",
-      "verification": "Windows x64 self-contained installer built; 61 historical regressions passed; live fix3-to-opt1 overlay install preserves settings/templates/private-key bytes and stable install registration"
+      "verification": "61 historical Windows regressions and 3 configuration recovery checks passed; overlay upgrade preserves private files; live .NET owner C proof and identity query verified"
     },
     "relayskill": {
       "name": "RelaySkill",

@@ -13,9 +13,10 @@ public sealed class RelayClient : IDisposable
     private readonly OwnerAuthentication? owner;
     public RelayClient(AppSettings settings, HttpMessageHandler? handler = null)
     {
-        http = new HttpClient(handler ?? new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = settings.Validate(), Timeout = TimeSpan.FromSeconds(4) };
+        http = new HttpClient(handler ?? new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = settings.Validate(), Timeout = TimeSpan.FromSeconds(settings.AuthenticationMode == "owner" ? 15 : 4) };
         if (settings.AuthenticationMode == "owner") owner = new(settings.OwnerKeyFile, settings.Validate());
         else http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.DeviceKey);
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("PaperangStudio/" + AppVersion.Current);
         http.DefaultRequestHeaders.Add("X-Paperang-Content-Types", "text,raster1");
         http.DefaultRequestHeaders.CacheControl = new() { NoCache = true, NoStore = true };
     }
