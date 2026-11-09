@@ -24,6 +24,8 @@ For **explicitly authorized** local machine installation testing (installs/upgra
 python tests/windows/test_installer.py --setup PATH_TO_SETUP_EXE --log-dir work/installer
 ```
 
+Stop any existing tray instance with its normal Quit action or `PaperangStudio.exe --shutdown` and wait for it to exit first. A second background launch correctly exits because WinLite is single-instance; the test must start its own initial process.
+
 It refuses pending results, hashes existing user data without logging content, checks running-client shutdown, version registration, overlay, silent uninstall/data retention, payload reinstall, restart and original Run preference. It waits for Inno's spawned uninstaller, not merely its short-lived launcher. This is a clean-payload reinstall on an existing user, **not** a clean Windows VM or actual sign-in/reboot test.
 
 Read-only production capability probe, using only the saved endpoint (never logging the endpoint/key):
