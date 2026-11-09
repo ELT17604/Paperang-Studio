@@ -1,6 +1,6 @@
 # Parameters and examples
 
-Implements baseline 0.2.3 relay HTTP v1 / raster1 schema 1, compatible with MacClient and WinLite receivers.
+Current sender implements **v0.3.1 Relay API v2** / raster1 schema 1, compatible with v0.3.1 MacClient and WinLite receivers. Historical relay v1 is retired (410). The Mac-local API v1 is a separate interface.
 
 | Option | Meaning / range |
 | --- | --- |
@@ -29,7 +29,7 @@ Images: first supported raster frame, at most 64 MiB and 40 million source pixel
 
 ## Client-only controls
 
-POST `/v1/jobs` has **no per-job thermal density, paper feed, template, copies or client-configuration fields**. The helper realizes copies as separate explicitly requested jobs. Do not pretend unsupported fields override the client.
+POST `/v2/jobs` has **no per-job thermal density, paper feed, template, copies or client-configuration fields**. The helper realizes copies as separate explicitly requested jobs. Do not pretend unsupported fields override the client.
 
 Density 0–100, feed 0–2000 rows and active template belong to local receiver settings. The receiver may shrink raster1 into its Body block and append sender/time/ID. For exact pre-rendered layout, the user must select a body-only template with margin/gap zero and set density/feed locally. Do not silently replace a template for one remote job. Darker image pixels do not change thermal density.
 

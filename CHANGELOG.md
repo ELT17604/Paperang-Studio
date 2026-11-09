@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased · ChatGPT sender integration (experimental)
+
+- Add loopback MCP sender adapter and optional GPT Actions OpenAPI schema targeting existing Relay API v2.
+- Support explicitly authorized text and pre-rendered raster1, server-side A/B identity verification, B own-status and UUID idempotency; never retry ambiguous POST.
+- Add offline HTTP contract tests, bilingual guides and security/deployment boundaries. OAuth gateway, live ChatGPT connection and paper testing remain pending; no new released distribution or shared protocol change.
+
 ## v0.3.1-macclient-fix3 — 2026-11-09
 
 - Native macOS build restored; paired owner-file execution, renewable RSA-PSS proof, stable recovery identity and legacy M compatibility.

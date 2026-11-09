@@ -2,7 +2,7 @@
 
 # Paperang Studio
 
-<p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill</p>
+<p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT integration</p>
 <p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.1 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
 Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. A native desktop client connects to the printer over Bluetooth; the Linux relay accepts notes from a browser or RelaySkill and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
@@ -18,9 +18,12 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 | **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | Native build, GUI and local API v2 integration verified |
 | **WinLite · Windows** | Native WinForms/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | Windows build, regression and local relay integration tested |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | Local HTTP/SQLite tests passed; Linux deployment validation pending |
+| **ChatGPT integration · experimental** | MCP sender adapter and legacy GPT Actions schema for Relay API v2 | [Integration guide](doc/CHATGPT.md) · [Code](Integrations/ChatGPT/) | Source only; gateway, ChatGPT connection and hardware test pending |
 | **RelaySkill · sender** | Agent skill for text/images, layout parameters, explicit submission and permission-aware status tracking | [Skill guide](doc/RELAY-SKILL.md) · [Skill source](Skills/paperang-relay-print/SKILL.md) | Local protocol/rendering tests passed |
 
 Full **WinClient** and **LinuxClient** are planned distributions. WinLite is the existing Windows receiver; LinuxRelayServer is a server, not a Linux Bluetooth client. See the [implementation matrix](doc/FEATURE-MATRIX.md) for exact scope and evidence.
+
+**ChatGPT (experimental):** A private MCP / GPT Actions source adapter is available at [Integrations/ChatGPT](Integrations/ChatGPT/README.md), with [English](doc/CHATGPT.md) and [中文](doc/CHATGPT.zh-CN.md) guides. This is not a deployed or released distribution; authenticated HTTPS/OAuth gateway and account-side connection are still required.
 
 ## How the parts connect
 
@@ -119,7 +122,7 @@ Install the folder `Skills/paperang-relay-print/` into your agent’s skills dir
 | Windows | [Tray/settings/admin guide](doc/WINDOWS.md) · [Build](Windows/README.md) |
 | macOS | [Workspace](doc/USER-GUIDE.md) · [Layout editor](doc/LAYOUT-EDITOR.md) · [Paper terminal](doc/TERMINAL.md) · [Tray mode](doc/TRAY-MODE.md) |
 | Relay and security | [Deploy](Server/README.md) · [Authentication/API v2](doc/AUTH-v2.md) · [Data and retention](doc/RELAY-DATA.md) |
-| Integrations | [RelaySkill](doc/RELAY-SKILL.md) · [Mac local API](doc/API.md) / [OpenAPI](doc/openapi.json) · [Swift modules](doc/SWIFT-API.md) |
+| Integrations | [ChatGPT adapter](doc/CHATGPT.md) · [RelaySkill](doc/RELAY-SKILL.md) · [Mac local API](doc/API.md) / [OpenAPI](doc/openapi.json) · [Swift modules](doc/SWIFT-API.md) |
 | Upgrade and maintain | [Changelog](CHANGELOG.md) · [Upgrade](doc/UPGRADE-v0.3.0.md) · [Mac/Linux agent prompts](doc/HANDOFF-v0.3.0.zh-CN.md) · [Validation](doc/VALIDATION-v0.3.0.md) |
 | Printer research | [Protocol](doc/PROTOCOL.md) · [Physical observations](doc/ACQUISITION.md) · [Research](doc/RESEARCH.md) · [Related projects](doc/RELATED-PROJECTS.md) · [Sources](doc/SOURCES.md) |
 
@@ -132,6 +135,7 @@ Install the folder `Skills/paperang-relay-print/` into your agent’s skills dir
 | `Server/` | Relay API v2, submission webpage, SQLite security/queue and Linux deployment |
 | `Skills/` | Independently versioned RelaySkill |
 | `Clients/` | Python/JavaScript clients for the Mac local API |
+| `Integrations/ChatGPT/` | Experimental MCP/GPT Actions sender adapters; not a separate released distribution |
 | `Configurations/` | Importable print presets |
 | `assets/` | Original branding and real application screenshots |
 | `doc/` | Guides, contracts, release records and research |

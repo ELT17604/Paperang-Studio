@@ -16,7 +16,7 @@
 
 WinLite 继续不提供完整工作台、终端或本机 API；这些是 Lite 范围差异。它现在提供完整 C 管理功能。应用级正文加密、CSV 与独立附件目录导出未实现；本版 JSONL 内含正文、metadata、事件和 raster1 base64。
 
-过往纸面证据：2026-11-06 用户确认中文完整出纸，两次 BLE 重连。新版本本机模拟传输/实际 HTTP 验证不等于新纸面确认；未进行 Windows 实际重启、无限期稳定性或 Mac 原生编译。所有平台接手要求见 [handoff](HANDOFF-v0.3.0.zh-CN.md)。
+过往纸面证据：2026-11-06 用户确认中文完整出纸，两次 BLE 重连。新版本本机模拟传输/实际 HTTP 验证不等于新纸面确认；未进行 Windows 实际重启、无限期稳定性。所有平台接手要求见 [handoff](HANDOFF-v0.3.0.zh-CN.md)。
 
 Linux补充：Ubuntu 24.04/Python 3.12 的22项安全/HTTP/SQLite测试、隔离及公网Chromium HTTPS登录刷新、最大raster和重启验证通过。生产源771c14c17326已迁移并完成非root systemd冷重启、公网HTTPS、旧v1退役与部署哈希验证。原生v2接收端、真实出纸与长期无人值守仍待验收。首次安装公网探测失败的原始记录保留，后续复核通过。见[Linux验证记录](LINUX-v0.3.0-VALIDATION.md)。
 
@@ -44,3 +44,5 @@ Server source ready; live deployment pending. Compatible API v2 baseline remains
 ## MacClient fix3 验证补充
 
 当前 Mac 原生构建、管理分页/配额/私钥续期及恢复已验证；上方 fix1 的待验标签为历史记录。服务器 39 项测试通过，未新增实机出纸或生产部署验证。[详细范围](MACCLIENT-v0.3.1.zh-CN.md)。
+
+**实验性集成（非正式分发版本）：** [ChatGPT 适配器](CHATGPT.zh-CN.md) 复用 A/B Relay API v2，提供文字、预渲染 raster1 与 B 级本人任务查询；已提供模拟 HTTP 测试，但尚未完成 MCP/OAuth 网关部署、ChatGPT 账户连接或实机纸面验证。不增加兼容基线或正式分发版本。

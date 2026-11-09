@@ -21,6 +21,8 @@ Reviewed 2026-11-09. **N** native macOS software build/local HTTP integration ve
 | Full text/image workspace, terminal, local API | N existing Mac | O | O Lite scope | O | P |
 | Optional at-rest app encryption / CSV folders | P | P | P | O | P |
 
+**Experimental non-distribution:** The [ChatGPT adapter](CHATGPT.md) reuses A/B Relay API v2 for text, validated pre-rendered raster1, and B-only own-status reads. Implementation reviewed at source level with mock-transport tests provided; no deployed MCP/OAuth gateway, ChatGPT account connection, or P2 paper verification is claimed. This is not an additional release column or shared compatibility contract.
+
 API v2 breaks relay v1; local Mac API v1, template JSON v1, raster1 schema1 and legacy BLE framing remain separate. A cannot read state. B state is own-identity only. C manages complete history. M is scoped execution, not full historical access. A short ID/old receipt never conveys content authority. `sent` is transport only; physical confirmation requires owner action.
 
 Windows evidence: regression suite (51 checks), Chinese GDI/template rendering, DPAPI atomic persistence/restart, retry cancellation, concurrent lifecycle and 1,200-request bounded offline stress. Real local v2 HTTP/SQLite integration covers text+raster, C login, identity-preserving rotation, Windows/Python RSA-PSS interoperability, C export and private-file ACL. Native C panel layout inspected at Windows display scaling. Server permission tests cover role boundaries, legacy bypass denial, browser Cookie/CSRF, anonymous registration/revocation, owner replay, rotation and idempotency. RelaySkill has twelve local tests. See tests and release verification record for current results.
