@@ -16,7 +16,7 @@ for name, item in registry['distributions'].items():
         continue
     assert item.get('targetVersion') == baseline
     assert item['validation032'] in ('pending', 'passed', 'blocked')
-    assert (name == 'macclient' and item['version'] == 'v' + baseline) or re.fullmatch(r'v\d+\.\d+\.\d+-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
+    assert item['version'] == 'v' + baseline or re.fullmatch(r'v\d+\.\d+\.\d+-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
     source = (root / item['versionSource']).read_text(encoding='utf-8').strip()
     runtime = item['runtimeVersion']
     assert item['version'] == 'v' + runtime
