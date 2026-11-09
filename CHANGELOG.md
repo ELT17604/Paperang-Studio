@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.1-winlite-fix3 / linuxrelayserver-fix1 / macclient-fix1 — 2026-11-09
+
+- Windows 标准按用户安装包，内置 .NET、系统卸载入口和可选数据清除，托盘手动检查 GitHub 正式 WinLite 发行版。
+- 自定义口令移除长度/复杂度规则，留空自动生成；保留传输边界和登录限流。
+- C 管理匿名/注册默认及单身份的小时任务数、内容量和单次大小限额；SQLite 持久化与原子计数，轮换不清零。网页、WinLite 界面及 Swift 管理源代码同步。
+- Windows 61 项、服务器 39 项测试通过。macOS 原生编译与线上服务器部署待验证，见交接文档。
+
+
 ## v0.3.1-winlite-fix2 — 2026-11-09
 
 Autosave all settings, including the paired owner-file path, startup preferences, remembered printer and reconnect options. Encrypt unfinished connection drafts separately from active recovery settings. Remember settings/management tabs, page size, revoked-row visibility and identity filters. Add versioned JSON configuration export with templates and UI preferences; raw credentials, private-key contents, sessions and pending tasks are excluded. Valid settings are restored on startup; live connection changes still use Save and Connect.

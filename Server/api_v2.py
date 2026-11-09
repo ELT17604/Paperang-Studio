@@ -31,7 +31,7 @@ class APIv2:
         if path.startswith('/v1/'):
             self.fail(410,'api_v1_retired_upgrade_to_v0.3.1')
         if method=='GET' and path=='/v2/public/status':
-            return 200,dict(version='0.3.1',status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2,anonymousOwnStatus=True,ownerExecution=True))
+            return 200,dict(version=s.version,status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2,anonymousOwnStatus=True,ownerExecution=True,quotaManagement=True,customPassphrasePolicy="unrestricted"))
         if method=='POST' and path=='/v2/auth/anonymous':
             if not s.c['allow_anonymous']: self.fail(403,'anonymous_disabled')
             a.limit('register:'+ip,20)
@@ -45,7 +45,8 @@ class APIv2:
         if method=='POST' and path=='/v2/auth/prove': return 200,a.prove(body,ip)
         if path=='/v2/auth/me' and method=='GET':
             if not key: self.fail(401,'identity_required')
-            return 200,{k:key.get(k) for k in ('id','user_id','browser_id','role','name','csrf','anonymous')}
+            quota=a.quota_status('user:'+key['user_id'])
+            return 200,{k:key.get(k) for k in ('id','user_id','browser_id','role','name','csrf','anonymous')} | dict(quota={k:quota[k] for k in ('effective','usage','resetAt')})
         if path=='/v2/auth/logout' and method=='POST':
             if key:
                 with s.connect() as db: db.execute('DELETE FROM sessions WHERE credential_id=?',(key['id'],))
@@ -62,20 +63,6 @@ class APIv2:
                     if not row: self.fail(409,'idempotent_job_expired')
                     return 202,dict(id=row['id'],shortID=row['short_id'],accepted=True,statusReadable=self.can_read_status(key))
                 legacy={**key,'role':'submit','request_id':request_id}
-                # Quotas: IP + stable identity + credential + aggregate, including anonymous.
-                prefix='anonymous' if key['anonymous'] else 'authenticated'
-                units=len(body.get('text','')) if isinstance(body.get('text',''),str) else 0
-                units+=body.get('content',{}).get('height',0) if isinstance(body.get('content'),dict) and type(body['content'].get('height')) is int else 0
-                window=int(time.time()//3600)
-                buckets=['user:'+key['user_id'],'credential:'+key['id'],'global']
-                with s.connect() as db:
-                    for bucket in buckets:
-                        use=db.execute('SELECT * FROM usage WHERE ip=? AND window=?',(bucket,window)).fetchone()
-                        max_jobs=s.c['global_hourly_limit'] if bucket=='global' else s.c[prefix+'_hourly_limit']
-                        max_chars=s.c['global_hourly_chars'] if bucket=='global' else s.c[prefix+'_hourly_chars']
-                        if use and (use['jobs']>=max_jobs or use['chars']+units>max_chars): self.fail(429,'identity_or_global_quota_reached')
-                # Anonymous has an identity but must retain the anonymous limits.
-                if key['anonymous'] and units>s.c['anonymous_max_length']: self.fail(400,'anonymous_size_limit')
                 result=s.submit(body,legacy,ip,headers)
                 return 202,dict(id=result['id'],shortID=result['shortID'],accepted=True,statusReadable=self.can_read_status(key))
         lookup=re.fullmatch(r'/v2/jobs/(?:lookup/)?([A-Fa-f0-9-]{12,40})',path)
@@ -92,6 +79,8 @@ class APIv2:
             if type(limit) is not int or not 1<=limit<=100: self.fail(400,'invalid_page_size')
             hidden=body.get('hide_revoked',False)
             if type(hidden) is not bool: self.fail(400,'invalid_hide_revoked')
+            if method=='POST' and path=='/v2/admin/quotas/get':return 200,a.quota_status(body.get('scope','anonymous'))
+            if method=='POST' and path=='/v2/admin/quotas/set':return 200,a.set_quota(body.get('scope'),body.get('limits'),key)
             if method=='POST' and path in ('/v2/admin/keys/search','/v2/admin/identities/search','/v2/admin/sessions/search'):
                 before=body.get('before',1e20)
                 if type(before) not in (int,float): self.fail(400,'invalid_cursor')

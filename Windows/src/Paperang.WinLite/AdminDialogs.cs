@@ -52,7 +52,7 @@ internal static class AdminDialogs
         role.Items.AddRange(["A · 只投递（投件箱）", "B · 投递与本身份进度", "C · 全部管理", "M · 设备执行"]); role.SelectedIndex = 0;
         var kind = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         kind.Items.AddRange(["随机密钥（自动生成）", "口令（留空自动生成）"]); kind.SelectedIndex = 0;
-        var phrase = new TextBox { UseSystemPasswordChar = true, MaxLength = 128, PlaceholderText = "留空自动生成；自定义需 12–128 字符", Enabled = false };
+        var phrase = new TextBox { UseSystemPasswordChar = true, MaxLength = 0, PlaceholderText = "留空自动生成；自定义口令不限长度与复杂度", Enabled = false };
         Field(panel, "展示名称", name); Field(panel, "身份 · 可选择最近 100 个或当前所选身份", identity);
         Field(panel, "权限", role); Field(panel, "凭证类型", kind); Field(panel, "自定义口令（可选）", phrase);
         var validation = new Label { AutoSize = true, MaximumSize = new Size(510, 0), ForeColor = Color.Firebrick }; panel.Controls.Add(validation);
@@ -62,7 +62,6 @@ internal static class AdminDialogs
         var submit = Footer(dialog, panel, "创建凭证");
         submit.Click += (_, _) => {
             if (string.IsNullOrWhiteSpace(name.Text)) { validation.Text = "请输入便于识别的展示名称。"; name.Focus(); return; }
-            if (kind.SelectedIndex == 1 && phrase.Text.Length > 0 && (phrase.Text.Length < 12 || phrase.Text.Distinct().Count() < 4)) { validation.Text = "口令至少 12 字符，且至少包含 4 种不同字符；也可留空自动生成。"; return; }
             dialog.DialogResult = DialogResult.OK;
         };
         if (dialog.ShowDialog(owner) != DialogResult.OK) return null;

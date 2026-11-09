@@ -297,6 +297,85 @@ class SecurityTests(unittest.TestCase):
             result=self.route('POST',path,'C',dict(limit=1))
             self.assertLessEqual(len(result[next(k for k in result if k!='next')]),1)
 
+    def test_custom_passphrase_without_length_or_complexity_policy(self):
+        for phrase in ('a','aaaa','中','x'*1000):
+            entry=self.auth.create('Custom','B',kind='passphrase',password=phrase)
+            session=self.auth.login({'credential':entry['token']},'127.0.0.1')
+            self.assertEqual(session['user_id'],entry['user_id'])
+        rotated=self.route('POST','/v2/admin/keys/'+entry['id']+'/rotate','C',dict(password='1'))
+        self.assertTrue(self.auth.login({'credential':rotated['token']},'127.0.0.1'))
+        for invalid in (0,False,[],{}):
+            with self.assertRaises(Problem):self.auth.create('Bad','B',kind='passphrase',password=invalid)
+
+    def test_individual_quota_shared_by_keys_rotation_and_idempotency(self):
+        uid=self.keys['B']['user_id'];scope='user:'+uid
+        result=self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=1)))
+        self.assertEqual(result['effective']['hourly_limit'],1)
+        identifier=str(uuid.uuid4());first=self.submit('B',identifier)
+        self.assertEqual(first['id'],self.submit('B',identifier)['id'])
+        entry=self.auth.create('B extra','B',user_id=uid);self.keys['extra']=self.auth.authenticate('Bearer '+entry['token'])
+        self.blocked(429,'POST','/v2/jobs','extra',dict(text='second',request_id=str(uuid.uuid4())))
+        rotated=self.route('POST','/v2/admin/keys/'+entry['id']+'/rotate','C')
+        self.keys['extra']=self.auth.authenticate('Bearer '+rotated['token'])
+        self.blocked(429,'POST','/v2/jobs','extra',dict(text='second',request_id=str(uuid.uuid4())))
+        status=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))
+        self.assertEqual(status['usage']['jobs'],1)
+        own=self.route('GET','/v2/auth/me','B')['quota']
+        self.assertEqual(own['usage']['jobs'],1);self.assertNotIn('overrides',own)
+        self.assertTrue(self.submit('A')['accepted'])
+
+    def test_anonymous_defaults_individual_override_inheritance_and_persistence(self):
+        session=self.route('POST','/v2/auth/anonymous',body=dict(browser_id='psb_'+uuid.uuid4().hex))
+        self.keys['anon']=self.auth.authenticate('Bearer '+session['token']);scope='user:'+self.keys['anon']['user_id']
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope='anonymous',limits=dict(hourly_limit=0,max_length=20)))
+        self.blocked(429,'POST','/v2/jobs','anon',dict(text='x',request_id=str(uuid.uuid4())))
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=2)))
+        self.submit('anon')
+        result=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))
+        self.assertEqual(result['effective']['max_length'],20);self.assertEqual(result['usage']['jobs'],1)
+        restarted=Store(dict(database=self.s.db))
+        self.assertEqual(restarted.api.auth.quota_status(scope)['effective']['hourly_limit'],2)
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=None)))
+        self.assertEqual(self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))['effective']['hourly_limit'],0)
+        self.blocked(429,'POST','/v2/jobs','anon',dict(text='x',request_id=str(uuid.uuid4())))
+        group=self.route('POST','/v2/admin/quotas/get','C',dict(scope='anonymous'))
+        self.assertTrue(group['usage']['aggregate']);self.assertEqual(group['usage']['jobs'],1)
+
+    def test_quota_units_raster_first_request_and_failed_jobs_not_counted(self):
+        scope='user:'+self.keys['B']['user_id']
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_chars=5,max_length=10)))
+        self.blocked(429,'POST','/v2/jobs','B',dict(text='123456',request_id=str(uuid.uuid4())))
+        pixels=b'\0'*72*2
+        content=dict(type='raster1',schemaVersion=1,width=576,height=2,bitOrder='msb-first',blackIsOne=True,encoding='base64',data=base64.b64encode(pixels).decode(),sha256=__import__('hashlib').sha256(pixels).hexdigest())
+        self.route('POST','/v2/jobs','B',dict(text='123',content=content,request_id=str(uuid.uuid4())))
+        self.blocked(429,'POST','/v2/jobs','B',dict(text='x',request_id=str(uuid.uuid4())))
+        status=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))
+        self.assertEqual(status['usage']['jobs'],1);self.assertEqual(status['usage']['units'],5)
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(max_length=1)))
+        self.blocked(400,'POST','/v2/jobs','B',dict(text='12',request_id=str(uuid.uuid4())))
+
+    def test_quota_permissions_validation_and_concurrent_reservation(self):
+        for role in ('A','B','M'):
+            self.blocked(403,'POST','/v2/admin/quotas/get',role,dict(scope='anonymous'))
+            self.blocked(403,'POST','/v2/admin/quotas/set',role,dict(scope='anonymous',limits=dict(hourly_limit=0)))
+        for limits in (dict(hourly_limit=-1),dict(hourly_limit=True),dict(hourly_chars='5'),dict(max_length=10001),dict(unknown=1)):
+            self.blocked(400,'POST','/v2/admin/quotas/set','C',dict(scope='anonymous',limits=limits))
+        self.blocked(404,'POST','/v2/admin/quotas/get','C',dict(scope='user:'+str(uuid.uuid4())))
+        scope='user:'+self.keys['B']['user_id']
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=3)))
+        def submit(_):
+            try:self.submit('B');return True
+            except Problem as e:self.assertEqual(e.status,429);return False
+        with ThreadPoolExecutor(max_workers=8) as pool:results=list(pool.map(submit,range(10)))
+        self.assertEqual(sum(results),3)
+        self.assertEqual(self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))['usage']['jobs'],3)
+
+    def test_registered_default_and_global_ceiling_still_apply(self):
+        self.route('POST','/v2/admin/quotas/set','C',dict(scope='authenticated',limits=dict(hourly_limit=1)))
+        self.submit('A');self.blocked(429,'POST','/v2/jobs','A',dict(text='x',request_id=str(uuid.uuid4())))
+        self.s.c['global_hourly_limit']=1
+        self.blocked(429,'POST','/v2/jobs','B',dict(text='x',request_id=str(uuid.uuid4())))
+
     def test_HTTP_cookie_csrf_and_native_login(self):
         self.s.c['port']=0;server=Server(self.s);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         base='http://127.0.0.1:'+str(server.server_port)

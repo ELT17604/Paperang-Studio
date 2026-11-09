@@ -136,3 +136,5 @@ sudo bash Server/install.sh
 采用 [CC BY-NC-SA 4.0](../LICENSE)：署名 ELT Group、非商业使用、修改标注及同方式共享。用于个人研究学习，禁止商用。非商业限制意味着本项目不属于 OSI 定义的开源许可。完整声明见 [NOTICE](../NOTICE)。
 
 Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any related companies or affiliates. All third-party names and trademarks belong to their respective owners. Referenced materials retain their own licenses.
+
+Windows v0.3.1-winlite-fix3：[标准安装、手动更新和卸载](WINDOWS-RELEASE-ARTIFACTS.zh-CN.md)。

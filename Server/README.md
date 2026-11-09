@@ -45,3 +45,5 @@ Configuration defaults: loopback:8177, device p2, anonymous 500 units/job, 5 job
 key-add prints a newly generated secret once; redirect to a private file rather than logging it. key-import accepts existing offline keygen JSON for legacy role aliases (submit→B, admin→C, device→M). Use C UI/API to create A/passphrase credentials. Fixed owner keys are local RSA PEM files; register only their public key, then prove possession. Never upload the private JSON.
 
 Run `python -m unittest discover -s Server -p 'test_*.py'` in the configured venv. See the full auth contract for route schemas, status-only responses, CSRF, pagination, revocation, retention and proof limitations. Tests run with temporary databases; do not run them against a production config.
+
+Quota/passphrase revision: `v0.3.1-linuxrelayserver-fix1`. C-only class and stable-identity limits persist in SQLite. Follow [deployment handoff](../doc/HANDOFF-QUOTAS-v0.3.1.zh-CN.md); never rerun owner cutover for a routine upgrade. Local 39-test validation does not mean the production service is deployed.

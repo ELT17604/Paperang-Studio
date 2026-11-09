@@ -23,6 +23,11 @@ struct RelaySecurityManager: View {
  @State private var rows=[[String:Any]]()
  @State private var before:Double=1e20
  @State private var busy=false
+ @State private var quotaTarget="anonymous"
+ @State private var quotaLoaded=false
+ @State private var quotaJobs=""
+ @State private var quotaUnits=""
+ @State private var quotaLength=""
  private let sections=["keys","identities","sessions","jobs","audit"]
  var body:some View {
   VStack(alignment:.leading,spacing:10) {
@@ -36,7 +41,7 @@ struct RelaySecurityManager: View {
    Group {
     Picker("页面",selection:$section){ForEach(sections,id:\.self){Text($0).tag($0)}}
     HStack{TextField("展示名称",text:$name);TextField("用户 ID（筛选/现有身份）",text:$userID)}
-    SecureField("可选自定义口令（至少12字）",text:$phrase)
+    SecureField("可选自定义口令（不限长度与复杂度）",text:$phrase)
     HStack{Picker("权限",selection:$role){ForEach(["A","B","C","M"],id:\.self){Text($0).tag($0)}};Picker("凭证",selection:$kind){Text("随机密钥").tag("token");Text("可读口令").tag("passphrase")}}
     HStack {
      Button("刷新"){perform{try await refresh()}};Button("下一页"){perform{try await refresh(more:true)}}
@@ -50,6 +55,7 @@ struct RelaySecurityManager: View {
      Button("导出历史 JSONL"){perform{try await exportHistory()}}
      Button("纸面确认"){perform{_ = try await request("admin/jobs/\(selected)/confirm",[:]);try await refresh()}}
     }
+    quotaEditor
     List(rows.indices,id:\.self) { index in
      let row=rows[index]
      Button(String(describing:row["name"] ?? row["id"] ?? row["credential_id"] ?? "")+" · "+String(describing:row["role"] ?? row["state"] ?? row["action"] ?? "")) {selected=String(describing:row["id"] ?? row["credential_id"] ?? "");details=(try? pretty(row)) ?? ""}.buttonStyle(.plain)
@@ -67,6 +73,35 @@ struct RelaySecurityManager: View {
  @MainActor private func perform(_ work:@escaping @MainActor () async throws ->Void) {
   guard !busy else{return};busy=true
   Task{@MainActor in defer{busy=false};do{try await work()}catch{message=error.localizedDescription}}
+ }
+ @ViewBuilder private var quotaEditor:some View {
+  DisclosureGroup("用量与限额") {
+   Picker("管理对象",selection:$quotaTarget){Text("匿名默认（每身份）").tag("anonymous");Text("注册默认（每身份）").tag("authenticated");Text("所选身份").tag("selected")}.onChange(of:quotaTarget){_,_ in quotaLoaded=false}.onChange(of:selected){_,_ in quotaLoaded=false}
+   HStack{TextField("每小时任务数（空白继承）",text:$quotaJobs);TextField("每小时内容量（空白继承）",text:$quotaUnits);TextField("单次内容量（空白继承）",text:$quotaLength)}
+   HStack{Button("读取用量与限额"){perform{try await quotaRequest(false)}};Button("保存限额"){perform{try await quotaRequest(true)}}.disabled(!quotaLoaded)}
+   Text("0 禁止投稿；内容量 = 字数 + 图片行数。单独身份优先，轮换凭证不清零。仍受 IP/全站上限约束；用量与重置时间显示在详情中。").font(.caption)
+  }
+ }
+ @MainActor private func quotaRequest(_ write:Bool) async throws {
+  var scope=quotaTarget
+  if scope=="selected" {
+   guard ["keys","identities"].contains(section),let row=rows.first(where:{($0["id"] as? String)==selected}),let uid=row[section=="identities" ? "id":"user_id"] as? String else{throw PrintFailure("请在凭证或身份页选择目标身份")}
+   scope="user:"+uid
+  }
+  var body:[String:Any]=["scope":scope]
+  if write {
+   var limits=[String:Any]()
+   for (field,text,maximum) in [("hourly_limit",quotaJobs,1_000_000_000),("hourly_chars",quotaUnits,1_000_000_000),("max_length",quotaLength,10_000)] {
+    let value=text.trimmingCharacters(in:.whitespacesAndNewlines)
+    if value.isEmpty{limits[field]=NSNull()}else{guard let number=Int(value),number>=0,number<=maximum else{throw PrintFailure("限额需为范围内的非负整数，空白表示继承")};limits[field]=number}
+   };body["limits"]=limits
+  }
+  let result=try await request("admin/quotas/"+(write ? "set":"get"),body)
+  let custom=result["overrides"] as? [String:Any] ?? [:]
+  quotaJobs=(custom["hourly_limit"] as? NSNumber)?.stringValue ?? ""
+  quotaUnits=(custom["hourly_chars"] as? NSNumber)?.stringValue ?? ""
+  quotaLength=(custom["max_length"] as? NSNumber)?.stringValue ?? ""
+  quotaLoaded=true;details=try pretty(result);message=write ? "限额已保存，新投稿立即生效；累计用量不清零。":"已读取当前小时用量与生效限额。"
  }
  private func pretty(_ value:Any)throws->String {String(decoding:try JSONSerialization.data(withJSONObject:value,options:[.prettyPrinted,.sortedKeys]),as:UTF8.self)}
  private func request(_ path:String,_ body:[String:Any]?=nil) async throws->[String:Any] {

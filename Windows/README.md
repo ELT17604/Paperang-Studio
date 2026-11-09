@@ -6,7 +6,7 @@
 
 [English guide](../doc/WINDOWS.md) · [简体中文](../doc/WINDOWS.zh-CN.md)
 
-**V0.3.1-winlite-fix2** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+**V0.3.1-winlite-fix3** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
 
 Uses the shared [version policy](../doc/VERSIONING.md) and [feature implementation matrix](../doc/FEATURE-MATRIX.md). Fix1 adds automatic print-preference persistence, live connection status and default continuous 60-second retry cycles, and repairs enabled sign-in startup paths after upgrades.
 
@@ -26,3 +26,15 @@ Double-click the tray icon, enter a relay root URL and select the paired **owner
 Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. See the [guide](../doc/WINDOWS.md) for template compatibility, privacy, recovery, limitations, and real-device verification.
 
 © 2026 ELT Group · [CC BY-NC-SA 4.0](../LICENSE) · [NOTICE](../NOTICE). This Windows adaptation is an independent, unofficial client, not an official Paperang product.
+
+## 标准安装、更新与卸载
+
+推荐 `PaperangStudio-0.3.1-winlite-fix3-win-x64-setup.exe`，自带 .NET 10，不需另外安装运行环境。按当前用户安装至 `%LOCALAPPDATA%/Programs/Paperang Studio WinLite`，在开始菜单和“已安装的应用”中可见。升级保留原有配置、模板和私钥路径。
+
+托盘 → **检查 GitHub 更新…** 手动读取本仓库最近 100 个发行记录，只比较正式 WinLite 标签。发现新版后打开 GitHub 下载页面，不自动下载安装。没有发行记录或网络失败会明确提示。
+
+卸载会正常退出客户端并清除登录启动项。可选择永久删除本程序数据目录（包括其中的私钥），默认保留；静默卸载保留数据。外部私钥及服务器授权不会被删除。构建：安装 Inno Setup 6，执行 `Windows/scripts/build-installer.ps1 -Dotnet PATH`。
+
+管理面板 **用量与限额…** 支持匿名/注册默认及所选身份覆盖。0 禁止投稿，继承恢复默认；轮换不清零。需要服务器 fix1，旧服务器会明确提示不支持。
+
+参见 [发布物说明](../doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md) 与 [服务器/macOS 交接](../doc/HANDOFF-QUOTAS-v0.3.1.zh-CN.md)。

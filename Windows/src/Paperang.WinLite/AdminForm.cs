@@ -76,7 +76,7 @@ internal sealed class AdminForm : Form
         main.RowStyles.Add(new(SizeType.AutoSize)); main.RowStyles.Add(new(SizeType.AutoSize)); main.RowStyles.Add(new(SizeType.AutoSize)); main.RowStyles.Add(new(SizeType.Percent, 100)); main.RowStyles.Add(new(SizeType.AutoSize));
         heading.Text = view.Text; main.Controls.Add(heading, 0, 0);
         void Context(string text, Func<Task> run, params int[] views) { var button = AddButton(actions, text, run); contextual.Add((button, views)); }
-        Context("＋ 新建凭证", Create, 0, 1); Context("修改展示名称", Rename, 0); Context("轮换…", Rotate, 0);
+        Context("＋ 新建凭证", Create, 0, 1); Context("用量与限额…", ManageQuotas, 0, 1); Context("修改展示名称", Rename, 0); Context("轮换…", Rotate, 0);
         Context("吊销…", Revoke, 0, 1, 2); Context("登记公钥…", TrustKey, 0);
         Context("查看此身份的任务", FilterSelected, 0, 1); Context("导出历史…", Export, 3); Context("确认纸面完成", Confirm, 3);
         main.Controls.Add(actions, 0, 1);
@@ -269,6 +269,16 @@ internal sealed class AdminForm : Form
         var result = await operation;
         AdminDialogs.ShowCredential(this, result);
         await RefreshRows(false);
+    }
+    private Task ManageQuotas()
+    {
+        string? id = null, name = null;
+        int selected = grid.CurrentRow?.Index ?? -1;
+        if (selected >= 0 && selected < rows.Count)
+        {
+            var row = rows[selected]; id = row.GetProperty(view.SelectedIndex == 1 ? "id" : "user_id").GetString(); name = row.GetProperty("name").GetString();
+        }
+        using var form = new QuotaForm(client!, id, name, lifetime.Token); form.ShowDialog(this); return Task.CompletedTask;
     }
     private async Task Create()
     {

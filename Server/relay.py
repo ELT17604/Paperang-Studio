@@ -5,7 +5,7 @@ import argparse, contextlib, hashlib, hmac, ipaddress, json, os, re, secrets, si
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-APP_VERSION = '0.3.1'
+APP_VERSION = '0.3.1-linuxrelayserver-fix1'
 
 JOB_PATTERN = r'(?:[a-f0-9]{40}|[a-f0-9-]{36})'
 SHORT_JOB_PATTERN = r'(?:[A-Fa-f0-9]{12}|[A-Fa-f0-9]{4}(?:-[A-Fa-f0-9]{4}){2})'
@@ -32,6 +32,7 @@ class Problem(Exception):
     def __init__(self, status, message, **extra): self.status, self.message, self.extra = status, message, extra
 
 class Store:
+    version = APP_VERSION
     def __init__(self, config):
         self.c = {**DEFAULTS, **config}
         if not valid_device(self.c['device_id']): raise ValueError('Invalid device_id')
@@ -175,7 +176,7 @@ class Store:
     def submit(self,body,key,ip,headers):
         if key: self.require(key,['submit','admin'])
         if not key and not self.c['allow_anonymous']: raise Problem(403,'Anonymous submissions are disabled')
-        text=body.get('text','');limit=self.c['anonymous_max_length' if not key or key.get('anonymous') else 'authenticated_max_length']
+        text=body.get('text','');limit=10000
         content,payload,rows=self.content(body,limit)
         if not isinstance(text,str) or (not text.strip() and content is None) or len(text)+rows>limit: raise Problem(400,f'Provide text or a raster; caption characters plus raster rows must not exceed {limit}')
         if any(ord(v)<32 and v not in '\n\r\t' for v in text): raise Problem(400,'Control characters are not accepted')
@@ -196,6 +197,16 @@ class Store:
             db.execute('BEGIN IMMEDIATE')
             try:
                 self.prune(db,now)
+                quota=self.api.auth.effective_quota(key,db)
+                units=len(text)+rows
+                if units>quota['max_length']:raise Problem(400,'identity_size_limit')
+                if key and key.get('user_id'):
+                    for bucket in ['user:'+key['user_id'],'credential:'+key['id'],'global']:
+                        use=db.execute('SELECT jobs,chars FROM usage WHERE ip=? AND window=?',(bucket,window)).fetchone()
+                        jobs=use['jobs'] if use else 0;chars=use['chars'] if use else 0
+                        job_limit=self.c['global_hourly_limit'] if bucket=='global' else quota['hourly_limit']
+                        char_limit=self.c['global_hourly_chars'] if bucket=='global' else quota['hourly_chars']
+                        if jobs+1>job_limit or chars+units>char_limit:raise Problem(429,'identity_or_global_quota_reached',resetAt=reset,retryAfter=max(1,int(reset-now)+1))
                 usage=db.execute('SELECT * FROM usage WHERE ip=? AND window=?',(ip,window)).fetchone()
                 if usage and (usage['jobs']>=maxjobs or usage['chars']+len(text)+rows>maxchars): raise Problem(429,'Hourly IP quota reached',resetAt=reset,retryAfter=max(1,int(reset-now)+1))
                 if len(text)+rows>maxchars: raise Problem(400,'Message exceeds the hourly character allowance')

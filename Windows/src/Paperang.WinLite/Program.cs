@@ -15,6 +15,11 @@ internal static class Program
             catch (Exception e) { Console.Error.WriteLine(e is ArgumentException or InvalidDataException or InvalidOperationException ? e.Message : "所有者连接验证失败，旧配置保持不变"); Environment.ExitCode = 1; }
             return;
         }
+        if (args.Contains("--shutdown")) {
+            try { using var request = EventWaitHandle.OpenExisting(@"Local\ELT.PaperangStudio.WinLite.Shutdown"); request.Set(); }
+            catch (WaitHandleCannotBeOpenedException) { }
+            return;
+        }
         ApplicationConfiguration.Initialize();
         using var mutex = new Mutex(true, @"Local\ELT.PaperangStudio.WinLite", out bool first);
         using var showSettings = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\ELT.PaperangStudio.WinLite.Settings");
@@ -50,6 +55,8 @@ internal sealed class TrayContext : ApplicationContext
     private AppSettings settings = new();
     private SettingsForm? form;
     private readonly RegisteredWaitHandle signal;
+    private readonly EventWaitHandle shutdownEvent = new(false, EventResetMode.AutoReset, @"Local\ELT.PaperangStudio.WinLite.Shutdown");
+    private readonly RegisteredWaitHandle shutdownSignal;
     private readonly System.Windows.Forms.Timer refresh = new() { Interval = 1000 };
     private bool exiting;
     private string storageError = "";
@@ -73,11 +80,13 @@ internal sealed class TrayContext : ApplicationContext
         };
         menu.Items.AddRange([title, new ToolStripSeparator(), server, bluetooth, print, new ToolStripSeparator(), permission, connection,
             new ToolStripMenuItem("设置…", null, (_, _) => ShowSettings()),
+            new ToolStripMenuItem("检查 GitHub 更新…", null, async (_, _) => await ReleaseUpdates.Check()),
             new ToolStripMenuItem("关于…", null, (_, _) => MessageBox.Show("Paperang Studio V" + AppVersion.Current + "\n© 2026 ELT Group\n\nWindows 原生托盘客户端 · BLE P2 · 在线传纸条\nCC BY-NC-SA 4.0 · 独立非官方项目\nvox@calx.cc", "关于 Paperang Studio", MessageBoxButtons.OK, MessageBoxIcon.Information)),
             new ToolStripSeparator(), new ToolStripMenuItem("退出", null, async (_, _) => await Quit())]);
         tray.DoubleClick += (_, _) => ShowSettings();
         tray.BalloonTipClicked += (_, _) => ShowSettings();
         signal = ThreadPool.RegisterWaitForSingleObject(showSettings, (_, _) => Dispatch(ShowSettings), null, Timeout.Infinite, false);
+        shutdownSignal = ThreadPool.RegisterWaitForSingleObject(shutdownEvent, (_, _) => Dispatch(async () => await Quit()), null, Timeout.Infinite, false);
         refresh.Tick += (_, _) => Update(); refresh.Start();
         Microsoft.Win32.SystemEvents.SessionEnding += OnSessionEnding;
         Microsoft.Win32.SystemEvents.PowerModeChanged += OnPowerModeChanged;
@@ -176,6 +185,7 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (disposing)
         {
+            shutdownSignal.Unregister(null); shutdownEvent.Dispose();
             Microsoft.Win32.SystemEvents.SessionEnding -= OnSessionEnding;
             Microsoft.Win32.SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             signal.Unregister(null); refresh.Dispose(); tray.Icon?.Dispose(); tray.Dispose(); menu.Dispose(); printer.Dispose(); dispatcher.Dispose();

@@ -15,26 +15,26 @@
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.1-macclient",
-      "runtimeVersion": "0.3.1-macclient",
+      "version": "v0.3.1-macclient-fix1",
+      "runtimeVersion": "0.3.1-macclient-fix1",
       "versionSource": "VERSION",
       "verification": "Source updated; native macOS validation pending"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
       "status": "implemented",
-      "version": "v0.3.1-linuxrelayserver",
-      "runtimeVersion": "0.3.1",
+      "version": "v0.3.1-linuxrelayserver-fix1",
+      "runtimeVersion": "0.3.1-linuxrelayserver-fix1",
       "versionSource": "Server/relay.py",
-      "verification": "0.3.1 Linux operator tests (25) and live owner cutover verified; subsequent browser metadata/helper fixes locally tested, deployment pending"
+      "verification": "39 local security/quota HTTP tests passed; live fix1 deployment pending"
     },
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.1-winlite-fix2",
-      "runtimeVersion": "0.3.1-winlite-fix2",
+      "version": "v0.3.1-winlite-fix3",
+      "runtimeVersion": "0.3.1-winlite-fix3",
       "versionSource": "Windows/VERSION",
-      "verification": "Windows regression and live owner-management UI verified; native management redesign and legacy pagination supported"
+      "verification": "61 Windows regression checks passed; per-user self-contained installer, uninstall and settings preservation tested on Windows"
     },
     "relayskill": {
       "name": "RelaySkill",

@@ -38,3 +38,14 @@ See [v0.3.1 live validation and browser metadata follow-up](VALIDATION-v0.3.1.zh
 
 
 WinLite `v0.3.1-winlite-fix1`: native management layout, automatic credential/identity IDs, hide-revoked and 25/50/100-row paging. Legacy relay compatibility is retained; server summary/filter pagination is additive. See [Windows guide](WINDOWS.md).
+
+### 2026-11-09 / v0.3.1 revisions
+
+| Feature | LinuxRelayServer fix1 | WinLite fix3 | MacClient fix1 |
+| --- | --- | --- | --- |
+| Unrestricted custom passphrases | Enforced; 39 tests | Native input updated | Source updated; native validation pending |
+| Class and per-identity quotas | SQLite policy + atomic counters | Native management dialog | Source editor; native validation pending |
+| Standard installer and uninstall | systemd deployment | Per-user setup, optional data purge | Existing distribution |
+| Manual WinLite release check | N/A | Stable GitHub WinLite tags | N/A |
+
+Server source ready; live deployment pending. Compatible API v2 baseline remains 0.3.1.

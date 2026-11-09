@@ -32,6 +32,7 @@ static class Tests
             }
             if (args.Length == 2 && args[0] == "--live") { await Live(args[1]); return; }
             if (args.Length > 0 && args[0] == "--minute-retry") { await MinuteRetry(); return; }
+            Check(ReleaseUpdates.Compare("v0.3.1-winlite-fix10", "0.3.1-winlite-fix3") > 0 && ReleaseUpdates.Compare("v0.4.0-winlite", "0.3.1-winlite-fix99") > 0 && ReleaseUpdates.Compare("v0.3.1-winlite", "0.3.1-winlite") == 0, "release comparison respects baseline and numeric revision");
             Check(Wire.Crc(Encoding.ASCII.GetBytes("123456789")) == 0xcbf43926, "standard CRC32 vector");
             Check(Convert.ToHexString(Wire.Encode(24, [0x21, 0x95, 0x76, 0x35], 0x35769521)) == "0218000400219576351CDF442103", "handshake golden frame from independent Python zlib");
             var good = Wire.Encode(13, [8, 0]); var decoder = new FrameDecoder();
