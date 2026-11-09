@@ -41,3 +41,7 @@ python scripts/check-versions.py
 macOS arm64 release build and strict ad-hoc signature check; isolated native owner/C/M integration; 39 server regressions; 9 MCP regressions; 12 RelaySkill regressions; JavaScript and Python syntax; version metadata. Native SwiftUI pages inspected with offline example data. Browser text/drawing submissions and own-job tracking exercised against an isolated real relay, with no printer registered. A 390px viewport had no horizontal overflow. Server-stop feedback was checked separately.
 
 No new physical P2 output, deployed Linux update, native Windows build/UI run or long-duration stability test is claimed. Windows changes are reviewed source changes. Bundles are ad-hoc signed, not notarized. No credentials or generated databases are included in the source repository.
+
+## Windows follow-up — 2026-11-10
+
+Windows x64 self-contained setup built from opt1. All 61 historical Windows regression checks passed in an external workspace. Real installed fix3-to-opt1 overlay upgrade passed: stable AppId/path, graceful shutdown, updated uninstall registration, byte-identical settings/templates/owner key and running new tray process. Final payload rebuilt without temporary test access. No physical print or long-duration soak was performed. See the Chinese companion for package details.

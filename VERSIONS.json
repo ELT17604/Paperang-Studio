@@ -34,7 +34,7 @@
       "version": "v0.3.1-winlite-opt1",
       "runtimeVersion": "0.3.1-winlite-opt1",
       "versionSource": "Windows/VERSION",
-      "verification": "opt1 version/update parsing and removal of test-only assembly access reviewed in source; native opt1 Windows build pending"
+      "verification": "Windows x64 self-contained installer built; 61 historical regressions passed; live fix3-to-opt1 overlay install preserves settings/templates/private-key bytes and stable install registration"
     },
     "relayskill": {
       "name": "RelaySkill",
