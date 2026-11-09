@@ -49,3 +49,7 @@ key-add prints a newly generated secret once; redirect to a private file rather 
 Run regression validation from the external archive described above. See the full auth contract for route schemas, status-only responses, CSRF, pagination, revocation, retention and proof limitations. Tests run with temporary databases; do not run them against a production config.
 
 Quota/passphrase revision: `v0.3.1-linuxrelayserver-fix1`. C-only class and stable-identity limits persist in SQLite. Follow [deployment handoff](../doc/HANDOFF-QUOTAS-v0.3.1.zh-CN.md); never rerun owner cutover for a routine upgrade. Local 39-test validation does not mean the production service is deployed.
+
+## Local terminal administration
+
+Install the host-specific reset package only after identifying the client to retain. [Terminal console and reset guide](ADMIN-CONSOLE.md) documents `sudo python3 /home/elt/paperang/manage.py`: Python curses navigation, local-only privilege boundary, private credential distribution and full history/export. It opens no management port and creates no permanent admin credential. The reset deliberately removes previous user/history/log/backup data after successful verification; preserve the specified Windows key before running it.

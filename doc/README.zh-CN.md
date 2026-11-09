@@ -151,3 +151,5 @@ sudo bash Server/install.sh
 Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any related companies or affiliates. All third-party names and trademarks belong to their respective owners. Referenced materials retain their own licenses.
 
 Windows v0.3.1-winlite-fix3：[标准安装、手动更新和卸载](WINDOWS-RELEASE-ARTIFACTS.zh-CN.md)。
+
+Linux opt1 新增 [sudo字符图形管理终端](../Server/ADMIN-CONSOLE.md)：上下键/回车管理密钥、用户、配额、审计和完整打印历史；不开放管理端口。全新部署会删除旧任务、用户、日志和备份，仅保留指定Windows连接身份。

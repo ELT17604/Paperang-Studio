@@ -155,3 +155,5 @@ Paperang Studio is an independent, unofficial project. It is not affiliated with
 Linux security and migration preparation: [validation record](doc/LINUX-v0.3.0-VALIDATION.md). Production migration/systemd/HTTPS checks passed; native receiver/paper checks remain pending there.
 
 Windows v0.3.1-winlite-fix3: [installer, update check and uninstall / 安装与卸载](doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md).
+
+Linux opt1 local administration: [sudo terminal console and reset guide](Server/ADMIN-CONSOLE.md). Arrow-key credential/identity/quota/history management uses a service-account database worker and no management listener.

@@ -50,3 +50,5 @@ Server source ready; live deployment pending. Compatible API v2 baseline remains
 ## opt1
 
 [当前源码清理、各端验证与测试归档](OPTIMIZATION-opt1.zh-CN.md)。四个已实现分发统一 opt1；不新增 Windows 原生、硬件或部署验证声明。
+
+Linux opt1补充：sudo字符管理终端支持密钥分发/吊销、身份/配额与完整历史/导出；固定包全新重置保留一个指定Windows所有者。39项回归、4项管理后端、隔离重置/回滚及字符界面导航通过，主机应用待执行。
