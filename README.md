@@ -15,7 +15,7 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 
 | Distribution | What it does | Start here | v0.3.1 verification |
 |---|---|---|---|
-| **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | Source updated; native macOS validation pending |
+| **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | Native build, GUI and local API v2 integration verified |
 | **WinLite · Windows** | Native WinForms/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | Windows build, regression and local relay integration tested |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | Local HTTP/SQLite tests passed; Linux deployment validation pending |
 | **RelaySkill · sender** | Agent skill for text/images, layout parameters, explicit submission and permission-aware status tracking | [Skill guide](doc/RELAY-SKILL.md) · [Skill source](Skills/paperang-relay-print/SKILL.md) | Local protocol/rendering tests passed |
@@ -34,6 +34,15 @@ flowchart LR
 
 Choose **one active Bluetooth receiver per printer**. The relay handles identity and delivery; the receiving client owns the final template, density, feed and physical print operation. MacClient also supports local printing without a relay.
 
+## MacClient upgrade
+
+[0.3.1-macclient-fix3 upgrade and validation](doc/MACCLIENT-v0.3.1.md). Native owner-file reception, paginated C management and saved configuration now align with the current relay and WinLite contract.
+
+<img src="doc/assets/macclient-v0.3.1-fix3-workspace.png" width="776" alt="Native Mac workspace, offline example">
+<img src="doc/assets/macclient-v0.3.1-fix3-management.png" width="776" alt="Native Mac management, offline example">
+
+Screenshots show offline example data; no printer was connected during this validation.
+
 ## Windows Lite in action
 
 **Edit the paper, block by block.** Shared v1 template JSON, live monochrome preview, text and raster composition, typography, spacing and reusable presets.
@@ -50,7 +59,7 @@ Choose **one active Bluetooth receiver per printer**. The relay handles identity
 </tr>
 </table>
 
-<sub>Actual v0.3.0 WinLite windows with example settings and sample content. [Screenshot notes](assets/screenshots/README.md). macOS screenshots will be added after native validation.</sub>
+<sub>Actual v0.3.0 WinLite windows with example settings and sample content. [Screenshot notes](assets/screenshots/README.md). MacClient screenshots and validation appear above.</sub>
 
 ## What you can do
 

@@ -6,7 +6,7 @@
 
 | 分发 | 版本 | 本次状态 |
 |---|---|---|
-| MacClient | v0.3.1-macclient | SwiftUI 管理、M 认领后取正文、Keychain 凭证/待回报记录、循环重连已写；macOS 构建和蓝牙验证待接手 |
+| MacClient | v0.3.1-macclient-fix3 | 原生构建、SwiftUI 界面、本地所有者/C/M 联调通过；本次未重新验证蓝牙出纸 |
 | LinuxRelayServer | v0.3.1-linuxrelayserver | 身份/权限/API v2/网页/迁移代码及本机安全测试完成；Linux systemd/TLS/上线待接手 |
 | WinLite | v0.3.1-winlite | 原生 C 管理界面、RSA 私钥、A/B/C/M 管理、历史筛选/JSONL 导出与原托盘功能；Windows 构建和集成验证 |
 | RelaySkill | v0.3.1-relayskill | A/B 密钥投递、B 状态、A 只受理、文字/图片渲染、防重复投递记录 |
@@ -40,3 +40,7 @@ WinLite `v0.3.1-winlite-fix1`: native management layout, automatic credential/id
 | Manual WinLite release check | N/A | Stable GitHub WinLite tags | N/A |
 
 Server source ready; live deployment pending. Compatible API v2 baseline remains 0.3.1.
+
+## MacClient fix3 验证补充
+
+当前 Mac 原生构建、管理分页/配额/私钥续期及恢复已验证；上方 fix1 的待验标签为历史记录。服务器 39 项测试通过，未新增实机出纸或生产部署验证。[详细范围](MACCLIENT-v0.3.1.zh-CN.md)。

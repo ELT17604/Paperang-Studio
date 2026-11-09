@@ -15,7 +15,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。�
 
 | 分发 | 职责 | 入口 | v0.3.1 验证状态 |
 |---|---|---|---|
-| **MacClient · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | 源码已同步，macOS 原生验证待完成 |
+| **MacClient · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | 原生构建、界面及本地 API v2 联调通过 |
 | **WinLite · Windows** | 原生 WinForms/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
 | **LinuxRelayServer · Linux** | HTTP/SQLite 中转、投稿网页、身份与权限、队列及管理 API | [服务器部署](../Server/README.md) | 本机 HTTP/SQLite 测试通过，Linux 部署验证待完成 |
 | **RelaySkill · 投稿工具** | Agent 打印技能：文字/图片渲染、参数调整、明确投递及按权限查询状态 | [技能指南](RELAY-SKILL.zh-CN.md) · [源码](../Skills/paperang-relay-print/SKILL.md) | 本地协议与渲染测试通过 |
@@ -34,6 +34,15 @@ flowchart LR
 
 **同一台打印机只使用一个活动蓝牙接收端。** 中转负责身份、队列与投递；电脑客户端负责最终模板、打印浓度、送纸和蓝牙输出。MacClient 也可以脱离中转进行本地打印。
 
+## MacClient 升级
+
+[0.3.1-macclient-fix3 升级与验证](MACCLIENT-v0.3.1.zh-CN.md)：所有者私钥接收、分页 C 管理、配置保存与当前中转及 WinLite 合同对齐。
+
+<img src="assets/macclient-v0.3.1-fix3-workspace.png" width="776" alt="Mac 工作台离线示例">
+<img src="assets/macclient-v0.3.1-fix3-management.png" width="776" alt="Mac 管理中心离线示例">
+
+截图为离线示例，不含真实用户数据；本次未连接打印机。
+
 ## Windows Lite 实际界面
 
 **像搭积木一样编辑纸条。** 与 Mac 共用 v1 模板 JSON，支持区块排序、文字/点阵混排、字体、留白和实时黑白预览。
@@ -50,7 +59,7 @@ flowchart LR
 </tr>
 </table>
 
-<sub>以上为 v0.3.0 WinLite 实际窗口，使用示例配置与公开演示内容。[截图说明](../assets/screenshots/README.md)。macOS 截图将在原生验证后补充。</sub>
+<sub>以上为 v0.3.0 WinLite 实际窗口，使用示例配置与公开演示内容。[截图说明](../assets/screenshots/README.md)。MacClient 截图与验证见上方。</sub>
 
 ## 主要功能
 

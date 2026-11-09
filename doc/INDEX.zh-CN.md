@@ -1,5 +1,7 @@
 # 文档目录
 
+
+[MacClient 0.3.1 fix3 upgrade / 升级与验证](MACCLIENT-v0.3.1.zh-CN.md)
 [English](README.md) · [中文文档目录](INDEX.zh-CN.md)
 
 从 [项目首页](README.zh-CN.md) 开始。
