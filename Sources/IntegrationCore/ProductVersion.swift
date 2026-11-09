@@ -1,9 +1,9 @@
 import Foundation
 
-/// Accept unified product tags and historical Mac distribution tags.
+/// Compare canonical Mac distribution tags, including historical opt/fix revisions.
 public enum ProductVersion {
  public static func parse(_ tag:String)->[Int]? {
-  guard tag.range(of:"^v?[0-9]+\\.[0-9]+\\.[0-9]+(?:-macclient(?:-(?:fix|opt)[0-9]+)?)?$",options:.regularExpression) != nil else{return nil}
+  guard tag.range(of:"^v?[0-9]+\\.[0-9]+\\.[0-9]+-macclient(?:-(?:fix|opt)[0-9]+)?$",options:.regularExpression) != nil else{return nil}
   let parts=tag.hasPrefix("v") ? String(tag.dropFirst()).split(separator:"-"):tag.split(separator:"-")
   var numbers=parts[0].split(separator:".").compactMap{Int($0)}
   guard numbers.count==3 else{return nil}

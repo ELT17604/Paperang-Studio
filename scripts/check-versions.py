@@ -16,7 +16,7 @@ for name, item in registry['distributions'].items():
         continue
     assert item.get('targetVersion') == baseline
     assert item['validation032'] in ('pending', 'passed', 'blocked')
-    assert item['version'] == 'v' + baseline or re.fullmatch(r'v\d+\.\d+\.\d+-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
+    assert re.fullmatch(r'v\d+\.\d+\.\d+-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
     source = (root / item['versionSource']).read_text(encoding='utf-8').strip()
     runtime = item['runtimeVersion']
     assert item['version'] == 'v' + runtime
@@ -32,5 +32,5 @@ for doc in ('VERSIONING', 'FEATURE-MATRIX'):
 skill = registry['distributions']['relayskill']['runtimeVersion']
 assert f"__version__ = '{skill}'" in (root / 'Skills/paperang-relay-print/scripts/relay_print.py').read_text(encoding='utf-8')
 assert registry['compatibility']['localApi'] == registry['compatibility']['relayApi'] == 'v2'
-assert (root / 'VERSION').read_text().strip() == baseline
+assert (root / 'VERSION').read_text().strip() == baseline + '-macclient'
 print('PASS product targets, historical platform runtimes, API baseline and policy/matrix')

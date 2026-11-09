@@ -27,7 +27,7 @@ def main():
     try:status,value=req('GET','/v2/status');break
     except urllib.error.URLError:time.sleep(.1)
    else:raise AssertionError('listener never ready')
-   assert status==200 and value['apiVersion']=='v2' and value['appVersion']=='0.3.2' and not value['connected']
+   assert status==200 and value['apiVersion']=='v2' and value['appVersion']=='0.3.2-macclient' and not value['connected']
    schema=json.loads((ROOT/'doc/openapi.json').read_text())
    for path,ops in schema['paths'].items():
     if '{id}' in path:continue

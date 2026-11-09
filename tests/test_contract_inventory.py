@@ -10,6 +10,7 @@ assert d['components']['schemas']['Status']['properties']['apiVersion']['enum']=
 for p in [r/'Sources/PaperangLab/APIRoutes.swift',*list((r/'Clients').glob('*'))]:
  if p.is_file():assert not re.search(r'[\"\x27](/v1/[^\"\x27]+)[\"\x27]',p.read_text()),p
 v=json.loads((r/'VERSIONS.json').read_text());assert v['compatibility']['contentSchemaVersion']==v['compatibility']['templateSchemaVersion']==1
-assert (r/'VERSION').read_text().strip()==d['info']['version']==v['baseline']=='0.3.2'
+assert (r/'VERSION').read_text().strip()==d['info']['version']=='0.3.2-macclient'
+assert v['baseline']=='0.3.2'
 assert v['compatibility']['localApi']==v['compatibility']['relayApi']=='v2'
 print('PASS local implementation/OpenAPI route inventory, product/API/schema domains')

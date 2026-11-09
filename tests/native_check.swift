@@ -8,8 +8,8 @@ import IntegrationCore
  static func ensure(_ condition:@autoclosure()->Bool,line:UInt=#line){if !condition(){FileHandle.standardError.write(Data("FAILED native check at line \(line)\n".utf8));exit(1)}}
  @MainActor static func main() async throws {
   _ = NSApplication.shared;NSApp.finishLaunching()
-  for old in ["0.3.1-macclient", "v0.3.1-macclient-opt99", "0.3.1-macclient-fix99"] {ensure(ProductVersion.parse(old)!.lexicographicallyPrecedes(ProductVersion.parse("0.3.2")!))}
-  ensure(ProductVersion.parse("v0.3.2")==ProductVersion.parse("0.3.2"));ensure(ProductVersion.parse("0.3.2-winlite")==nil);ensure(ProductVersion.parse("0.3.2-rc1")==nil)
+  for old in ["0.3.1-macclient", "v0.3.1-macclient-opt99", "0.3.1-macclient-fix99"] {ensure(ProductVersion.parse(old)!.lexicographicallyPrecedes(ProductVersion.parse("0.3.2-macclient")!))}
+  ensure(ProductVersion.parse("v0.3.2-macclient")==ProductVersion.parse("0.3.2-macclient"));ensure(ProductVersion.parse("0.3.2")==nil);ensure(ProductVersion.parse("0.3.2-winlite")==nil);ensure(ProductVersion.parse("0.3.2-rc1")==nil)
   let stateLab=Lab(offline:true,restore:false)
   for (label,state) in [("发送中","printing"),("已发送，待核对纸面","sent"),("已停止","cancelled"),("未完成","unknown")] {ensure(stateLab.localJobState(label)==state)}
   let data=try Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[1]));let c=try JSONSerialization.jsonObject(with:data) as! [String:Any]

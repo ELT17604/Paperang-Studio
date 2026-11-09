@@ -16,8 +16,8 @@
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.2",
-      "runtimeVersion": "0.3.2",
+      "version": "v0.3.2-macclient",
+      "runtimeVersion": "0.3.2-macclient",
       "versionSource": "VERSION",
       "verification": "arm64 native build/signing, 47 local HTTP requests, isolated Relay HTTP/native owner-management-recovery/config-template checks passed; physical T1 text density60 and I1 image density100 each printed once and owner confirmed both normal; live Relay public v2 status HTTP200 only",
       "targetVersion": "0.3.2",
