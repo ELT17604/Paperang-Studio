@@ -4,7 +4,7 @@
 > opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](../doc/OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 [Authentication and all API routes](../doc/AUTH-v2.md) · [中文升级指南](../doc/UPGRADE-v0.3.0.zh-CN.md) · [Agent handoff](../doc/HANDOFF-v0.3.0.zh-CN.md)
 
-Python 3.10+, SQLite, argon2-cffi and cryptography. Relay API v2 is incompatible with v0.2.x; old relay /v1 routes return 410. The Mac local API v1 is separate. Receivers use scoped M keys; C administration is available in native clients. Public submissions require a registered browser identity; Explicit A keys cannot read print status; anonymous browser identities and B can read only their own states. Task content is available only in C history or a matching device-scoped active claim (M or proven public-key C).
+Python 3.10+, SQLite, argon2-cffi and cryptography. Relay API v2 is incompatible with v0.2.x; old relay /v1 routes return 410. The Mac local API v2 is separate. Receivers use scoped M keys; C administration is available in native clients. Public submissions require a registered browser identity; Explicit A keys cannot read print status; anonymous browser identities and B can read only their own states. Task content is available only in C history or a matching device-scoped active claim (M or proven public-key C).
 
 ## Ubuntu installation
 

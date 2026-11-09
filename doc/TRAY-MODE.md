@@ -1,6 +1,6 @@
 # Menu bar / tray mode · v0.2.3
 
-> v0.3.0: historical observations/screenshots below remain recorded evidence. Current relay authentication, history access, dependencies and validation status are defined by [API v2](AUTH-v2.md), [upgrade](UPGRADE-v0.3.0.zh-CN.md) and [matrix](FEATURE-MATRIX.md). Local API v1 and BLE/template records are separate contracts.
+> v0.3.0: historical observations/screenshots below remain recorded evidence. Current relay authentication, history access, dependencies and validation status are defined by [API v2](AUTH-v2.md), [upgrade](UPGRADE-v0.3.0.zh-CN.md) and [matrix](FEATURE-MATRIX.md). Local API v2 and BLE/template records are separate contracts.
 
 [简体中文](TRAY-MODE.zh-CN.md) · [User guide](USER-GUIDE.md)
 
@@ -12,9 +12,9 @@ The PTY shell and its idle timer are stopped. Workspace preview and selected-tas
 
 ## Consent and API
 
-Network print consent is separate from the workspace's sidebar paper switch. `GET /v1/status` reports `appVersion`, `trayMode`, `networkPrintAllowed`, `automaticNetworkConsent`, `workspacePrintingEnabled`, and `printingEnabled` (effective network permission). These flags authorize jobs; they do not assert printer readiness or paper completion. `apiRunning` in the menu comes from the listener's actual startup callback; port conflicts are shown as listener failure rather than a false connected state.
+Network print consent is separate from the workspace's sidebar paper switch. `GET /v2/status` reports `appVersion`, `trayMode`, `networkPrintAllowed`, `automaticNetworkConsent`, `workspacePrintingEnabled`, and `printingEnabled` (effective network permission). These flags authorize jobs; they do not assert printer readiness or paper completion. `apiRunning` in the menu comes from the listener's actual startup callback; port conflicts are shown as listener failure rather than a false connected state.
 
-| State | POST /v1/jobs | Relay inbox |
+| State | POST /v2/jobs | Relay inbox |
 |---|---|---|
 | Normal | Global paper switch enabled **and** `allowPaper:true` | Existing manual/automatic preference |
 | Tray, enabled | May omit `allowPaper`; explicit `true` accepted, explicit `false` or wrong type rejected | New queued jobs automatically handled when ready |

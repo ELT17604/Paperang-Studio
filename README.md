@@ -1,11 +1,11 @@
 <p align="center"><img src="assets/AppIcon.png" width="112" alt="Paperang Studio logo"></p>
 
-# Paperang Studio
+# Paperang Studio v0.3.2
 
-**Current optimization: opt1.** [Code cleanup, interface changes and validation](doc/OPTIMIZATION-opt1.md).
+**v0.3.2 target:** Mac baseline/API migration validated locally; Windows and Ubuntu pending. See [API contract](doc/API-v2-032.md) and [Stage 1 handoff](xdev/032-handoff/01-macos.md). No final release or deployment is implied.
 
 <p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT integration</p>
-<p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.1 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.2 target baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
 Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. A native desktop client connects to the printer over Bluetooth; the Linux relay accepts notes from a browser or RelaySkill and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
 
@@ -15,9 +15,9 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 
 ## Platforms
 
-| Distribution | What it does | Start here | v0.3.1 verification |
+| Distribution | What it does | Start here | Historical platform verification (v0.3.1) |
 |---|---|---|---|
-| **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | Native build, GUI and local API v2 integration verified |
+| **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | v0.3.2 native build, local v2, isolated Relay and physical text/image tests passed; see handoff |
 | **WinLite · Windows** | Native WinForms/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | Windows build, regression and local relay integration tested |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | Local HTTP/SQLite tests passed; Linux deployment validation pending |
 | **ChatGPT integration · experimental** | MCP sender adapter and legacy GPT Actions schema for Relay API v2 | [Integration guide](doc/CHATGPT.md) · [Code](Integrations/ChatGPT/) | Source only; gateway, ChatGPT connection and hardware test pending |
@@ -41,12 +41,12 @@ Choose **one active Bluetooth receiver per printer**. The relay handles identity
 
 ## MacClient upgrade
 
-Current **0.3.1-macclient-opt1**: [optimization review](doc/OPTIMIZATION-opt1.md) · [owner-file upgrade guide](doc/MACCLIENT-v0.3.1.md). Native owner-file reception, paginated C management and saved configuration now align with the current relay and WinLite contract.
+Previous baseline **0.3.1-macclient-opt1**: [optimization review](doc/OPTIMIZATION-opt1.md) · [owner-file upgrade guide](doc/MACCLIENT-v0.3.1.md). Native owner-file reception, paginated C management and saved configuration now align with the current relay and WinLite contract.
 
 <img src="doc/assets/macclient-v0.3.1-fix3-workspace.png" width="776" alt="Native Mac workspace, offline example">
 <img src="doc/assets/macclient-v0.3.1-fix3-management.png" width="776" alt="Native Mac management, offline example">
 
-Screenshots show the previous fix3 workspace with offline example data. Current opt1 reorganizes remote printing into Tasks, Connection, Style and Management.
+Screenshots show the previous fix3 workspace with offline example data. The inherited UI reorganizes remote printing into Tasks, Connection, Style and Management.
 
 ## Windows Lite in action
 
@@ -112,7 +112,7 @@ The installer uses a dedicated Python venv with `argon2-cffi` and `cryptography`
 
 Install the folder `Skills/paperang-relay-print/` into your agent’s skills directory. Configure an **A or B** random key, then invoke `$paperang-relay-print` with the text/image and desired rendering parameters. The sender never borrows the receiver’s M credential. [Installation and parameters](doc/RELAY-SKILL.md).
 
-> **Upgrading from v0.2.x?** Relay API v2 requires a coordinated upgrade. Old relay `/v1` and receipt-content access are retired; the **Mac local API remains v1**. Read the [upgrade/rollback guide](doc/UPGRADE-v0.3.0.md), [auth contract](doc/AUTH-v2.md) and [validation record](doc/VALIDATION-v0.3.0.md) before deployment. Source availability does not imply every platform is already deployed or natively validated.
+> **Upgrading from v0.2.x?** Relay API v2 requires a coordinated upgrade. Old relay `/v1` and receipt-content access are retired; the **Mac local API now requires v2**. Read the [upgrade/rollback guide](doc/UPGRADE-v0.3.0.md), [auth contract](doc/AUTH-v2.md) and [validation record](doc/VALIDATION-v0.3.0.md) before deployment. Source availability does not imply every platform is already deployed or natively validated.
 
 ## Documentation
 

@@ -1,11 +1,13 @@
+> **Paperang Studio v0.3.2**：macOS/API v2 阶段记录见 [交接文件](../xdev/032-handoff/01-macos.md) 与 [契约](API-v2-032.md)。Windows、Ubuntu 尚待原生验证；以下历史平台结果不代表本次全平台发布。
+
 <p align="center"><img src="../assets/AppIcon.png" width="112" alt="Paperang Studio 标志"></p>
 
 # Paperang Studio
 
-**当前优化：opt1。** [代码清理、界面调整与验证](OPTIMIZATION-opt1.zh-CN.md)。
+**历史优化记录：opt1。** [代码清理、界面调整与验证](OPTIMIZATION-opt1.zh-CN.md)。
 
 <p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT 集成</p>
-<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.1 共同基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.2 目标基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
 
 Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。电脑上的原生客户端通过蓝牙连接打印机；Linux 中转服务器接受网页和 RelaySkill 投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
 
@@ -15,7 +17,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。�
 
 ## 平台与分发
 
-| 分发 | 职责 | 入口 | v0.3.1 验证状态 |
+| 分发 | 职责 | 入口 | 历史验证状态（v0.3.1） |
 |---|---|---|---|
 | **MacClient · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | 原生构建、界面及本地 API v2 联调通过 |
 | **WinLite · Windows** | 原生 WinForms/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
@@ -110,7 +112,7 @@ sudo bash Server/install.sh
 
 将 Skills/paperang-relay-print/ 安装到 Agent 的 skills 目录，配置 **A/B 随机密钥**，调用 `$paperang-relay-print` 并说明文字/图片及排版参数。投稿工具不借用打印接收端的 M 凭证。[安装和参数](RELAY-SKILL.zh-CN.md)。
 
-> **从 v0.2.x 升级：**中转 API v2 必须协调升级；旧中转 /v1 和 receipt 正文能力已关闭，**Mac 本地 API 仍为 v1**。部署前阅读[升级与回滚](UPGRADE-v0.3.0.zh-CN.md)、[鉴权合同](AUTH-v2.zh-CN.md)和[验证记录](VALIDATION-v0.3.0.md)。源码已提供不代表各平台已经部署或通过原生验证。
+> **从 v0.2.x 升级：**中转 API v2 必须协调升级；旧中转 /v1 和 receipt 正文能力已关闭，**Mac 本地 API 已迁移到 v2**。部署前阅读[升级与回滚](UPGRADE-v0.3.0.zh-CN.md)、[鉴权合同](AUTH-v2.zh-CN.md)和[验证记录](VALIDATION-v0.3.0.md)。源码已提供不代表各平台已经部署或通过原生验证。
 
 ## 文档入口
 

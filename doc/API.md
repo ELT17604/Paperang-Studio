@@ -1,4 +1,4 @@
-# Local HTTP API v1
+# Local HTTP API v2
 
 [Documentation](README.md) · [简体中文](API.zh-CN.md) · [OpenAPI 3.0.3](openapi.json)
 
@@ -31,35 +31,37 @@ The token file is UTF-8, with surrounding whitespace trimmed; use private file p
 
 | Method and path | Input | Result |
 |---|---|---|
-| GET `/v1/status` | None | `apiVersion`, `connected`, `busy`, `printer`, `state`, `lastError`, `progress`, `jobStatus`, `charging`, `readings`, `printingEnabled` |
-| GET `/v1/devices` | Optional `?all=true` | `{scanning, devices:[{id,name,rssi,paperangCandidate}]}`; latest scan, candidates by default |
-| POST `/v1/scan` | `{}` | 202 `{accepted,scanning}`; about 10 seconds, no automatic connection; poll devices |
-| POST `/v1/connect` | `{"id":"discovered UUID"}` | 202 accepted; poll status until `connected:true`. The UUID is local to CoreBluetooth, not a MAC |
-| POST `/v1/disconnect` | `{}` | `{connected:false}`; 409 during a print, cancel first |
-| POST `/v1/query` | `{"command":12}` | `{command,payloadHex,hasData,status}`; allowlisted read-only GET, decimal integer command |
-| GET `/v1/protocol` | None | Model, width 576, 72 bytes/row, nominal DPI 300, default feed 150, command evidence catalog |
-| GET `/v1/settings` | None | `{defaults:PrintSettings,note}`; request settings merge over defaults, not current GUI edits |
-| POST `/v1/render` | RenderInput | Offline `{width,height,bytes,previewPngBase64}`; `includeRaw:true` adds `rawBase64` |
-| POST `/v1/jobs` | RenderInput plus `allowPaper`/`title` | 202 `{id,state:"accepted",note}`; poll the job; 409 when busy, no automatic queue/retry |
-| GET `/v1/jobs` | None | `{jobs:[Job]}`, newest first, latest 30 session jobs |
-| GET `/v1/jobs/{id}` | None | One Job |
-| POST `/v1/jobs/{id}/cancel` | `{}` | Only the active sending job; stops/disconnects, cannot recall printer-buffered data |
-| POST `/v1/feed` | `{"lines":150,"allowPaper":true}` | Integer 0–2000; `{acknowledged:true,lines,physicalCompletion:"unknown"}` after media check and ACK |
-| GET `/v1/logs` | Optional `?limit=100`, clamped 1–500 | `{order:"newest_first",logs:[{timestamp,type,text}]}`; may include local device information |
-| GET `/v1/openapi` | None | Bundled OpenAPI document |
+| GET `/v2/status` | None | `apiVersion`, `connected`, `busy`, `printer`, `state`, `lastError`, `progress`, `jobStatus`, `charging`, `readings`, `printingEnabled` |
+| GET `/v2/devices` | Optional `?all=true` | `{scanning, devices:[{id,name,rssi,paperangCandidate}]}`; latest scan, candidates by default |
+| POST `/v2/scan` | `{}` | 202 `{accepted,scanning}`; about 10 seconds, no automatic connection; poll devices |
+| POST `/v2/connect` | `{"id":"discovered UUID"}` | 202 accepted; poll status until `connected:true`. The UUID is local to CoreBluetooth, not a MAC |
+| POST `/v2/disconnect` | `{}` | `{connected:false}`; 409 during a print, cancel first |
+| POST `/v2/query` | `{"command":12}` | `{command,payloadHex,hasData,status}`; allowlisted read-only GET, decimal integer command |
+| GET `/v2/protocol` | None | Model, width 576, 72 bytes/row, nominal DPI 300, default feed 150, command evidence catalog |
+| GET `/v2/settings` | None | `{defaults:PrintSettings,note}`; request settings merge over defaults, not current GUI edits |
+| POST `/v2/render` | RenderInput | Offline `{width,height,bytes,previewPngBase64}`; `includeRaw:true` adds `rawBase64` |
+| POST `/v2/jobs` | RenderInput plus `allowPaper`/`title` | 202 `{id,state:"accepted",note}`; poll the job; 409 when busy, no automatic queue/retry |
+| GET `/v2/jobs` | None | `{jobs:[Job]}`, newest first, latest 30 session jobs |
+| GET `/v2/jobs/{id}` | None | One Job |
+| POST `/v2/jobs/{id}/cancel` | `{}` | Only the active sending job; stops/disconnects, cannot recall printer-buffered data |
+| POST `/v2/feed` | `{"lines":150,"allowPaper":true}` | Integer 0–2000; `{acknowledged:true,lines,physicalCompletion:"unknown"}` after media check and ACK |
+| GET `/v2/logs` | Optional `?limit=100`, clamped 1–500 | `{order:"newest_first",logs:[{timestamp,type,text}]}`; may include local device information |
+| GET `/v2/openapi` | None | Bundled OpenAPI document |
 
 ### Readings and jobs
 
 A reading is `{command,name,value,rawHex,sampledAt}`. Values are cached samples with ISO8601 times; POST query for a new sample. An ACK without field data gives `hasData:false` and `payloadHex:null`. `charging` is `"unknown"`; a rising battery estimate is not treated as a real-time charging flag. Research catalog entries are not automatically callable.
 
-Job fields: `{id,title,detail,state,createdAt}`. The wire values of `state` currently match the Chinese GUI:
+Job fields: `{id,title,detail,state,stateLabel,physicalCompletion,createdAt}`. `stateLabel` is display-only; clients use the stable wire state:
 
 | Wire value | Meaning |
 |---|---|
-| `发送中` | Sending |
-| `已发送，待核对纸面` | Sent; check physical output |
-| `未完成` | Incomplete |
-| `已停止` | Stopped |
+| `printing` | Sending |
+| `sent` | Transport complete; check paper |
+| `unknown` | Incomplete or uncertain |
+| `cancelled` | Later sending stopped; buffered data may print |
+
+`physicalCompletion` is always `unknown`; this local API has no paper-confirmation endpoint. Authenticated `/v1` and `/v1/*` requests return 410 `api_v1_retired`, including preflight after Origin checks. See [the v0.3.2 contract](API-v2-032.md).
 
 HTTP 202 means accepted, not mechanically complete. “Sent” means the data/ACK sequence finished. Progress belongs to the current global job. Jobs are not durable across app restarts, and failures are not automatically replayed.
 
@@ -105,6 +107,7 @@ Errors use `{"error":{"code":"paper_disabled","message":"..."}}`. Handle HTTP st
 | 400 | Invalid HTTP/JSON/settings/rendering input or failed protocol operation |
 | 403 | Rejected token, Host, Origin, or paper permission |
 | 404 | Unknown route/job |
+| 410 | Retired API v1; use v2 |
 | 409 | Busy, not ready, offline, or invalid connection state |
 | 415 | POST Content-Type mismatch |
 | 429 | Rate limit |
@@ -118,11 +121,11 @@ Copy the token in the GUI and store it in the local `PAPERANG_TOKEN` environment
 
 ```sh
 curl --noproxy '*' -H "Authorization: Bearer $PAPERANG_TOKEN" \
-  http://127.0.0.1:8176/v1/status
+  http://127.0.0.1:8176/v2/status
 curl --noproxy '*' -H "Authorization: Bearer $PAPERANG_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"text":"Hello P2","settings":{"fontSize":30},"includeRaw":true}' \
-  http://127.0.0.1:8176/v1/render
+  http://127.0.0.1:8176/v2/render
 ```
 
 Python (make `Clients/` available on the module path):
@@ -149,7 +152,7 @@ const job = await p.printText('Hello P2', {allowPaper: true});
 console.log(await p.job(job.id));
 ```
 
-Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v1` path is the API contract version, separate from app version 0.2.3-fix1 and OpenAPI format version 3.0.3.
+Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v2` path is the API contract version, separate from app version 0.3.2 and OpenAPI format version 3.0.3.
 
 ## v0.2.3 tray consent
 

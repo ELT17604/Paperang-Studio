@@ -1,3 +1,5 @@
+> v0.3.2 Stage 1: MacClient **v0.3.2-macclient** native build, local HTTP v2, isolated Relay/template/config checks and two owner-confirmed P2 text/image jobs passed. Windows/Ubuntu v0.3.2 native validation is pending. The table below preserves historical v0.3.1 platform evidence. See [validation](VALIDATION-v0.3.2-macos.md).
+
 # Version Feature Implementation Matrix — baseline 0.3.1
 
 [简体中文](FEATURE-MATRIX.zh-CN.md) · [Version policy](VERSIONING.md) · [Registry](../VERSIONS.json) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md)
@@ -23,7 +25,7 @@ Reviewed 2026-11-09. **N** native macOS software build/local HTTP integration ve
 
 **Experimental non-distribution:** The [ChatGPT adapter](CHATGPT.md) reuses A/B Relay API v2 for text, validated pre-rendered raster1, and B-only own-status reads. Implementation reviewed at source level with mock-transport tests provided; no deployed MCP/OAuth gateway, ChatGPT account connection, or P2 paper verification is claimed. This is not an additional release column or shared compatibility contract.
 
-API v2 breaks relay v1; local Mac API v1, template JSON v1, raster1 schema1 and legacy BLE framing remain separate. A cannot read state. B state is own-identity only. C manages complete history. M is scoped execution, not full historical access. A short ID/old receipt never conveys content authority. `sent` is transport only; physical confirmation requires owner action.
+API v2 breaks relay v1; local Mac API v2, template JSON v1, raster1 schema1 and legacy BLE framing remain separate. A cannot read state. B state is own-identity only. C manages complete history. M is scoped execution, not full historical access. A short ID/old receipt never conveys content authority. `sent` is transport only; physical confirmation requires owner action.
 
 Windows evidence: regression suite (51 checks), Chinese GDI/template rendering, DPAPI atomic persistence/restart, retry cancellation, concurrent lifecycle and 1,200-request bounded offline stress. Real local v2 HTTP/SQLite integration covers text+raster, C login, identity-preserving rotation, Windows/Python RSA-PSS interoperability, C export and private-file ACL. Native C panel layout inspected at Windows display scaling. Server permission tests cover role boundaries, legacy bypass denial, browser Cookie/CSRF, anonymous registration/revocation, owner replay, rotation and idempotency. RelaySkill has twelve local tests. See tests and release verification record for current results.
 

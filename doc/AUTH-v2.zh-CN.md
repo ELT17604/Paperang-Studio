@@ -1,3 +1,5 @@
+> v0.3.2: Mac local HTTP API now uses v2; historical local-v1 references below describe the original migration. Relay contract remains unchanged. See [v0.3.2 contract](API-v2-032.md).
+
 # v0.3.0 身份与鉴权
 
 [English / 完整端点合同](AUTH-v2.md) · [升级操作](UPGRADE-v0.3.0.zh-CN.md) · [跨平台接手 prompt](HANDOFF-v0.3.0.zh-CN.md)

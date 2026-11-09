@@ -1,3 +1,11 @@
+# v0.3.2 — Stage 1 (unreleased)
+
+- Mac local HTTP API and Python/JavaScript clients migrate to v2; retired v1 paths return authenticated HTTP 410 with no business dispatch.
+- Local job states use stable English values with display labels; sent never implies paper completion.
+- Mac runtime/version 0.3.2-macclient retains the documented architecture suffix; update comparison covers historical opt/fix tags. Shared targets for other shipping components are 0.3.2; their deployed runtime labels remain historical until their native stages.
+- Local OpenAPI and final contract index, executable HTTP/native/Relay checks, audit and Stage 1 handoff added. BLE, CRC, UUIDs, raster width, feed and density implementation unchanged.
+- Explicit patch-release compatibility exception: local v1 consumers must upgrade; longstanding version policy is retained. Windows/Ubuntu validation, tag and final release are pending.
+
 # Changelog
 
 ## v0.3.1-winlite-opt2 — 2026-11-10

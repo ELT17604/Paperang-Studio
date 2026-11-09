@@ -1,4 +1,4 @@
-# 本机 HTTP API v1
+# 本机 HTTP API v2
 
 [English](API.md) · [中文文档目录](INDEX.zh-CN.md)
 
@@ -32,28 +32,28 @@ GET不要求Content-Type，POST必须是JSON对象，即使没有参数也发送
 
 | 方法/路径 | 请求 | 返回/语义 |
 |---|---|---|
-| GET `/v1/status` | 无 | 当前连接、busy、printer、state、lastError、progress、jobStatus、charging、readings、printingEnabled、apiVersion |
-| GET `/v1/devices` | `?all=true`可选 | `{scanning,devices:[{id,name,rssi,paperangCandidate}]}`；默认仅系列候选，列表来自最近扫描 |
-| POST `/v1/scan` | `{}` | 202 `{accepted,scanning}`；扫描约10秒，不自动连接；随后GET devices |
-| POST `/v1/connect` | `{"id":"扫描返回UUID"}` | 202请求已提交；轮询status直到connected=true。UUID由本机CoreBluetooth分配，不是MAC |
-| POST `/v1/disconnect` | `{}` | `{connected:false}`；打印中409，先取消任务 |
-| POST `/v1/query` | `{"command":12}` | `{command,payloadHex,hasData,status}`；仅白名单GET，十进制整数命令；只有ACK时hasData=false、payloadHex=null |
-| GET `/v1/protocol` | 无 | 型号、576点/72字节、300DPI、150送纸与commands目录（名称、证据、说明、响应）。研究目录不代表可调用 |
-| GET `/v1/settings` | 无 | `{defaults:PrintSettings,note}`；每次渲染/打印从确定的默认值合并settings，不继承当前GUI编辑值 |
-| POST `/v1/render` | RenderInput | 离线渲染；`{width,height,bytes,previewPngBase64}`，includeRaw=true另含rawBase64；不耗纸、不要求蓝牙 |
-| POST `/v1/jobs` | RenderInput + allowPaper/title | 202 `{id,state:"accepted",note}`；启动打印，轮询任务结果；忙时409，不排队自动重打 |
-| GET `/v1/jobs` | 无 | `{jobs:[Job]}`；最新在前，最近30个会话任务，App重启清空 |
-| GET `/v1/jobs/{id}` | 无 | 单个Job |
-| POST `/v1/jobs/{id}/cancel` | `{}` | 仅当前发送中任务；停止并断开，设备已缓存数据无法撤回；返回cancelled并非纸面撤销 |
-| POST `/v1/feed` | `{"lines":150,"allowPaper":true}` | lines整数0–2000；`{acknowledged:true,lines,physicalCompletion:"unknown"}`，等待媒体检查和ACK |
-| GET `/v1/logs` | `?limit=100`，1–500 | `{order:"newest_first",logs:[{timestamp,type,text}]}`；可能包含本机设备信息 |
-| GET `/v1/openapi` | 无 | 完整OpenAPI3.0.3；也见[离线文件](openapi.json) |
+| GET `/v2/status` | 无 | 当前连接、busy、printer、state、lastError、progress、jobStatus、charging、readings、printingEnabled、apiVersion |
+| GET `/v2/devices` | `?all=true`可选 | `{scanning,devices:[{id,name,rssi,paperangCandidate}]}`；默认仅系列候选，列表来自最近扫描 |
+| POST `/v2/scan` | `{}` | 202 `{accepted,scanning}`；扫描约10秒，不自动连接；随后GET devices |
+| POST `/v2/connect` | `{"id":"扫描返回UUID"}` | 202请求已提交；轮询status直到connected=true。UUID由本机CoreBluetooth分配，不是MAC |
+| POST `/v2/disconnect` | `{}` | `{connected:false}`；打印中409，先取消任务 |
+| POST `/v2/query` | `{"command":12}` | `{command,payloadHex,hasData,status}`；仅白名单GET，十进制整数命令；只有ACK时hasData=false、payloadHex=null |
+| GET `/v2/protocol` | 无 | 型号、576点/72字节、300DPI、150送纸与commands目录（名称、证据、说明、响应）。研究目录不代表可调用 |
+| GET `/v2/settings` | 无 | `{defaults:PrintSettings,note}`；每次渲染/打印从确定的默认值合并settings，不继承当前GUI编辑值 |
+| POST `/v2/render` | RenderInput | 离线渲染；`{width,height,bytes,previewPngBase64}`，includeRaw=true另含rawBase64；不耗纸、不要求蓝牙 |
+| POST `/v2/jobs` | RenderInput + allowPaper/title | 202 `{id,state:"accepted",note}`；启动打印，轮询任务结果；忙时409，不排队自动重打 |
+| GET `/v2/jobs` | 无 | `{jobs:[Job]}`；最新在前，最近30个会话任务，App重启清空 |
+| GET `/v2/jobs/{id}` | 无 | 单个Job |
+| POST `/v2/jobs/{id}/cancel` | `{}` | 仅当前发送中任务；停止并断开，设备已缓存数据无法撤回；返回cancelled并非纸面撤销 |
+| POST `/v2/feed` | `{"lines":150,"allowPaper":true}` | lines整数0–2000；`{acknowledged:true,lines,physicalCompletion:"unknown"}`，等待媒体检查和ACK |
+| GET `/v2/logs` | `?limit=100`，1–500 | `{order:"newest_first",logs:[{timestamp,type,text}]}`；可能包含本机设备信息 |
+| GET `/v2/openapi` | 无 | 完整OpenAPI3.0.3；也见[离线文件](openapi.json) |
 
 ### 状态与任务
 
 `readings`元素：`{command,name,value,rawHex,sampledAt}`。这些是最近采样，不保证实时；需要新值时POST query。充电字段固定`"unknown"`，不会根据电量上升推断实时正在充电。
 
-Job：`{id,title,detail,state,createdAt}`，时间ISO8601。state目前保留GUI中文值：`发送中`、`已发送，待核对纸面`、`未完成`、`已停止`。`progress`是全局活动任务进度。202仅接受；“已发送”也只是数据及ACK流程结束，调用方应让用户确认纸面。没有固件机械完成事件或持久任务队列。失败后不自动重试，避免重复耗纸。
+Job：`{id,title,detail,state,stateLabel,physicalCompletion,createdAt}`，时间为 ISO8601。稳定状态为 `printing`、`sent`、`unknown`、`cancelled`；`stateLabel` 仅供中文显示。`physicalCompletion` 恒为 `unknown`，本地 API 不提供纸面确认接口。202 仅表示接受，sent 仅表示传输完成。任务不跨重启持久化，不自动重印。旧 `/v1` 与 `/v1/*` 在认证及 Origin 检查后统一返回 410 `api_v1_retired`，不转发。见 [v0.3.2 契约](API-v2-032.md)。
 
 ### RenderInput
 
@@ -67,7 +67,7 @@ POST jobs/feed需要同时满足：App侧栏“全局允许耗纸”、请求JSO
 
 ## 全部settings字段
 
-几何单位为最终输出点/像素，传输间隔为毫秒，等待为秒，feed为设备行。下表是v1可覆盖字段；未列字段报400。完整机器约束见OpenAPI Settings。
+几何单位为最终输出点/像素，传输间隔为毫秒，等待为秒，feed为设备行。下表是v2可覆盖字段；未列字段报400。完整机器约束见OpenAPI Settings。
 
 | 字段 | 默认 | 范围/说明 |
 |---|---|---|
@@ -102,10 +102,10 @@ HTTP/1.1，仅GET/POST/OPTIONS；最多8连接、每连接12秒、每秒20个已
 
 ```sh
 curl --noproxy '*' -H "Authorization: Bearer $PAPERANG_TOKEN" \
-  http://127.0.0.1:8176/v1/status
+  http://127.0.0.1:8176/v2/status
 curl --noproxy '*' -H "Authorization: Bearer $PAPERANG_TOKEN" \
   -H 'Content-Type: application/json' -d '{"text":"你好 P2","settings":{"fontSize":30},"includeRaw":true}' \
-  http://127.0.0.1:8176/v1/render
+  http://127.0.0.1:8176/v2/render
 ```
 
 Python（将Clients加入模块路径）：
@@ -132,7 +132,7 @@ const job = await p.printText('Hello P2', {allowPaper: true});
 console.log(await p.job(job.id));
 ```
 
-客户端是薄封装；其他端点可用其request方法。Python绕过系统HTTP代理访问回环，JavaScript调用浏览器/Node的fetch。API版本固定/v1；新增能力以兼容字段扩展，破坏性变更另开版本。
+客户端是薄封装；其他端点可用其request方法。Python绕过系统HTTP代理访问回环，JavaScript调用浏览器/Node的fetch。API版本固定/v2；新增能力以兼容字段扩展，破坏性变更另开版本。
 
 ## v0.2.3 托盘授权
 
