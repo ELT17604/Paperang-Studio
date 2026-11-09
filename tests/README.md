@@ -28,3 +28,5 @@ work/probe "$PAPERANG_RELAY_URL"
 ```
 
 Physical text/image/density tests require the native GUI and a real P2. Consult [validation evidence](../doc/VALIDATION-v0.3.2-macos.md); never automatically replay an uncertain print. HTTP acceptance/transport tests are distinct from owner paper confirmation.
+
+Windows-native reproduction: [tests/windows/README.md](windows/README.md). Windows has no Mac loopback HTTP service; its runtime surface is Relay v2. Shared HTTP tests and inventory/version guards also run on Windows.

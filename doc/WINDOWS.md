@@ -1,7 +1,8 @@
+> v0.3.2-winlite（未发布）：Relay API v2；模板/配置 schema 1 不变。当前测试与限制见 [Windows 验证](VALIDATION-v0.3.2-windows.md)，下文 fix/opt 验收数字是历史记录。
+
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 
 
-> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 # Windows tray client · V0.3.0-winlite
 
 > **v0.3.0:** [API v2 authentication](AUTH-v2.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Handoff](HANDOFF-v0.3.0.zh-CN.md). WinLite includes a C management panel; web receipts no longer grant content access.
@@ -47,7 +48,7 @@ Credentials, preferences, templates and pending results are encrypted with curre
 
 Continuous reconnect defaults on, including migrated settings: after the initial five retries fail, wait 60 seconds, try another five times, and repeat until successful. Disable the option to retain the original stop behavior. Disconnect/quit cancels waiting immediately. The selected printer retries every 30 seconds. Repeated background launches remain silent; explicit repeated launches open settings. Enabled startup registrations repair their executable path after upgrades; user-disabled Windows startup approval is not overridden. This is a user-session app, not a service or sleep-prevention tool.
 
-The first Windows edition includes relay reception, tray settings and template editing. It does not include the macOS workspace, PTY, engineering writes, local HTTP API, administrator-key management or task-management window. `sent` is transport completion, not an automatic physical-paper confirmation.
+The first Windows edition includes relay reception, tray settings and template editing. It does not include the macOS workspace, PTY, engineering writes, local HTTP API or macOS workspace task window; C administration and Relay history are available. `sent` is transport completion, not an automatic physical-paper confirmation.
 
 ## Build and verification
 

@@ -2,7 +2,7 @@
 
 # Paperang Studio v0.3.2
 
-**v0.3.2 target:** Mac baseline/API migration validated locally; Windows and Ubuntu pending. See [API contract](doc/API-v2-032.md) and [Stage 1 handoff](xdev/032-handoff/01-macos.md). No final release or deployment is implied.
+**v0.3.2 target:** Mac and Windows native validation completed; Ubuntu pending. See [API contract](doc/API-v2-032.md) [Stage 1 handoff](xdev/032-handoff/01-macos.md) and [Windows validation](doc/VALIDATION-v0.3.2-windows.md). No final release or deployment is implied.
 
 <p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT integration</p>
 <p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.2 target baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
@@ -15,10 +15,10 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 
 ## Platforms
 
-| Distribution | What it does | Start here | Historical platform verification (v0.3.1) |
+| Distribution | What it does | Start here | Platform verification (scope in linked reports) |
 |---|---|---|---|
 | **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | v0.3.2 native build, local v2, isolated Relay and physical text/image tests passed; see handoff |
-| **WinLite · Windows** | Native WinForms/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | Windows build, regression and local relay integration tested |
+| **WinLite · Windows** | Native WinForms/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | v0.3.2-winlite x64 build/install/upgrade, isolated Relay and 3 owner-confirmed P2 sheets passed; production network limitations documented |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | Local HTTP/SQLite tests passed; Linux deployment validation pending |
 | **ChatGPT integration · experimental** | MCP sender adapter and legacy GPT Actions schema for Relay API v2 | [Integration guide](doc/CHATGPT.md) · [Code](Integrations/ChatGPT/) | Source only; gateway, ChatGPT connection and hardware test pending |
 | **RelaySkill · sender** | Agent skill for text/images, layout parameters, explicit submission and permission-aware status tracking | [Skill guide](doc/RELAY-SKILL.md) · [Skill source](Skills/paperang-relay-print/SKILL.md) | Local protocol/rendering tests passed |
@@ -154,6 +154,6 @@ Paperang Studio is an independent, unofficial project. It is not affiliated with
 
 Linux security and migration preparation: [validation record](doc/LINUX-v0.3.0-VALIDATION.md). Production migration/systemd/HTTPS checks passed; native receiver/paper checks remain pending there.
 
-Windows v0.3.1-winlite-fix3: [installer, update check and uninstall / 安装与卸载](doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md).
+Windows v0.3.2-winlite (unreleased): [installer, update check and uninstall / 安装与卸载](doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md).
 
 Linux opt1 local administration: [sudo terminal console and reset guide](Server/ADMIN-CONSOLE.md). Arrow-key credential/identity/quota/history management uses a service-account database worker and no management listener.

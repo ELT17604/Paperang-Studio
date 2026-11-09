@@ -39,10 +39,36 @@ class RelayContract(unittest.TestCase):
   self.assertEqual(self.req('POST','/v2/jobs',body,self.keys['M'])[0],403)
   self.assertEqual(self.req('POST','/v2/admin/keys/search',{},b)[0],403)
   self.assertEqual(self.req('POST','/v2/jobs',{'text':'missing UUID'},b)[0],400)
+  self.assertEqual(self.req('GET','/v2/device/jobs',key=self.keys['C'])[0],403)
   m=self.keys['M'];code,claim=self.req('POST',f"/v2/device/jobs/{job['id']}/claim",{},m);self.assertEqual(code,200)
   self.assertEqual(self.req('GET',f"/v2/device/jobs/{job['id']}",key=m)[0],403)
   code,payload=self.req('GET',f"/v2/device/jobs/{job['id']}",key=m,extra={'X-Job-Claim':claim['claim']});self.assertEqual(code,200);self.assertEqual(payload['text'],body['text'])
   code,result=self.req('POST',f"/v2/device/jobs/{job['id']}/result",{'claim':claim['claim'],'state':'sent'},m);self.assertEqual(code,200)
   self.assertEqual(self.req('GET',f"/v2/device/jobs/{job['id']}",key=m,extra={'X-Job-Claim':claim['claim']})[0],403)
   self.assertEqual(self.req('GET','/v2/jobs/'+job['id'],key=b)[1]['state'],'sent')
+ def test_confirmation_and_expired_claim(self):
+  b=self.keys['B'];m=self.keys['M'];c=self.keys['C']
+  code,job=self.req('POST','/v2/jobs',{'text':'isolated paper confirmation fixture','request_id':str(uuid.uuid4())},b);self.assertEqual(code,202)
+  jid=job['id'];confirm='/v2/admin/jobs/'+jid+'/confirm'
+  self.assertEqual(self.req('POST',confirm,{},c)[0],409)
+  code,claim=self.req('POST',f'/v2/device/jobs/{jid}/claim',{},m);self.assertEqual(code,200)
+  # Simulate loss of the receiver for longer than the five-minute active window.
+  with self.store.connect() as db:db.execute('UPDATE jobs SET updated=updated-301 WHERE id=?',(jid,))
+  self.req('GET','/v2/device/jobs',key=m)
+  self.assertEqual(self.req('GET','/v2/jobs/'+jid,key=b)[1]['state'],'unknown')
+  self.assertEqual(self.req('GET',f'/v2/device/jobs/{jid}',key=m,extra={'X-Job-Claim':claim['claim']})[0],403)
+  self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/claim',{},m)[0],409)
+  # A late report of already-sent bytes updates status without obtaining payload again.
+  self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/result',{'claim':claim['claim'],'state':'sent'},m)[0],200)
+  self.assertEqual(self.req('POST',confirm,{},m)[0],403)
+  self.assertEqual(self.req('POST',confirm,{},b)[0],403)
+  self.assertEqual(self.req('POST',confirm,{},c)[0],200)
+  self.assertEqual(self.req('GET','/v2/jobs/'+jid,key=b)[1]['state'],'confirmed')
+ def test_queued_rejection(self):
+  b=self.keys['B'];m=self.keys['M']
+  code,job=self.req('POST','/v2/jobs',{'text':'isolated cancellation fixture','request_id':str(uuid.uuid4())},b);self.assertEqual(code,202)
+  jid=job['id']
+  self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/reject',{},b)[0],403)
+  self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/reject',{},m)[0],200)
+  self.assertEqual(self.req('GET','/v2/jobs/'+jid,key=b)[1]['state'],'rejected')
 if __name__=='__main__':unittest.main()
