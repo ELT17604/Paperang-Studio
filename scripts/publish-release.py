@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import urllib.error
 import urllib.request
 
 
@@ -42,6 +43,23 @@ def prepare(artifacts, output):
         raise ValueError('Incomplete native release packages')
 
 
+def existing_release(repo, token):
+    """Only an explicit REST 404 means absent; drafts are inspected with auth."""
+    request = urllib.request.Request(f'https://api.github.com/repos/{repo}/releases/tags/v0.3.2',
+        headers={'User-Agent':'PaperangStudio-Release/0.3.2', 'Accept':'application/vnd.github+json',
+                 'Authorization':'Bearer '+token})
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            release = json.load(response)
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return None
+        raise
+    if not isinstance(release, dict) or release.get('tag_name') != 'v0.3.2':
+        raise ValueError('Unexpected release lookup response')
+    return release
+
+
 def main():
     if os.environ.get('GITHUB_REF') != 'refs/heads/main' or os.environ.get('GITHUB_EVENT_NAME') != 'push':
         raise SystemExit('Publication requires the gated main push job')
@@ -67,9 +85,9 @@ def main():
     # existing name; do not attempt to overwrite or "repair" its history.
     if subprocess.check_output(['git','ls-remote','--tags','origin','refs/tags/v0.3.2'], text=True).strip():
         raise SystemExit('Tag already exists: inspect it before proceeding')
-    existing = subprocess.run(['gh','release','view','v0.3.2','--repo',repo],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    if existing.returncode == 0:
+    existing = existing_release(repo, os.environ['GH_TOKEN'])
+    if existing is not None:
+        print(json.dumps({k:existing.get(k) for k in ('id','tag_name','draft','target_commitish','html_url')}))
         raise SystemExit('Release already exists: inspect it before proceeding')
     output = Path('work/release-assets')
     prepare(Path('work/release-input'), output)
