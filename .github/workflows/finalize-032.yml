@@ -18,7 +18,7 @@ jobs:
           import hashlib,json,os,urllib.request,urllib.error
           repo='ELT17604/Paperang-Studio'
           sha='46d55b7d6782d02ba0ff296e0af3c79a7f19b674'
-          release_id=439509824
+          release_id=440166708
           headers={'User-Agent':'PaperangStudio-Release/0.3.2','Accept':'application/vnd.github+json','Content-Type':'application/json','Authorization':'Bearer '+os.environ['GH_TOKEN']}
           def api(path,method='GET',body=None):
               req=urllib.request.Request('https://api.github.com/repos/'+repo+path,method=method,headers=headers,data=None if body is None else json.dumps(body).encode())
