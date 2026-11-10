@@ -108,8 +108,10 @@ class Tests(unittest.TestCase):
             content = rp.render(self.image_args(dither=dither, fit='cover', height=200, gamma=1.2, contrast=1.1), '')
             self.assertEqual(rp.validate_job({'content': content}), 200)
         source = self.root / 'long.txt'; source.write_text('汉' * 10000, encoding='utf-8')
-        with self.assertRaises(rp.PrintError):
-            self.command('prepare', '--text-file', str(source), '--output', str(self.root / 'long.json'))
+        with self.assertRaisesRegex(rp.PrintError, 'maximum height'):
+            self.command('prepare', '--text-file', str(source), '--font',
+                         (os.environ.get('PAPERANG_TEST_CJK_FONT') or rp.find_font(None, '中文')),
+                         '--output', str(self.root / 'long.json'))
 
     def test_unsupported_and_corrupt_rejected(self):
         with self.assertRaises(rp.PrintError):

@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: v032-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   ubuntu:
     runs-on: ubuntu-24.04
@@ -17,10 +20,16 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r Server/requirements.txt Pillow httpx
-      - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - name: Prepare isolated CJK test font
+        run: |
+          mkdir -p work/fonts
+          cd work/fonts
+          apt-get download fonts-noto-cjk
+          dpkg-deb -x fonts-noto-cjk_*.deb extracted
       - run: python -B -m unittest discover -s tests/server -v
         env:
           PYTHONPATH: Server:Skills/paperang-relay-print/scripts:Integrations/ChatGPT
+          PAPERANG_TEST_CJK_FONT: ${{ github.workspace }}/work/fonts/extracted/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
       - run: python tests/test_relay_v2.py && python tests/test_contract_inventory.py && python scripts/check-versions.py
       - run: bash -n Server/install.sh && bash Server/install.sh --dry-run --port 28177
       - run: node --check Server/web/app.js && node --check Clients/paperang-client.js
