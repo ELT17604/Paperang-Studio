@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate 0.3.2 targets separately from unverified platform runtime labels."""
+"""Validate coordinated product/runtime versions and independent API/schema domains."""
 import json
 import re
 from pathlib import Path
@@ -33,7 +33,7 @@ skill = registry['distributions']['relayskill']['runtimeVersion']
 assert f"__version__ = '{skill}'" in (root / 'Skills/paperang-relay-print/scripts/relay_print.py').read_text(encoding='utf-8')
 assert registry['compatibility']['localApi'] == registry['compatibility']['relayApi'] == 'v2'
 assert (root / 'VERSION').read_text().strip() == baseline + '-macclient'
-print('PASS product targets, historical platform runtimes, API baseline and policy/matrix')
+print('PASS product/component versions, API baseline and policy/matrix')
 
 for project in ('Paperang.Core', 'Paperang.WinLite'):
     metadata = (root / f'Windows/src/{project}/{project}.csproj').read_text(encoding='utf-8')
@@ -45,3 +45,6 @@ installer = (root / 'Windows/installer/WinLite.iss').read_text(encoding='utf-8')
 assert f'#define AppVersion "{win}"' in installer
 assert f'VersionInfoVersion={baseline}.0' in installer
 print('PASS Windows assembly/file/installer numeric versions and distribution suffix')
+
+assert re.search(r"(?m)^  version: " + re.escape(baseline) + r"$", (root / "Integrations/ChatGPT/openapi.yaml").read_text())
+print("PASS experimental adapter OpenAPI product version")

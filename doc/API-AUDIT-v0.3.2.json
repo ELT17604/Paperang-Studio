@@ -1,5 +1,5 @@
 {
-  "parentSHA": "a13e0198d86900fdf8466a0e9b562bca9ff97368",
+  "parentSHA": "7986111ebf8d3fdbfe2d023a6eb3438ee54f0480",
   "scope": "Current tracked candidate tree: 226 files; binary assets and this generated inventory excluded from text matching.",
   "counts": {
     "compatibility/version/history review": 76,
@@ -1545,7 +1545,7 @@
       "file": "doc/VERSIONING.md",
       "line": 7,
       "category": "compatibility/version/history review",
-      "text": "The owner explicitly requires retiring Mac local HTTP API v1 in this patch baseline. This compatibility exception returns 410, requires local callers to migrate to v2 and stable English job states, and does not change Relay v2, template/content schema 1 or physical protocol. Historical tags remain immutable. No final v0.3.2 tag or Release is created in Stage 1."
+      "text": "The owner explicitly requires retiring Mac local HTTP API v1 in this patch baseline. This compatibility exception returns 410, requires local callers to migrate to v2 and stable English job states, and does not change Relay v2, template/content schema 1 or physical protocol. Historical tags remain immutable. The final product tag is `v0.3.2`; platform suffixes remain in runtime and package names."
     },
     {
       "file": "doc/VERSIONING.md",

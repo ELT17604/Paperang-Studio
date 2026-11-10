@@ -2,12 +2,12 @@
 
 ## v0.3.2 scoped exception (owner-directed)
 
-The 0.3.2 baseline retains the documented distribution suffixes: `v0.3.2-macclient`, `v0.3.2-winlite`, `v0.3.2-linuxrelayserver`, and `v0.3.2-relayskill`. Runtime strings omit the leading v. No old opt/fix suffix is carried into the new baseline. Shared `targetVersion` is the numeric baseline; historical runtimes and pending native validation remain explicit for other components. Existing naming and update-comparison policy is preserved.
+The 0.3.2 baseline retains the documented distribution suffixes: `v0.3.2-macclient`, `v0.3.2-winlite`, `v0.3.2-linuxrelayserver`, and `v0.3.2-relayskill`. Runtime strings omit the leading v. No old opt/fix suffix is carried into the new baseline. Shared `targetVersion` is the numeric baseline; all implemented components now share 0.3.2. Product tag/Release `v0.3.2` contains platform-named assets; update discovery maps it to the installed platform only when its package exists. Distribution runtime parsing and historical fix/opt comparison remain distinct.
 
-The owner explicitly requires retiring Mac local HTTP API v1 in this patch baseline. This compatibility exception returns 410, requires local callers to migrate to v2 and stable English job states, and does not change Relay v2, template/content schema 1 or physical protocol. Historical tags remain immutable. No final v0.3.2 tag or Release is created in Stage 1.
+The owner explicitly requires retiring Mac local HTTP API v1 in this patch baseline. This compatibility exception returns 410, requires local callers to migrate to v2 and stable English job states, and does not change Relay v2, template/content schema 1 or physical protocol. Historical tags remain immutable. The final product tag is `v0.3.2`; platform suffixes remain in runtime and package names.
 
 
-> **0.x policy approved for v0.3.0:** a coordinated MINOR baseline may break the relay contract before 1.0.0. All participants must upgrade together. MAJOR breaking rules apply from 1.0.0; fix notes never break contracts. Historical baseline was 0.3.1/API v2; the current target is 0.3.2; the 0.2.3 section below is historical.
+> **0.x policy approved for v0.3.0:** a coordinated MINOR baseline may break the relay contract before 1.0.0. All participants must upgrade together. MAJOR breaking rules apply from 1.0.0; fix notes never break contracts. Historical baseline was 0.3.1/API v2; the current baseline is 0.3.2; the 0.2.3 section below is historical.
 
 [简体中文](VERSIONING.zh-CN.md) · [Feature implementation matrix](FEATURE-MATRIX.md) · [Release registry](../VERSIONS.json)
 

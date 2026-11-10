@@ -69,6 +69,6 @@
     }
   },
   "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
-  "releaseStatus": "validated release candidate; publication gated on final main native CI and artifact checksums",
+  "releaseStatus": "v0.3.2 validated; macOS, Windows, Ubuntu and RelaySkill accepted",
   "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged."
 }

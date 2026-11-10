@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Paperang Studio Relay v2 - ChatGPT Actions
-  version: 0.3.0
+  version: 0.3.2
   description: >-
     Minimal least-privilege actions for the existing Paperang Studio relay.
     A/B bearer token required. Print only at the user's explicit request.
