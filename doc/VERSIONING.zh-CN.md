@@ -1,5 +1,9 @@
 # 版本命名与兼容规则
 
+## 仅 Windows 0.3.3 例外（所有者明确要求）
+
+WinLite因原生USB优先连接提升为 **0.3.3-winlite**；MacClient/LinuxRelayServer/RelaySkill仍为0.3.2，共同兼容基线0.3.2 / Relay v2 / schema1。本例外仅覆盖所有者指定的此次Windows升级，优先于一般PATCH协同规则，不放宽其他版本漂移。登记WinLite targetVersion=0.3.3、compatibleBaseline=0.3.2，使用独立标签v0.3.3-winlite，不创建全平台v0.3.3。[发行与回滚](RELEASE-v0.3.3-winlite.zh-CN.md)。
+
 ## v0.3.2 专项例外（所有者明确要求）
 
 0.3.2 基线继续使用文档规定的架构后缀：`v0.3.2-macclient`、`v0.3.2-winlite`、`v0.3.2-linuxrelayserver`、`v0.3.2-relayskill`，运行时省略前导 v。不沿用旧 opt/fix 开发后缀。共享 `targetVersion` 是数值目标基线，全部已实现组件统一为 0.3.2。产品 Tag/Release 使用 `v0.3.2`，安装包名称保留平台后缀；更新检查仅在该 Release 有本平台安装包时映射到对应平台版本，历史 fix/opt 比较仍保留。

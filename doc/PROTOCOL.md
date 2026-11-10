@@ -142,3 +142,7 @@ All numbers below are hexadecimal. Data responses and unsolicited events are not
 | 81 | Extended81→82 | Emulator hardcodes `HME230_P2` with padding |
 
 Compression, factory-mode enums/exit/persistence, firmware updates, LED control, real-time charging, and firmware long-image limits remain unconfirmed. Extended39/40/42/7F/81 are research clues, not automatically probed device capabilities. See [source revisions](source-revisions.json) and [emulator analysis](ESP32-EMULATOR.md).
+
+## Windows USB transport
+
+The [USB supplement](USB-PROTOCOL.md) records 2026-11-10 device measurements for all17 established GETs, cover/paper calibration, default-seed CRC, usbprint.sys and a four-packet countdown print. The handshake/index sections above describe the established BLE path. USB does not use FF03 credits or register key zero in these tests. ACK, host sent and mechanical completion remain distinct.

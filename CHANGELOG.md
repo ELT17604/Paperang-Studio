@@ -1,3 +1,7 @@
+# v0.3.3-winlite — Windows candidate
+
+Native USB-first printer connection, remembered BLE fallback, explicit persistent BLE-only switching and USB-connected Bluetooth scan suppression. Reuse media/density guards and durable no-replay results. Other distributions remain0.3.2; Relay v2/schema1 are unchanged. [Upgrade and validation](doc/RELEASE-v0.3.3-winlite.md).
+
 # v0.3.2
 
 - Application HTTP APIs unified on v2; v1 has no business execution. Product version 0.3.2 retains the four distribution suffixes.

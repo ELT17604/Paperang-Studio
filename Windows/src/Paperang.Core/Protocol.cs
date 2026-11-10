@@ -26,7 +26,7 @@ public static class Wire
     }
 }
 
-public sealed class FrameDecoder
+public sealed class FrameDecoder(uint seed = 0, bool recoverPartial = false)
 {
     private readonly List<byte> buffer = [];
     public IEnumerable<Frame> Push(byte[] data)
@@ -37,11 +37,24 @@ public sealed class FrameDecoder
         {
             int n = buffer[3] | buffer[4] << 8;
             if (buffer[0] != 2 || n > 1023) { buffer.RemoveAt(0); continue; }
-            if (buffer.Count < n + 10) break;
+            if (buffer.Count < n + 10)
+            {
+                int next = -1;
+                if (recoverPartial) for (int i = 1; i + 10 <= buffer.Count; i++)
+                {
+                    if (buffer[i] != 2) continue;
+                    int size = buffer[i + 3] | buffer[i + 4] << 8;
+                    if (size > 1023 || i + size + 10 > buffer.Count || buffer[i + size + 9] != 3) continue;
+                    if (Wire.Crc(buffer.GetRange(i + 5, size).ToArray(), seed) == BinaryPrimitives.ReadUInt32LittleEndian(buffer.GetRange(i + 5 + size, 4).ToArray())) { next = i; break; }
+                }
+                if (next < 0) break;
+                buffer.RemoveRange(0, next); continue;
+            }
             if (buffer[n + 9] != 3) { buffer.RemoveAt(0); continue; }
             byte[] p = buffer.GetRange(5, n).ToArray();
             uint crc = BinaryPrimitives.ReadUInt32LittleEndian(buffer.GetRange(5 + n, 4).ToArray());
-            if (Wire.Crc(p) == crc) result.Add(new(buffer[1], buffer[2], p));
+            if (Wire.Crc(p, seed) == crc) result.Add(new(buffer[1], buffer[2], p));
+            else if (recoverPartial) { buffer.RemoveAt(0); continue; }
             buffer.RemoveRange(0, n + 10);
         }
         return result;

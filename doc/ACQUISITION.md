@@ -65,3 +65,7 @@ ESP32 source added39/40/42/7F/81 research clues but also exposed hardcoded field
 - `Validation/`: current external checks and their outputs.
 
 These are local historical artifacts, not build dependencies. A documented past observation is not a newly repeated measurement.
+
+## Windows USB acquisition — 2026-11-10
+
+The [USB supplement](USB-PROTOCOL.md) records present-interface SetupAPI discovery, original usbprint.sys I/O, 17 serialized GETs and redacted evidence. The user performed open/roll-retained → closed/empty → restored/closed transitions, confirming11→01→00. Stale queued events were observed and excluded after input draining. A four-frame countdown pattern was sent once; the user confirmed complete bands, correct order and improved darkness. Class-port status failed with WinError23; IEEE1284 identity was readable. No factory/firmware writes or unknown opcode sweep occurred.

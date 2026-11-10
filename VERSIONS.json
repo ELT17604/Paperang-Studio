@@ -36,12 +36,15 @@
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.2-winlite",
-      "runtimeVersion": "0.3.2-winlite",
+      "version": "v0.3.3-winlite",
+      "runtimeVersion": "0.3.3-winlite",
       "versionSource": "Windows/VERSION",
-      "verification": "Native x64 CI build, DPAPI/core and real isolated Relay integration passed; setup/upgrade/uninstall/reinstall and confirmed device records retained; product Release discovery validated",
-      "targetVersion": "0.3.2",
-      "validation032": "passed"
+      "verification": "0.3.3 local x64 native build, 73 regressions, 12 isolated Relay checks, USB/BLE/USB hardware cycle, actual SettingsForm, owner-confirmed native USB pattern, portable/lite/installer SHA256 builds passed; installed upgrade/remote CI/publication not claimed",
+      "targetVersion": "0.3.3",
+      "validation032": "passed",
+      "compatibleBaseline": "0.3.2",
+      "validation033": "passed",
+      "publicationStatus": "local candidate; not published"
     },
     "relayskill": {
       "name": "RelaySkill",
@@ -69,6 +72,25 @@
     }
   },
   "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
-  "releaseStatus": "v0.3.2 validated; macOS, Windows, Ubuntu and RelaySkill accepted",
-  "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged."
+  "releaseStatus": "Shared0.3.2 accepted; Windows-only0.3.3 candidate locally validated, not published",
+  "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged.",
+  "distributionExceptions": {
+    "winlite": {
+      "version": "0.3.3",
+      "compatibleBaseline": "0.3.2",
+      "reason": "Owner-directed Windows-only patch for USB-first connection; Relay v2 and schema1 unchanged",
+      "documentation": "doc/RELEASE-v0.3.3-winlite.md"
+    }
+  },
+  "printerTransports": {
+    "windowsLegacyP2Usb": {
+      "status": "implemented in WinLite0.3.3; local validation passed",
+      "baseline": "0.3.2",
+      "branch": "dev/p2-usb-protocol-research",
+      "documentation": "doc/USB-PROTOCOL.md",
+      "profile": "doc/p2-usb-profile.json",
+      "verification": "17 established GETs, physical cover/paper differential, user-confirmed four-frame countdown USB raster; device printing/completion/charging unknown",
+      "integrationVersion": "0.3.3-winlite"
+    }
+  }
 }

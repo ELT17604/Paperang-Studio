@@ -19,5 +19,7 @@
   "uncalibrated_baseline_mask": 8,
   "physical_edges_verified": true,
   "physical_width_mm": null,
-  "default_test_density": 100
+  "default_test_density": 100,
+  "usb_research_profile": "p2-usb-profile.json",
+  "usb_research_status": "native WinLite0.3.3 USB transport; original BLE wire behavior unchanged"
 }

@@ -41,3 +41,7 @@ The examined traditional00–31, P2 USB, P1 legacy/A5, and C2 materials supplied
 Next useful work is one read-only, time-labeled plugged/unplugged/replugged capture of status, battery, and unsolicited events. If no field changes, retain unknown. Compare only model-appropriate LED documentation or official-app captures before proposing writes. No reset, factory-mode change, or firmware operation was performed to alter the light.
 
 Raw charging logs are external historical files under `PaperangStudio-Development/Legacy/PaperangP2/evidence/`, including `charging-current-query.log` and `charging-recheck.log`. See [research](RESEARCH.md) for provenance.
+
+## USB follow-up — 2026-11-10
+
+[USB measurements](USB-PROTOCOL.md) returned battery100%, voltage/temperature ACK-only and normal media00. USB connection is not a charging Boolean; no calibrated charging/LED field was found. Printer-class port status failed with WinError23 and is not a substitute charging/printing flag. Historical values above remain historical.

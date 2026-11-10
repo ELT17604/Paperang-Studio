@@ -25,7 +25,7 @@ def main():
     def setup(label):
         subprocess.run([str(args.setup.resolve()),'/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/LOG='+str((args.log_dir/(label+'.log')).resolve())],check=True,timeout=120)
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER,registry) as key:
-            assert winreg.QueryValueEx(key,'DisplayVersion')[0]=='0.3.2-winlite'
+            assert winreg.QueryValueEx(key,'DisplayVersion')[0]==(Path(__file__).resolve().parents[2]/'Windows/VERSION').read_text(encoding='utf-8').strip()
         assert snapshot()==before,'Installer changed private data'
     def start():
         process=subprocess.Popen([str(app),'--background'],creationflags=subprocess.CREATE_NO_WINDOW)
@@ -40,7 +40,7 @@ def main():
     assert old.wait(timeout=20)==0
     print('PASS existing installed client graceful upgrade; private data byte-identical')
     process=start();setup('overlay');assert process.wait(timeout=20)==0
-    print('PASS 0.3.2 running tray overlay and uninstall version registration')
+    print('PASS running tray overlay and uninstall version registration')
     process=start()
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER,registry) as key:
         uninstaller=winreg.QueryValueEx(key,'UninstallString')[0].strip('"')

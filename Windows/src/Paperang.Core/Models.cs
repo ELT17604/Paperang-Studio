@@ -14,6 +14,7 @@ public sealed record AppSettings
     public bool AllowHttp { get; init; }
     public string PrinterAddress { get; init; } = "";
     public string PrinterName { get; init; } = "";
+    public string PrinterTransport { get; init; } = "auto";
     public bool AutoConnect { get; init; } = true;
     public bool AutoAllowPrint { get; init; } = true;
     public bool KeepReconnecting { get; init; } = true;
@@ -33,6 +34,7 @@ public sealed record AppSettings
     };
     public Uri Validate()
     {
+        if (PrinterTransport is not ("auto" or "bluetooth")) throw new ArgumentException("不支持的打印机连接方式");
         if (!Uri.TryCreate(Server.Trim(), UriKind.Absolute, out var u) ||
             !string.IsNullOrEmpty(u.UserInfo) || !string.IsNullOrEmpty(u.Query) || !string.IsNullOrEmpty(u.Fragment) ||
             u.AbsolutePath != "/" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.IsLoopback || AllowHttp))))
@@ -135,6 +137,7 @@ public interface IJournal { PendingResult? Load(); void Save(PendingResult? valu
 public interface IRasterizer { Raster Render(RelayJob job, AppSettings settings); }
 public interface IPrinter : IDisposable
 {
+    string ActiveTransport => "";
     bool Ready { get; }
     string Status { get; }
     double Progress { get; }

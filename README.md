@@ -2,12 +2,14 @@
 
 # Paperang Studio v0.3.2
 
+**Windows update:0.3.3-winlite candidate** — [USB-first connection and upgrade](doc/RELEASE-v0.3.3-winlite.md); other distributions remain0.3.2.
+
 **v0.3.2:** macOS, Windows and Ubuntu accepted. [Release notes](doc/RELEASE-v0.3.2.md) · [API v2](doc/API-v2-032.md) · [Upgrade and rollback](doc/UPGRADE-v0.3.2.md).
 
 <p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT integration</p>
 <p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.2 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
-Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. A native desktop client connects to the printer over Bluetooth; the Linux relay accepts notes from a browser or RelaySkill and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
+Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. MacClient connects over Bluetooth; WinLite 0.3.3 prefers USB with Bluetooth fallback; the Linux relay accepts notes from a browser or RelaySkill and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
 
 Use **MacClient** for the full print workspace and paper terminal, or **WinLite** for a lightweight Windows tray receiver with template editing and native administration. The relay and sender tools can run independently of the desktop platform.
 
@@ -18,7 +20,7 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 | Distribution | What it does | Start here | Platform verification (scope in linked reports) |
 |---|---|---|---|
 | **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | v0.3.2 native build, local v2, isolated Relay and confirmed text/image device records passed |
-| **WinLite · Windows** | Native WinForms/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | v0.3.2-winlite x64 build/install/upgrade, isolated Relay and 3 owner-confirmed P2 sheets passed; shared v2 integration accepted |
+| **WinLite · Windows** | Native WinForms USB/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | 0.3.3 USB-first candidate; [current validation](doc/VALIDATION-v0.3.3-windows.md); historical0.3.2 acceptance retained |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | v0.3.2 production deployment, backup/rollback, API/web and Mac task/preview acceptance passed |
 | **ChatGPT integration · experimental** | MCP sender adapter and legacy GPT Actions schema for Relay API v2 | [Integration guide](doc/CHATGPT.md) · [Code](Integrations/ChatGPT/) | Source only; gateway, ChatGPT connection and hardware test pending |
 | **RelaySkill · sender** | Agent skill for text/images, layout parameters, explicit submission and permission-aware status tracking | [Skill guide](doc/RELAY-SKILL.md) · [Skill source](Skills/paperang-relay-print/SKILL.md) | Local protocol/rendering tests passed |
@@ -34,10 +36,10 @@ flowchart LR
     Browser["Browser · notes & drawings"] -->|HTTPS| Relay["LinuxRelayServer"]
     Skill["RelaySkill · text & images"] -->|API v2| Relay
     Relay <-->|"outbound polling · scoped credentials"| Receiver["MacClient or WinLite"]
-    Receiver -->|Bluetooth LE| P2["Paperang P2 · real paper"]
+    Receiver -->|"BLE · WinLite also USB"| P2["Paperang P2 · real paper"]
 ```
 
-Choose **one active Bluetooth receiver per printer**. The relay handles identity and delivery; the receiving client owns the final template, density, feed and physical print operation. MacClient also supports local printing without a relay.
+Choose **one active receiver/transport per printer**. The relay handles identity and delivery; the receiving client owns the final template, density, feed and physical print operation. MacClient also supports local printing without a relay.
 
 ## MacClient upgrade
 
@@ -157,3 +159,7 @@ Linux security and migration preparation: [validation record](doc/LINUX-v0.3.0-V
 Windows v0.3.2-winlite (unreleased): [installer, update check and uninstall / 安装与卸载](doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md).
 
 Linux opt1 local administration: [sudo terminal console guide](Server/ADMIN-CONSOLE.md). Arrow-key credential/identity/quota/history management uses a service-account database worker and no management listener.
+
+## Windows USB connection
+
+WinLite **0.3.3** adds native USB-first connection with remembered BLE fallback and manual switching. MacClient/Relay/RelaySkill remain0.3.2. [Release and upgrade](doc/RELEASE-v0.3.3-winlite.md) · [USB protocol](doc/USB-PROTOCOL.md).

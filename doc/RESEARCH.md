@@ -74,3 +74,7 @@ Names and FF00 alone do not identify firmware generation. Keep transport, protoc
 Use the stable00 raster path: decode/orient/composite → rotate → fit/crop/pad576 → threshold/dither → pack → preview/export/send identical bytes. Enforce memory/height guards, whole rows, credit backpressure, and media-fault cancellation. Feed150 once per batch. QR/barcodes should use integer module scaling and quiet zones, not photo dithering. Text, tables, Markdown, and PDF pages can share host rasterization.
 
 The early research preceded image-import UI; the current workspace already implements image import, transforms, and dithering. Firmware long-image/buffer limits remain unmeasured. Longer jobs need independent band/completion tests before IPP/AirPrint. Factory mode, compression, and updates are not prerequisites for image printing.
+
+## Windows USB follow-up — 2026-11-10
+
+[USB research](USB-PROTOCOL.md) adds hardware evidence, rather than replacing the historical BLE observations: open/loaded11, closed/empty01, restored00; 17 GETs; four countdown packets3/2/1/0 physically complete in order at density100. GET_STATUS stayed00 during/after this short print; busy/completion remains unknown. The USB library comparison above is now supplemented by direct Windows usbprint.sys tests.

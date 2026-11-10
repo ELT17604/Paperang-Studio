@@ -20,3 +20,7 @@ Windows-specific additions are current-user DPAPI, atomic pending-result persist
 The Windows scope does not run the macOS workspace, PTY, engineering writes, local HTTP API or administrator-key manager. Automatic print consent is configurable and follows the requested Windows tray behavior; no macOS consent default was changed.
 
 See [verification and research](WINDOWS.md#build-and-verification) for the 39 checks, original-server integration, source references and actual P2 paper confirmation. Windows UUID-filtered service discovery returned Success with no FF00 entry on the tested stack; full discovery returned it. That observed difference is why the backend selects FF00 after full enumeration.
+
+## Native USB addition
+
+WinLite0.3.3 integrates USB through the existing IPrinter boundary while preserving BLE and Relay v2. [Protocol](USB-PROTOCOL.md) describes observed CRC/countdown/density behavior; [release](RELEASE-v0.3.3-winlite.md) records Windows-only versioning and upgrade compatibility.

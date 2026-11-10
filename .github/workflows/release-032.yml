@@ -74,19 +74,21 @@ jobs:
       - name: Native installed overlay, uninstall and reinstall acceptance
         shell: pwsh
         run: |
-          $setup = "$env:PAPERANG_WIN_WORK_DIR/Release/PaperangStudio-0.3.2-winlite-win-x64-setup.exe"
-          Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait
+          $version = (Get-Content Windows/VERSION -Raw).Trim()
+          $setup = "$env:PAPERANG_WIN_WORK_DIR/Release/PaperangStudio-$version-win-x64-setup.exe"
+          Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait -WindowStyle Hidden
           python tests/windows/test_installer.py --setup $setup --log-dir work/installer-validation
           if ($LASTEXITCODE -ne 0) { throw 'Native installer validation failed' }
       - uses: actions/upload-artifact@v4
         with:
-          name: winlite-032-candidate
+          name: winlite-current-candidate
           path: |
             work/windows/Release/*.exe
             work/windows/Release/*.zip
             work/windows/Release/*.sha256
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Historical v0.3.2 is immutable; main synchronization must not publish.
+    if: ${{ false }}
     needs: [ubuntu, macos, windows]
     runs-on: ubuntu-24.04
     timeout-minutes: 15

@@ -1,21 +1,21 @@
-> v0.3.2-winlite（未发布）：Relay API v2；模板/配置 schema 1 不变。当前测试与限制见 [Windows 验证](VALIDATION-v0.3.2-windows.md)，下文 fix/opt 验收数字是历史记录。
+> **v0.3.3-winlite** (Windows-only candidate): USB first, compatible with the0.3.2 Relay v2/schema1 baseline. [Upgrade](RELEASE-v0.3.3-winlite.md) · [Validation](VALIDATION-v0.3.3-windows.md). Earlier acceptance numbers below are historical.
 
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 
 
-# Windows tray client · V0.3.0-winlite
+# Windows tray client · V0.3.3-winlite
 
 > **v0.3.0:** [API v2 authentication](AUTH-v2.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Handoff](HANDOFF-v0.3.0.zh-CN.md). WinLite includes a C management panel; web receipts no longer grant content access.
 
 [简体中文](WINDOWS.zh-CN.md) · [Source and build](../Windows/README.md) · [Documentation](README.md)
 
-Native C#/.NET 10, WinForms and Windows BLE GATT. Requires Windows 10 2004 or Windows 11 with a BLE adapter. The lightweight package needs .NET 10 Desktop Runtime; the self-contained package includes it. No Python, Node, WebView or printer driver is needed at runtime.
+Native C#/.NET 10, WinForms, Windows USBPRINT and BLE GATT. Requires Windows 10 2004 or Windows 11; a BLE adapter is needed only for Bluetooth fallback. The lightweight package needs .NET 10 Desktop Runtime; the self-contained package includes it. No Python, Node, WebView or printer driver is needed at runtime.
 
 ## Setup and tray behavior
 
 1. Extract to a stable directory and run `PaperangStudio.exe`. It starts in the tray without a main window.
 2. Double-click the tray icon, enter the relay root URL and select the **paired owner private-key JSON file**. Old M keys cannot open C management.
-3. Turn on Bluetooth and the P2, scan, select your printer, then save and connect. Avoid simultaneous Mac/phone connections to the same printer.
+3. Connect and power on your USB P2, then save and connect; no BLE address is required for USB. Optionally scan/select a remembered BLE fallback. Avoid simultaneous Mac/phone clients.
 4. Closing settings keeps the app running. The tray label “开启自动打印” stays fixed; a left check mark means enabled. Settings show live relay/printer status, and the Connection tab provides save/connect directly.
 5. Startup settings offer current-user Windows sign-in startup and automatic connection. Move the executable to its permanent location before enabling startup. If disabled by Windows Task Manager, re-enable it there.
 
@@ -101,3 +101,7 @@ All settings now autosave after a 350 ms debounce and flush on close: server, ow
 DPAPI-encrypted `settings.dat` retains recoverable active settings, `settings-draft.dat` preserves incomplete connection edits, and `ui.dat` holds UI preferences. Invalid drafts or credentials conflicting with a pending report do not replace the recovery connection. Valid edits are used on the next launch; use Save and Connect to switch the currently running connection. Autosaving does not interrupt active printing.
 
 Startup and Status → Export all configuration writes versioned JSON containing settings, templates, UI preferences and the owner-file path. Raw credentials, private-key contents, sessions and pending tasks are excluded. Export cannot overwrite the selected private file. Moving to another computer still requires transferring the private file separately and updating its path. This version adds export, not graphical import. Windows regression: 60 checks pass; no relay changes required.
+
+## USB priority and manual Bluetooth
+
+The native client defaults to **Auto (USB first, Bluetooth fallback)**. USB success releases client BLE and disables scanning/selection. “Disconnect USB, use Bluetooth” applies a persistent Bluetooth-only preference; restore USB priority to return. Switching is blocked while printing; retry after the active job finishes. Windows system Bluetooth is unchanged, and failed prints never replay across transports. [Upgrade/rollback](RELEASE-v0.3.3-winlite.md) · [USB protocol](USB-PROTOCOL.md).

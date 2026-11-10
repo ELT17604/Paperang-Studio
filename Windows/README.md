@@ -1,4 +1,4 @@
-> v0.3.2-winlite（未发布）：HTTP Relay API v2；模板/配置 schema 1 保持兼容。当前可复现测试见 [Windows 验证](../doc/VALIDATION-v0.3.2-windows.md)。以下旧版本验收记录仅供历史参考。
+> **v0.3.3-winlite** (Windows-only candidate): USB first, compatible with the0.3.2 Relay v2/schema1 baseline. [Upgrade](../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../doc/VALIDATION-v0.3.3-windows.md). Earlier acceptance numbers below are historical.
 
 > v0.3.1: [Owner-file authentication](../doc/OWNER-CUTOVER-v0.3.1.zh-CN.md). WinLite defaults to a paired owner private key.
 
@@ -9,11 +9,11 @@
 
 [English guide](../doc/WINDOWS.md) · [简体中文](../doc/WINDOWS.zh-CN.md)
 
-**V0.3.2-winlite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+**V0.3.3-winlite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
 
 Uses the shared [version policy](../doc/VERSIONING.md) and [feature implementation matrix](../doc/FEATURE-MATRIX.md). Fix1 adds automatic print-preference persistence, live connection status and default continuous 60-second retry cycles, and repairs enabled sign-in startup paths after upgrades.
 
-A native WinForms tray client for the existing Paperang relay and legacy BLE P2. Starts in the tray, with settings and the same v1 block-template model as the macOS client. Includes encrypted saved credentials, optional sign-in startup, remembered-printer reconnection, and automatic relay printing.
+A native WinForms tray client for the existing Paperang relay and legacy USB/BLE P2. Starts in the tray, with settings and the same v1 block-template model as the macOS client. Includes encrypted saved credentials, optional sign-in startup, remembered-printer reconnection, and automatic relay printing.
 
 ```powershell
 dotnet build Windows/src/Paperang.WinLite -c Release
@@ -23,7 +23,7 @@ dotnet build Windows/src/Paperang.WinLite -c Release
 
 Run these commands from the repository root. Publish output defaults to the sibling `PaperangStudio-Windows-Development/Release/` directory; set `PAPERANG_WIN_WORK_DIR` to override it. The `lite` package shares the installed .NET runtime; `-SelfContained` produces the larger portable package. Both use the original repository icon and license notices.
 
-Double-click the tray icon, enter a relay root URL and select the paired **owner private file**, scan and select your P2, then save and connect. Requires the compatible v0.3.1 relay; the private key stays on this computer. Closing settings keeps the client running. Use the tray menu to pause new jobs, reconnect, or quit. Automatic connection/printing are Windows-specific user-requested defaults; the macOS defaults are unchanged.
+Double-click the tray icon, enter a relay root URL and select the paired **owner private file**, scan and select your P2, then save and connect. Requires the compatible v0.3.2 Relay v2; the private key stays on this computer. Closing settings keeps the client running. Use the tray menu to pause new jobs, reconnect, or quit. Automatic connection/printing are Windows-specific user-requested defaults; the macOS defaults are unchanged.
 
 Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. See the [guide](../doc/WINDOWS.md) for template compatibility, privacy, recovery, limitations, and real-device verification.
 
@@ -31,7 +31,7 @@ Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. 
 
 ## 标准安装、更新与卸载
 
-本地验收构建（尚未发布）：`PaperangStudio-0.3.2-winlite-win-x64-setup.exe`，自带 .NET 10，不需另外安装运行环境。按当前用户安装至 `%LOCALAPPDATA%/Programs/Paperang Studio WinLite`，在开始菜单和“已安装的应用”中可见。升级保留原有配置、模板和私钥路径。
+本地验收构建（尚未发布）：`PaperangStudio-0.3.3-winlite-win-x64-setup.exe`，自带 .NET 10，不需另外安装运行环境。按当前用户安装至 `%LOCALAPPDATA%/Programs/Paperang Studio WinLite`，在开始菜单和“已安装的应用”中可见。升级保留原有配置、模板和私钥路径。
 
 托盘 → **检查 GitHub 更新…** 手动读取本仓库最近 100 个发行记录，只比较正式 WinLite 标签。发现新版后打开 GitHub 下载页面，不自动下载安装。没有发行记录或网络失败会明确提示。
 
@@ -44,3 +44,7 @@ Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. 
 ### opt2 连接恢复与管理登录
 
 升级后保留同一 AppData 数据目录。连接草稿不完整时沿用已保存连接；可点“重新读取已保存的连接”。配置替换保留 `.previous` 加密备份，读取失败阻止默认值覆盖。管理中心提供“登录 / 重新登录”，失败后无需重新生成私钥即可重试；使用现有 C 所有者身份。
+
+## USB and Bluetooth connection
+
+**0.3.3-winlite:** USB first by default; remembered BLE fallback if USB connection fails. USB success disables client BLE/scan; “断开 USB，使用蓝牙” persists Bluetooth-only mode, and “恢复 USB 优先并连接” restores auto mode. Windows system Bluetooth is untouched. [Upgrade/rollback](../doc/RELEASE-v0.3.3-winlite.md) · [中文](../doc/RELEASE-v0.3.3-winlite.zh-CN.md) · [USB specification](../doc/USB-PROTOCOL.md).

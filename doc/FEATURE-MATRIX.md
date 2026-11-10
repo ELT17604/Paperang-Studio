@@ -1,3 +1,7 @@
+## WinLite 0.3.3 — Windows-only USB
+
+Native USB-first connection, remembered BLE fallback, persisted manual BLE selection, USB-connected scan suppression and no cross-transport print replay are implemented. Other distribution versions stay0.3.2. [Release](RELEASE-v0.3.3-winlite.md) · [Current validation](VALIDATION-v0.3.3-windows.md). Historical tables below remain dated evidence.
+
 # Paperang Studio v0.3.2 platform acceptance
 
 MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.

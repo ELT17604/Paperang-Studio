@@ -26,6 +26,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
     public string PrintMessage { get; private set; } = "空闲";
     public string PrinterStatus => printer.Status;
     public bool PrinterReady => printer.Ready;
+    public string ActiveTransport => printer.ActiveTransport;
     public double Progress => printer.Progress;
     public event Action? Changed;
     public void SetAllowed(bool value) { allowed = value; Changed?.Invoke(); }
@@ -91,11 +92,11 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
                     Queued = jobs.Count(x => x.State == "queued");
                     Message = $"中转在线 · 待处理 {Queued} 项";
                     if (reconnectPrinter && !Busy) { printer.Disconnect(); reconnectPrinter = false; nextPrinter = DateTime.MinValue; }
-                    if (!Busy && !printer.Ready && settings.PrinterAddress.Length > 0 && DateTime.UtcNow >= nextPrinter)
+                    if (!Busy && !printer.Ready && (settings.PrinterTransport == "auto" || settings.PrinterAddress.Length > 0) && DateTime.UtcNow >= nextPrinter)
                     {
                         try { await printer.ConnectAsync(settings, ct).ConfigureAwait(false); }
                         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-                        catch { PrintMessage = "打印机连接失败；30 秒后重试，请检查电源和蓝牙"; }
+                        catch { PrintMessage = "打印机连接失败；30 秒后重试，请检查电源、USB 数据线或蓝牙"; }
                         nextPrinter = DateTime.UtcNow.AddSeconds(30);
                     }
                     if (!Busy && printer.Ready && DateTime.UtcNow >= nextRefresh)

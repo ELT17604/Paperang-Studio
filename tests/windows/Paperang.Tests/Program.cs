@@ -16,6 +16,10 @@ static class Tests
     {
         try
         {
+            if (args.SequenceEqual(new[] { "--transport-cycle" })) { await UsbCases.Cycle(); return; }
+            if (args.SequenceEqual(new[] { "--usb-ui" })) { await UsbCases.Ui(); return; }
+            if (args.SequenceEqual(new[] { "--usb" })) { await UsbCases.Hardware(false, null); return; }
+            if (args.Length == 3 && args[0] == "--usb-print" && args[2] == "--confirm-print") { await UsbCases.Hardware(true, args[1]); return; }
             if (args.SequenceEqual(new[] { "--probe-production" })) { await ProbeProduction(); return; }
             if (args.Length == 3 && args[0] == "--physical" && args[2] == "--confirm-print") { await Physical(args[1]); return; }
             if (args.Length > 0 && args[0] == "--ble") { await Ble(); return; }
@@ -70,6 +74,7 @@ static class Tests
             TemplateCases();
             StorageAndVersionCases();
             await EngineCases();
+            await UsbCases.Run(Check, Settings);
             // Real DPAPI storage is isolated to a temporary name via the pure encryption round-trip helper test below.
             var protect = typeof(LocalStore).GetMethod("Protect", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
             byte[] secret = Encoding.UTF8.GetBytes("psr_not_plaintext");
@@ -81,18 +86,18 @@ static class Tests
     }
     private static void StorageAndVersionCases()
     {
-        Check(ReleaseUpdates.DistributionTag("v0.3.2", ["PaperangStudio-0.3.2-winlite-win-x64-setup.exe"]) == AppVersion.Current,
+        Check(ReleaseUpdates.DistributionTag("v0.3.2", ["PaperangStudio-0.3.2-winlite-win-x64-setup.exe"]) == "0.3.2-winlite",
             "product release maps to own distribution only with installer asset");
         Check(ReleaseUpdates.DistributionTag("v0.3.2", []) == null &&
             ReleaseUpdates.DistributionTag("v0.3.2", ["PaperangStudio-0.3.2-macclient-macos-arm64.zip"]) == null,
             "missing and foreign release packages are not offered");
-        foreach (string old in new[] { "0.3.1-winlite", "0.3.1-winlite-fix99", "0.3.1-winlite-opt99" })
-            Check(ReleaseUpdates.Compare(AppVersion.Current, old) > 0, "0.3.2 update ordering over " + old);
+        foreach (string old in new[] { "0.3.2-winlite", "0.3.1-winlite", "0.3.1-winlite-fix99", "0.3.1-winlite-opt99" })
+            Check(ReleaseUpdates.Compare(AppVersion.Current, old) > 0, "WinLite update ordering over " + old);
         foreach (string invalid in new[] { "0.3.2", "0.3.2-macclient", "0.3.2-linuxrelayserver", "0.3.2-winlite-opt0", "0.3.2-winlite-opt9999999999999" }) {
             try { ReleaseUpdates.Compare(AppVersion.Current, invalid); throw new Exception("accepted invalid distribution"); }
             catch (FormatException) { count++; }
         }
-        Check(ReleaseUpdates.Compare("v0.3.2-winlite", AppVersion.Current) == 0 &&
+        Check(ReleaseUpdates.Compare("v" + AppVersion.Current, AppVersion.Current) == 0 &&
             ReleaseUpdates.Compare("0.3.1-winlite-opt1", "0.3.1-winlite-fix99") > 0, "distribution tags and historical opt/fix ordering");
         string directory = Path.Combine(Path.GetTempPath(), "ps032-store-" + Guid.NewGuid());
         try {

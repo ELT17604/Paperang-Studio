@@ -50,7 +50,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly ToolStripMenuItem server = new(), bluetooth = new(), print = new(), permission = new(), connection = new();
     private readonly Control dispatcher = new();
     private readonly LocalStore store = new();
-    private readonly BlePrinter printer = new();
+    private readonly PreferredPrinter printer = new(new UsbPrinter(), new BlePrinter());
     private readonly RelayEngine engine;
     private AppSettings settings = new();
     private SettingsForm? form;
@@ -81,7 +81,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.AddRange([title, new ToolStripSeparator(), server, bluetooth, print, new ToolStripSeparator(), permission, connection,
             new ToolStripMenuItem("设置…", null, (_, _) => ShowSettings()),
             new ToolStripMenuItem("检查 GitHub 更新…", null, async (_, _) => await ReleaseUpdates.Check()),
-            new ToolStripMenuItem("关于…", null, (_, _) => MessageBox.Show("Paperang Studio V" + AppVersion.Current + "\n© 2026 ELT Group\n\nWindows 原生托盘客户端 · BLE P2 · 在线传纸条\nCC BY-NC-SA 4.0 · 独立非官方项目\nvox@calx.cc", "关于 Paperang Studio", MessageBoxButtons.OK, MessageBoxIcon.Information)),
+            new ToolStripMenuItem("关于…", null, (_, _) => MessageBox.Show("Paperang Studio V" + AppVersion.Current + "\n© 2026 ELT Group\n\nWindows 原生托盘客户端 · USB / BLE P2 · 在线传纸条\nCC BY-NC-SA 4.0 · 独立非官方项目\nvox@calx.cc", "关于 Paperang Studio", MessageBoxButtons.OK, MessageBoxIcon.Information)),
             new ToolStripSeparator(), new ToolStripMenuItem("退出", null, async (_, _) => await Quit())]);
         tray.DoubleClick += (_, _) => ShowSettings();
         tray.BalloonTipClicked += (_, _) => ShowSettings();

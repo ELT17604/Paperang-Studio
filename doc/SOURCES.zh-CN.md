@@ -19,3 +19,7 @@
 | [Paperang厂商FAQ](https://www.paperang.com/en/pc/custom-service) | P2标称300DPI、热敏单色与一般灯光说明 |
 
 当前发布源码采用独立Swift/C实现及原始图标设计；不分发厂商App/固件、不抓取私人网络、不修改系统蓝牙配置。读取更多资料不等于那些型号已经在本机验证。对照方法和引用边界见[研究记录](RESEARCH.zh-CN.md)、[三项目对照](RELATED-PROJECTS.zh-CN.md)、[ESP32补充](ESP32-EMULATOR.zh-CN.md)。
+
+## Windows USB 来源与实测
+
+[USB来源章节](USB-PROTOCOL.zh-CN.md#10-证据文档审阅与来源)补充固定Java/P2/P1源码、Microsoft USBPRINT/SetupAPI/IOCTL资料与脱敏实机测量；未打包第三方源码或驱动。

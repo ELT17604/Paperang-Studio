@@ -50,3 +50,7 @@ App应显示“充电状态：未知/未取得独立字段”，而不是把外�
 本轮没有重启、复位、工厂模式写入或固件操作；没有为了改灯而破坏已有打印路径。
 
 > 归档说明：本文中的原始日志、图像、raw和实验脚本路径是历史档案相对位置，现位于项目外`PaperangStudio-Development/Legacy/PaperangP2/Research/`及相邻`evidence/`。当前App能力以[协议规范](PROTOCOL.zh-CN.md)及[用户指南](USER-GUIDE.zh-CN.md)为准。
+
+## USB 后续 — 2026-11-10
+
+[USB实测](USB-PROTOCOL.zh-CN.md)电量100%，电压/温度只有ACK，正常纸仓00。USB连接不代表充电bool，仍未取得充电/LED可靠字段；类端口状态WinError23也不能替代。上文动态值均为历史样本。

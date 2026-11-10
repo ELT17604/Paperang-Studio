@@ -49,3 +49,7 @@
 - [Mac / Linux Agent 完整接手 Prompt](HANDOFF-v0.3.0.zh-CN.md)
 
 - [v0.3.0 validation record](VALIDATION-v0.3.0.md) · [Documentation audit](DOCUMENTATION-AUDIT-v0.3.0.md)
+
+## WinLite 0.3.3 USB 连接
+
+[发行、升级与回滚](RELEASE-v0.3.3-winlite.zh-CN.md) · [English](RELEASE-v0.3.3-winlite.md) · [USB完整协议](USB-PROTOCOL.zh-CN.md) · [机器配置](p2-usb-profile.json) · [验证记录](VALIDATION-v0.3.3-windows.md)。

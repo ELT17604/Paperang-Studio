@@ -1,5 +1,9 @@
 # Version naming and compatibility policy
 
+## Windows-only 0.3.3 exception (owner-directed)
+
+WinLite advances to **0.3.3-winlite** for native USB-first transport. MacClient/LinuxRelayServer/RelaySkill stay0.3.2, and the shared compatibility baseline remains0.3.2 / Relay v2 / schema1. This explicitly scoped owner-requested exception overrides the general coordinated PATCH rule only for this Windows release. Registry targetVersion is0.3.3 for WinLite with compatibleBaseline0.3.2; version guards still reject unexplained drift. Use unique tag v0.3.3-winlite, not shared v0.3.3. [Release and rollback](RELEASE-v0.3.3-winlite.md).
+
 ## v0.3.2 scoped exception (owner-directed)
 
 The 0.3.2 baseline retains the documented distribution suffixes: `v0.3.2-macclient`, `v0.3.2-winlite`, `v0.3.2-linuxrelayserver`, and `v0.3.2-relayskill`. Runtime strings omit the leading v. No old opt/fix suffix is carried into the new baseline. Shared `targetVersion` is the numeric baseline; all implemented components now share 0.3.2. Product tag/Release `v0.3.2` contains platform-named assets; update discovery maps it to the installed platform only when its package exists. Distribution runtime parsing and historical fix/opt comparison remain distinct.

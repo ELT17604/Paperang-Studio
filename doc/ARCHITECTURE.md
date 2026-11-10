@@ -51,3 +51,7 @@ The latest local report is external `VALIDATION.md`, with `Validation/Reports/` 
 ## Maintenance
 
 Maintain API.md, OpenAPI, clients, and route behavior together. New protocol commands must identify provenance and evidence. Source archives contain only this project, without private identifiers, tokens, caches, or downloaded repositories. The project uses CC BY-NC-SA 4.0, requiring attribution, non-commercial use, and ShareAlike. See [NOTICE](../NOTICE) and [contribution guide](../CONTRIBUTING.md).
+
+## Windows USB transport
+
+WinLite0.3.3 adds Core/PreferredPrinter.cs for connection-boundary transport choice, Core/UsbP2Session.cs for serialized USB protocol, and WinLite/UsbPrinter.cs for present SetupAPI discovery/cancellable USBPRINT streams. The existing IPrinter/RelayEngine journal contract and BLE session remain. Python diagnostics remain independent. [Release](RELEASE-v0.3.3-winlite.md) · [Protocol](USB-PROTOCOL.md).

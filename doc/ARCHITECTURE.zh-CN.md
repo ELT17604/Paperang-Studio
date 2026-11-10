@@ -50,3 +50,7 @@ App未公证；分发到其他电脑需由项目所有者配置Developer ID签�
 ## 发布与维护
 
 项目README连接doc全部文档，OpenAPI与App路由同步维护；新增命令必须说明来源/证据及风险。发布压缩包只收录PaperangStudio目录，不夹带开发档案或令牌。本项目采用CC BY-NC-SA4.0，要求署名、禁止商用并同方式共享；本轮没有替用户向GitHub创建仓库、上传或公开任何内容。
+
+## Windows USB 传输架构
+
+WinLite0.3.3新增Core/PreferredPrinter.cs连接边界选择、Core/UsbP2Session.cs串行USB会话、WinLite/UsbPrinter.cs在场枚举与可取消USBPRINT流。复用IPrinter/RelayEngine持久结果机制，保留BLE会话，Python诊断仍独立。[发行](RELEASE-v0.3.3-winlite.zh-CN.md) · [协议](USB-PROTOCOL.zh-CN.md)。

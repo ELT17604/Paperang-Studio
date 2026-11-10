@@ -1,25 +1,25 @@
-> v0.3.2-winlite（未发布）：Relay API v2；模板/配置 schema 1 不变。当前测试与限制见 [Windows 验证](VALIDATION-v0.3.2-windows.md)，下文 fix/opt 验收数字是历史记录。
+> **v0.3.3-winlite**：仅Windows升级，兼容0.3.2 Relay v2/schema1。当前[发行与升级](RELEASE-v0.3.3-winlite.zh-CN.md)与[验证记录](VALIDATION-v0.3.3-windows.md)；下文旧版验收为历史。
 
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 
 
-# Paperang Studio · V0.3.0-winlite
+# Paperang Studio · V0.3.3-winlite
 
 > **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。
 
 [English](WINDOWS.md) · [Windows 源码](../Windows/README.md)
 
-Paperang P2 的 Windows 原生轻量托盘客户端。基于 ELT Group 的 [Paperang Studio](https://github.com/ELT17604/Paperang-Studio) macOS 客户端逻辑移植，使用 C# / .NET 10、WinForms 和 Windows BLE GATT。启动直接驻留托盘，双击托盘打印机图标或右键 → 设置进入配置。
+Paperang P2 的 Windows 原生轻量托盘客户端。基于 ELT Group 的 [Paperang Studio](https://github.com/ELT17604/Paperang-Studio) macOS 客户端逻辑移植，使用 C# / .NET 10、WinForms 和 Windows USBPRINT / BLE GATT。启动直接驻留托盘，双击托盘打印机图标或右键 → 设置进入配置。
 
 ## 使用
 
 1. 解压发布包到固定目录，运行 `PaperangStudio.exe`。首次运行只显示托盘提示，不弹主页面。
 2. 双击托盘图标，填入中转服务器根地址，选择**已配对的所有者私钥 JSON 文件**。M 设备密钥没有 C 管理权限。
-3. 开启电脑蓝牙和 P2，点击“扫描 P2”，选择自己的打印机，然后“保存并连接”。避免手机或 Mac 客户端同时占用同一台打印机。
+3. 开启P2并接上USB数据线，点击“保存并连接”；USB不需要蓝牙地址。可另行扫描选择备用BLE设备；避免其他客户端同时占用。
 4. 默认每次连接自动允许打印。关闭设置窗口后继续在托盘接收纸条；托盘菜单可暂停、恢复、断开、重连和退出。
 5. “启动与状态”可选择“登录 Windows 时自动启动并驻留托盘”。这是当前用户的登录启动项，不需要管理员权限；若 Windows 任务管理器中禁用了该启动项，需要在那里重新启用。
 
-**系统：Windows 10 2004 / Windows 11，支持 BLE 的蓝牙适配器。** 当前提供 x64；可用构建脚本生成 ARM64。`lite` 包依赖 **.NET 10 Desktop Runtime**，已有运行时的电脑可直接运行；`portable` 包附带运行时，解压即用，体积较大。无需 Python、Node、WebView 或打印机驱动。
+**系统：Windows 10 2004 / Windows 11；仅蓝牙连接需要 BLE 适配器。** 当前提供 x64；可用构建脚本生成 ARM64。`lite` 包依赖 **.NET 10 Desktop Runtime**，已有运行时的电脑可直接运行；`portable` 包附带运行时，解压即用，体积较大。无需 Python、Node、WebView 或打印机驱动。
 
 ## 与 macOS 一致的模板编辑
 
@@ -94,3 +94,7 @@ dotnet build Windows/src/Paperang.WinLite -c Release
 “启动与状态 → 导出全部配置”导出带版本和 schemaVersion 的 JSON，包含模板、所有设置、界面偏好及私钥路径，不包含私钥文件内容、原始密钥、短期会话或待回报任务。禁止将配置导出覆盖到当前私钥路径。换机时需要单独迁移私钥并调整路径；此版提供配置导出，未提供图形化导入。
 
 验证新增配置/草稿/界面偏好的重启读取、DPAPI 加密及导出内容与凭证排除检查；Windows 共 60 项回归通过。服务端协议无需改动。
+
+## USB 优先与手动蓝牙
+
+原生客户端默认“自动连接（USB优先，蓝牙备用）”。USB成功释放本客户端BLE并禁用扫描/选择；“断开USB，使用蓝牙”应用持久的仅蓝牙偏好，恢复USB优先才重新探测。打印期间阻止切换，不修改Windows系统蓝牙，不跨传输重打失败任务。[升级与回滚](RELEASE-v0.3.3-winlite.zh-CN.md) · [USB协议](USB-PROTOCOL.zh-CN.md)。

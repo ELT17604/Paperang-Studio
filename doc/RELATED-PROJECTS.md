@@ -33,3 +33,7 @@ Its primary hardware is P1 A5 firmware 01.03.18,384 columns/48 bytes. A5 session
 ## Adopted and future work
 
 Current design uses layered Swift modules, an evidence catalog, sampled telemetry, one device lock, task IDs/cancellation without auto-retry, JSON settings, and local HTTP. Future steps can add host-rendered QR/labels, durable task states, PDF/banded long images, then IPP/MCP. Keep final output576 columns and do not require factory/firmware writes for those features.
+
+## USB hardware follow-up
+
+The [2026-11-10 USB chapter](USB-PROTOCOL.md) revisits the pinned Java and P2-library implementations. Both USB and SPP exist in the latter; SPP/BLE differences do not exclude USB support. The actual Windows path uses usbprint.sys, with one-byte density, observed MAC08→0B and CRC-checked streaming. Four-frame countdown output is now physically confirmed on this P2; maximum length is not.

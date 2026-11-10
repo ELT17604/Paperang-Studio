@@ -1,3 +1,7 @@
+## WinLite 0.3.3 — 仅Windows的USB扩充
+
+已实现原生USB优先、记住BLE回退、持久手动BLE选择、USB成功禁用扫描及不跨传输重打。其他端保持0.3.2。[发行](RELEASE-v0.3.3-winlite.zh-CN.md) · [当前验证](VALIDATION-v0.3.3-windows.md)。下方旧表保留历史证据。
+
 # Paperang Studio v0.3.2 platform acceptance
 
 MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.

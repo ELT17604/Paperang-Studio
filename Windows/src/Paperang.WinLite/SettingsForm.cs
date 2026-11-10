@@ -8,7 +8,7 @@ internal sealed class SettingsForm : Form
     private AppSettings initial;
     private readonly Func<AppSettings, bool, Task> save;
     private readonly Func<AppSettings, bool, string> savePreferences;
-    private readonly LocalStore local = new();
+    private readonly LocalStore local;
     private UiPreferences ui;
     private readonly TextBox url = new(), key = new() { ReadOnly = true };
     private readonly CheckBox http = new() { Text = "允许 HTTP 测试连接（公网建议 HTTPS）", AutoSize = true };
@@ -18,6 +18,9 @@ internal sealed class SettingsForm : Form
     private readonly CheckBox reconnect = new() { Text = "持续重连：失败 5 次后等待 1 分钟，再尝试 5 次，循环直到成功", AutoSize = true };
     private readonly CheckBox senderField = new() { Text = "投稿身份", AutoSize = true }, timeField = new() { Text = "时间", AutoSize = true }, idField = new() { Text = "短编号", AutoSize = true };
     private readonly ComboBox printers = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 380 };
+    private readonly ComboBox transport = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 380 };
+    private readonly Button switchTransport = new() { AutoSize = true };
+    private CancellationTokenSource? scanLifetime;
     private readonly ComboBox style = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 160 };
     private readonly ComboBox template = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 230 };
     private List<RelayTemplate> templates;
@@ -33,11 +36,12 @@ internal sealed class SettingsForm : Form
     private bool settingsDirty;
     private bool saving;
     private readonly CancellationTokenSource lifetime = new();
-    public SettingsForm(AppSettings initial, RelayEngine engine, Func<AppSettings, bool, Task> save, Action<List<RelayTemplate>, string> saveTemplates, Func<AppSettings, bool, string> savePreferences)
+    public SettingsForm(AppSettings initial, RelayEngine engine, Func<AppSettings, bool, Task> save, Action<List<RelayTemplate>, string> saveTemplates, Func<AppSettings, bool, string> savePreferences, LocalStore? storage = null)
     {
         SuspendLayout(); AutoScaleDimensions = new SizeF(96, 96);
         this.initial = initial; this.engine = engine; this.save = save;
-        this.savePreferences = savePreferences; ui = local.LoadUi();
+        local = storage ?? new();
+        this.savePreferences = savePreferences; ui = this.local.LoadUi();
         templates = initial.Templates;
         Text = "Paperang Studio · 设置"; ClientSize = new Size(680, 790);
         MinimumSize = new Size(620, 660); AutoScaleMode = AutoScaleMode.Dpi;
@@ -78,7 +82,12 @@ internal sealed class SettingsForm : Form
         };
         Add(connection.Body, "", restoreConnection); Add(connection.Body, "", http);
         Add(connection.Body, "", Hint("默认仅使用已配对的 RSA 所有者私钥。会话自动续期，管理与打印共用已验证的所有者身份。旧 M 设备密钥没有管理权限，不再作为默认连接凭证。"));
-        Add(connection.Body, "本地 P2 打印机", printers);
+        transport.Items.AddRange(["自动连接（USB 优先，蓝牙备用）", "仅蓝牙（断开 USB）"]);
+        transport.SelectedIndex = initial.PrinterTransport == "bluetooth" ? 1 : 0;
+        Add(connection.Body, "打印机连接方式", transport);
+        switchTransport.Click += async (_, _) => { transport.SelectedIndex = engine.ActiveTransport == "usb" ? 1 : 0; await Save(); };
+        Add(connection.Body, "", switchTransport);
+        Add(connection.Body, "备用蓝牙 P2", printers);
         var scanRow = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Top };
         var all = new CheckBox { Text = "显示所有命名设备", AutoSize = true, Checked = ui.ShowAllPrinters };
         scanRow.Controls.AddRange([scan, all]); Add(connection.Body, "", scanRow);
@@ -86,12 +95,15 @@ internal sealed class SettingsForm : Form
         var forget = new Button { Text = "清除记住的打印机", AutoSize = true };
         forget.Click += (_, _) => { printers.Items.Clear(); printers.SelectedIndex = -1; };
         Add(connection.Body, "", forget);
-        Add(connection.Body, "", Hint("请开启 P2 与电脑蓝牙。首次扫描后选择你的打印机；保存后只重连此设备。\n关闭设置窗口会继续在托盘收纸条。"));
+        Add(connection.Body, "", Hint("默认先连接数据线上的 USB P2；USB 不可用时尝试记住的蓝牙 P2。\nUSB 已连接时停用本客户端蓝牙连接与扫描，不更改 Windows 蓝牙开关。\n可切换为仅蓝牙，或恢复 USB 优先。关闭设置后继续在托盘收纸条。"));
         scan.Click += async (_, _) => {
+            if (engine.ActiveTransport == "usb") return;
+            scanLifetime?.Dispose(); scanLifetime = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
             scan.Enabled = false; feedback.Text = "正在扫描附近蓝牙设备…";
             try
             {
-                var rows = await BlePrinter.ScanAsync(all.Checked, lifetime.Token);
+                var rows = await BlePrinter.ScanAsync(all.Checked, scanLifetime.Token);
+                if (engine.ActiveTransport == "usb") return;
                 var selected = printers.SelectedItem as PrinterChoice;
                 printers.Items.Clear();
                 if (selected != null && !rows.Any(x => x.Address == selected.Address)) printers.Items.Add(selected);
@@ -102,7 +114,7 @@ internal sealed class SettingsForm : Form
             }
             catch (OperationCanceledException) { }
             catch { feedback.Text = "扫描失败，请检查 Windows 蓝牙设置及适配器。"; }
-            finally { if (!IsDisposed) scan.Enabled = true; }
+            finally { if (!IsDisposed) scan.Enabled = engine.ActiveTransport != "usb"; }
         };
         style.Items.AddRange(["便签", "小票", "复古电传", "访客纪念", "自定义"]);
         Add(printing.Body, "纸条样式", style);
@@ -147,7 +159,7 @@ internal sealed class SettingsForm : Form
         { printers.Items.Add(new PrinterChoice(address, initial.PrinterName, 0)); printers.SelectedIndex = 0; }
         apply.Click += async (_, _) => await Save();
         connectHere.Click += async (_, _) => await Save();
-        foreach (var input in new Control[] { url, key, http, printers, autoConnect, startup, reconnect, style, template, density, feed, senderField, timeField, idField, autoPrint })
+        foreach (var input in new Control[] { url, key, http, printers, transport, autoConnect, startup, reconnect, style, template, density, feed, senderField, timeField, idField, autoPrint })
         {
             if (input is TextBox text) text.TextChanged += (_, _) => QueueSave();
             else if (input is ComboBox c) c.SelectedIndexChanged += (_, _) => QueueSave();
@@ -160,7 +172,7 @@ internal sealed class SettingsForm : Form
         all.CheckedChanged += (_, _) => SaveUi(x => x with { ShowAllPrinters = all.Checked });
         ActiveControl = url;
         FormClosing += (_, args) => { autosave.Stop(); if (!PersistSettings()) args.Cancel = true; };
-        FormClosed += (_, _) => { lifetime.Cancel(); lifetime.Dispose(); autosave.Dispose(); Icon?.Dispose(); };
+        FormClosed += (_, _) => { scanLifetime?.Cancel(); lifetime.Cancel(); lifetime.Dispose(); autosave.Dispose(); Icon?.Dispose(); };
         UpdateStatus(); ResumeLayout(true);
     }
     private async Task Save()
@@ -185,6 +197,7 @@ internal sealed class SettingsForm : Form
         return initial with {
             Server = url.Text.Trim(), OwnerKeyFile = key.Text.Trim(), AuthenticationMode = "owner", DeviceKey = "", AllowHttp = http.Checked,
             PrinterAddress = selected?.Address.ToString("X12") ?? "", PrinterName = selected?.Name ?? "",
+            PrinterTransport = transport.SelectedIndex == 1 ? "bluetooth" : "auto",
             AutoConnect = autoConnect.Checked, AutoAllowPrint = autoPrint.Checked, KeepReconnecting = reconnect.Checked, StartAtLogin = startup.Checked,
             Style = style.SelectedItem as string ?? "便签", Density = (int)density.Value, Feed = (int)feed.Value,
             IncludeSender = senderField.Checked, IncludeTime = timeField.Checked, IncludeId = idField.Checked,
@@ -226,6 +239,12 @@ internal sealed class SettingsForm : Form
     public void UpdateStatus()
     {
         if (IsDisposed) return;
+        bool usb = engine.ActiveTransport == "usb";
+        if (usb) scanLifetime?.Cancel();
+        printers.Enabled = !usb;
+        scan.Enabled = !usb && (scanLifetime == null || scanLifetime.IsCancellationRequested || scan.Enabled);
+        switchTransport.Text = usb ? "断开 USB，使用蓝牙" : "恢复 USB 优先并连接";
+        switchTransport.Enabled = !saving && !engine.Busy;
         string countdown = engine.NextRetryAt is { } next ? $"（{Math.Max(0, (int)Math.Ceiling((next - DateTimeOffset.UtcNow).TotalSeconds))} 秒后重试）" : "";
         string value = engine.Message + countdown + "\n" + engine.PrinterStatus + "\n" + engine.PrintMessage + "\n自动打印：" + (engine.Allowed ? "开启" : "关闭");
         if (status.Text != value) status.Text = value;

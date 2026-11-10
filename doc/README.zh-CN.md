@@ -1,3 +1,5 @@
+> **Windows更新：0.3.3-winlite候选版** — [USB优先连接及升级](RELEASE-v0.3.3-winlite.zh-CN.md)，其他端保持0.3.2。
+
 > **Paperang Studio v0.3.2**：macOS、Windows、Ubuntu 三端验收通过。[发行说明](RELEASE-v0.3.2.md) · [API v2](API-v2-032.md) · [升级与回滚](UPGRADE-v0.3.2.md) · [Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md)。
 
 <p align="center"><img src="../assets/AppIcon.png" width="112" alt="Paperang Studio 标志"></p>
@@ -9,7 +11,7 @@
 <p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT 集成</p>
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.2 目标基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
 
-Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。电脑上的原生客户端通过蓝牙连接打印机；Linux 中转服务器接受网页和 RelaySkill 投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
+Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。MacClient通过蓝牙连接，WinLite0.3.3默认USB优先并保留蓝牙回退；Linux 中转服务器接受网页和 RelaySkill 投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
 
 需要完整工作台和纸带终端时，使用 **MacClient**；希望电脑长期安静收纸条时，使用 **WinLite Windows 托盘客户端**。服务器与投稿工具可独立部署，通过统一接口协作。
 
@@ -20,7 +22,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。�
 | 分发 | 职责 | 入口 | 历史验证状态（v0.3.1） |
 |---|---|---|---|
 | **MacClient · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | 原生构建、界面及本地 API v2 联调通过 |
-| **WinLite · Windows** | 原生 WinForms/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
+| **WinLite · Windows** | 原生 WinForms USB/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
 | **LinuxRelayServer · Linux** | HTTP/SQLite 中转、投稿网页、身份与权限、队列及管理 API | [服务器部署](../Server/README.md) | 本机 HTTP/SQLite 测试通过，Linux 部署验证待完成 |
 | **ChatGPT 集成 · 实验性** | Relay API v2 的 MCP 发送端适配与传统 GPT Actions 兼容接口 | [集成指南](CHATGPT.zh-CN.md) · [源码](../Integrations/ChatGPT/) | 仅源码；网关、ChatGPT 连接和实机验证待完成 |
 | **RelaySkill · 投稿工具** | Agent 打印技能：文字/图片渲染、参数调整、明确投递及按权限查询状态 | [技能指南](RELAY-SKILL.zh-CN.md) · [源码](../Skills/paperang-relay-print/SKILL.md) | 本地协议与渲染测试通过 |
@@ -34,10 +36,10 @@ flowchart LR
     Browser["网页 · 文字与绘图"] -->|HTTPS| Relay["LinuxRelayServer"]
     Skill["RelaySkill · 文字与图片"] -->|API v2| Relay
     Relay <-->|"客户端向外轮询 · 分级凭证"| Receiver["MacClient 或 WinLite"]
-    Receiver -->|Bluetooth LE| P2["Paperang P2 · 实体纸条"]
+    Receiver -->|"BLE · WinLite也支持USB"| P2["Paperang P2 · 实体纸条"]
 ```
 
-**同一台打印机只使用一个活动蓝牙接收端。** 中转负责身份、队列与投递；电脑客户端负责最终模板、打印浓度、送纸和蓝牙输出。MacClient 也可以脱离中转进行本地打印。
+**同一台打印机只使用一个活动接收端/传输。** 中转负责身份、队列与投递；电脑客户端负责最终模板、打印浓度、送纸和USB/蓝牙输出。MacClient 也可以脱离中转进行本地打印。
 
 ## MacClient 升级
 
@@ -155,3 +157,7 @@ Paperang Studio is an independent, unofficial project. It is not affiliated with
 Windows v0.3.1-winlite-fix3：[标准安装、手动更新和卸载](WINDOWS-RELEASE-ARTIFACTS.zh-CN.md)。
 
 Linux opt1 新增 [sudo字符图形管理终端](../Server/ADMIN-CONSOLE.md)：上下键/回车管理密钥、用户、配额、审计和完整打印历史；不开放管理端口。全新部署会删除旧任务、用户、日志和备份，仅保留指定Windows连接身份。
+
+## Windows USB 连接
+
+WinLite **0.3.3**加入原生USB优先、记住的BLE回退与手动切换；其他端保持0.3.2。[发行与升级](RELEASE-v0.3.3-winlite.zh-CN.md) · [USB协议](USB-PROTOCOL.zh-CN.md)。

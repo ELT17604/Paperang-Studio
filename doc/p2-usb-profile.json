@@ -1,0 +1,681 @@
+{
+  "schema_version": 1,
+  "status": "native WinLite0.3.3 candidate; original diagnostic observations retained",
+  "baseline": "v0.3.2",
+  "branch": "dev/p2-usb-protocol-research",
+  "verified_date": "2026-11-10",
+  "timezone": "Asia/Shanghai",
+  "transport": {
+    "backend": "Windows usbprint.sys",
+    "vendor_id": "4348",
+    "product_id": "5584",
+    "interface_guid": "28d78fad-5a12-11d1-ae5b-0000f803a8c2",
+    "reference_bulk_in": "81",
+    "reference_bulk_out": "02",
+    "endpoints_evidence": "pinned source; endpoints abstracted by usbprint in this test",
+    "discovery": "SetupAPI PRESENT DEVICEINTERFACE"
+  },
+  "wire": {
+    "header": 2,
+    "footer": 3,
+    "crc_seed": "35769521",
+    "payload_max": 1023,
+    "raster_payload_max": 1008,
+    "crc_covers": "payload",
+    "crc_key_registration_sent": false,
+    "ble_credits": false,
+    "packet_field": "remaining countdown; 4-packet stream physically confirmed",
+    "accepted_crc_seeds": [
+      "35769521",
+      "00000000"
+    ],
+    "seed_selection": "Read-only model query, default then zero only on no response; no physical write replay",
+    "cross_transport_observation": "BLE key-zero registration persists into USB on this tested P2"
+  },
+  "raster": {
+    "width_dots": 576,
+    "bytes_per_row": 72,
+    "black_bit": 1,
+    "bit_order": "MSB-first",
+    "verified_rows": 56,
+    "verified_packet_counts": [
+      3,
+      2,
+      1,
+      0
+    ],
+    "density_payload_bytes": 1,
+    "density": 100,
+    "feed_lines": 150,
+    "paper_confirmed": true,
+    "user_observation": "All four bands complete, correct order, improved darkness"
+  },
+  "measured_queries": [
+    {
+      "name": "version",
+      "at": "2026-11-10T12:35:52.772+00:00",
+      "command": "04",
+      "response_command": "05",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "090001",
+      "value": {
+        "meaning": "unconfirmed"
+      }
+    },
+    {
+      "name": "model",
+      "at": "2026-11-10T12:35:52.991+00:00",
+      "command": "06",
+      "response_command": "07",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "5061706572616e675f5032",
+      "value": {
+        "text": "Paperang_P2"
+      }
+    },
+    {
+      "name": "mac",
+      "at": "2026-11-10T12:35:53.210+00:00",
+      "command": "08",
+      "response_command": "0b",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 154,
+      "raw": "<redacted>",
+      "value": {
+        "redacted": true,
+        "length": 12
+      }
+    },
+    {
+      "name": "serial",
+      "at": "2026-11-10T12:35:53.428+00:00",
+      "command": "0a",
+      "response_command": "0b",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 157,
+      "raw": "<redacted>",
+      "value": {
+        "redacted": true,
+        "length": 14
+      }
+    },
+    {
+      "name": "status",
+      "at": "2026-11-10T12:35:53.648+00:00",
+      "command": "0c",
+      "response_command": "0d",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "0000",
+      "value": {
+        "raw": 0,
+        "cover_open": false,
+        "cover_closed": true,
+        "paper_present": true,
+        "unknown_bits": 0,
+        "printing": null,
+        "mechanically_complete": null,
+        "charging": null
+      }
+    },
+    {
+      "name": "voltage",
+      "at": "2026-11-10T12:35:53.868+00:00",
+      "command": "0e",
+      "response_command": null,
+      "state": "ack_only",
+      "ack": 0,
+      "elapsed_ms": 1508,
+      "raw": null,
+      "value": null
+    },
+    {
+      "name": "battery",
+      "at": "2026-11-10T12:35:55.438+00:00",
+      "command": "10",
+      "response_command": "11",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "64",
+      "value": {
+        "percent": 100
+      }
+    },
+    {
+      "name": "temperature",
+      "at": "2026-11-10T12:35:55.670+00:00",
+      "command": "12",
+      "response_command": null,
+      "state": "ack_only",
+      "ack": 0,
+      "elapsed_ms": 1507,
+      "raw": null,
+      "value": null
+    },
+    {
+      "name": "factory",
+      "at": "2026-11-10T12:35:57.240+00:00",
+      "command": "15",
+      "response_command": "16",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 153,
+      "raw": "ff",
+      "value": {
+        "meaning": "unconfirmed"
+      }
+    },
+    {
+      "name": "heat",
+      "at": "2026-11-10T12:35:57.455+00:00",
+      "command": "1c",
+      "response_command": "1d",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "64",
+      "value": {
+        "density": 100
+      }
+    },
+    {
+      "name": "power_down",
+      "at": "2026-11-10T12:35:57.674+00:00",
+      "command": "1f",
+      "response_command": "20",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 155,
+      "raw": "0807",
+      "value": {
+        "seconds": 1800
+      }
+    },
+    {
+      "name": "board",
+      "at": "2026-11-10T12:35:57.892+00:00",
+      "command": "23",
+      "response_command": "24",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 157,
+      "raw": "56312e30302e303120",
+      "value": {
+        "text": "V1.00.01"
+      }
+    },
+    {
+      "name": "hardware",
+      "at": "2026-11-10T12:35:58.111+00:00",
+      "command": "25",
+      "response_command": "26",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "000000",
+      "value": {
+        "meaning": "unconfirmed"
+      }
+    },
+    {
+      "name": "max_gap",
+      "at": "2026-11-10T12:35:58.330+00:00",
+      "command": "28",
+      "response_command": "29",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "70",
+      "value": {
+        "meaning": "unconfirmed"
+      }
+    },
+    {
+      "name": "paper_type",
+      "at": "2026-11-10T12:35:58.548+00:00",
+      "command": "2a",
+      "response_command": "2b",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 157,
+      "raw": "00",
+      "value": {
+        "meaning": "unconfirmed"
+      }
+    },
+    {
+      "name": "country",
+      "at": "2026-11-10T12:35:58.766+00:00",
+      "command": "2d",
+      "response_command": "2e",
+      "state": "empty_data",
+      "ack": null,
+      "elapsed_ms": 155,
+      "raw": "",
+      "value": {
+        "text": ""
+      }
+    },
+    {
+      "name": "short_name",
+      "at": "2026-11-10T12:35:58.983+00:00",
+      "command": "30",
+      "response_command": "31",
+      "state": "data",
+      "ack": null,
+      "elapsed_ms": 156,
+      "raw": "5032",
+      "value": {
+        "text": "P2"
+      }
+    }
+  ],
+  "command_catalog": [
+    {
+      "opcode": "00",
+      "name": "PRINT_BITMAP",
+      "kind": "write",
+      "evidence": "usb_physical_confirmed"
+    },
+    {
+      "opcode": "01",
+      "name": "PRINT_BITMAP_COMPRESS",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "02",
+      "name": "FIRMWARE_DATA",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "03",
+      "name": "USB_UPDATE_FIRMWARE",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "04",
+      "name": "GET_VERSION",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "05"
+    },
+    {
+      "opcode": "05",
+      "name": "SENT_VERSION",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "06",
+      "name": "GET_MODEL",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "07"
+    },
+    {
+      "opcode": "07",
+      "name": "SENT_MODEL",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "08",
+      "name": "GET_BT_MAC",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "0b"
+    },
+    {
+      "opcode": "09",
+      "name": "SENT_BT_MAC",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "0a",
+      "name": "GET_SN",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "0b"
+    },
+    {
+      "opcode": "0b",
+      "name": "SENT_SN",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "0c",
+      "name": "GET_STATUS",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "0d"
+    },
+    {
+      "opcode": "0d",
+      "name": "SENT_STATUS",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "0e",
+      "name": "GET_VOLTAGE",
+      "kind": "query",
+      "evidence": "usb_ack_only",
+      "response": null
+    },
+    {
+      "opcode": "0f",
+      "name": "SENT_VOLTAGE",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "10",
+      "name": "GET_BATTERY",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "11"
+    },
+    {
+      "opcode": "11",
+      "name": "SENT_BATTERY",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "12",
+      "name": "GET_TEMP",
+      "kind": "query",
+      "evidence": "usb_ack_only",
+      "response": null
+    },
+    {
+      "opcode": "13",
+      "name": "SENT_TEMP",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "14",
+      "name": "SET_FACTORY",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "15",
+      "name": "GET_FACTORY",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "16"
+    },
+    {
+      "opcode": "16",
+      "name": "SENT_FACTORY",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "17",
+      "name": "SENT_BT_STATUS",
+      "kind": "event",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "18",
+      "name": "SET_CRC_KEY",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "19",
+      "name": "SET_HEAT",
+      "kind": "write",
+      "evidence": "usb_physical_confirmed"
+    },
+    {
+      "opcode": "1a",
+      "name": "FEED_PAPER",
+      "kind": "write",
+      "evidence": "usb_physical_confirmed"
+    },
+    {
+      "opcode": "1b",
+      "name": "PRINT_TEST",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "1c",
+      "name": "GET_HEAT",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "1d"
+    },
+    {
+      "opcode": "1d",
+      "name": "SENT_HEAT",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "1e",
+      "name": "SET_POWER_DOWN",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "1f",
+      "name": "GET_POWER_DOWN",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "20"
+    },
+    {
+      "opcode": "20",
+      "name": "SENT_POWER_DOWN",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "21",
+      "name": "FEED_TO_HEAD",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "22",
+      "name": "PRINT_DEFAULT_PARA",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "23",
+      "name": "GET_BOARD_VERSION",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "24"
+    },
+    {
+      "opcode": "24",
+      "name": "SENT_BOARD_VERSION",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "25",
+      "name": "GET_HW_INFO",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "26"
+    },
+    {
+      "opcode": "26",
+      "name": "SENT_HW_INFO",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "27",
+      "name": "SET_MAX_GAP",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "28",
+      "name": "GET_MAX_GAP",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "29"
+    },
+    {
+      "opcode": "29",
+      "name": "SENT_MAX_GAP",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "2a",
+      "name": "GET_PAPER_TYPE",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "2b"
+    },
+    {
+      "opcode": "2b",
+      "name": "SENT_PAPER_TYPE",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "2c",
+      "name": "SET_PAPER",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "2d",
+      "name": "GET_COUNTRY",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "2e"
+    },
+    {
+      "opcode": "2e",
+      "name": "SENT_COUNTRY",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "2f",
+      "name": "DISCONNECT_BT",
+      "kind": "write",
+      "evidence": "source_only_not_executed"
+    },
+    {
+      "opcode": "30",
+      "name": "GET_SHORT_NAME",
+      "kind": "query",
+      "evidence": "usb_data",
+      "response": "31"
+    },
+    {
+      "opcode": "31",
+      "name": "SENT_SHORT_NAME",
+      "kind": "response",
+      "evidence": "response_definition; see measured_queries for actual observation"
+    },
+    {
+      "opcode": "39",
+      "name": "EXTENDED_39_UNHANDLED",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "40",
+      "name": "EXTENDED_40",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "41",
+      "name": "EXTENDED_41_RESPONSE",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "42",
+      "name": "EXTENDED_MODULE",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "43",
+      "name": "EXTENDED_MODULE_RESPONSE",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "7f",
+      "name": "EXTENDED_VERSION",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "80",
+      "name": "EXTENDED_VERSION_RESPONSE",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "81",
+      "name": "EXTENDED_HARDWARE",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    },
+    {
+      "opcode": "82",
+      "name": "EXTENDED_HARDWARE_RESPONSE",
+      "kind": "research_only",
+      "evidence": "emulator_source_only_not_executed"
+    }
+  ],
+  "usb_class": {
+    "lpt_status": {
+      "error": "[WinError 23] 数据错误(循环冗余检查)。"
+    },
+    "ieee1284_id": {
+      "bytes": 96,
+      "length_prefix_raw": "6060",
+      "fields": {
+        "MANUFACTURER": "",
+        "COMMAND SET": "<redacted>",
+        "MODEL": "MiaoMiaoJi",
+        "COMMENT": "<redacted>",
+        "ACTIVE COMMAND": "<redacted>"
+      }
+    }
+  },
+  "sources": {
+    "paperang-p2-lib": "656fc8f37ff6f7b0744ef10f8a0ae38d4d594730",
+    "java-paperang-p2-usb": "c50594c62d6fd6387d41e86b14f1fdf489d2b560",
+    "paperang-c2": "3f49248f606b2a58fd5d88ac4d99f7c2ddc59161",
+    "paperang-p1-connect": "9ec2cb535ec8ac09a7dc1ce2464bc2a114d569bf",
+    "broncotc-python-paperang": "5908118c6391a13eb15de93d798b89ec7a00468e",
+    "ESP32-Paperang-Emulator": "c38fbebb72bd9ef46a9d5b12b5afa9934ad88356",
+    "paperang-hacs": "95211c336ef8646eb9a0a50c2574a184ab3bfa66"
+  },
+  "documentation": "USB-PROTOCOL.md",
+  "integration_version": "0.3.3-winlite"
+}

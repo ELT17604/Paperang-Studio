@@ -49,3 +49,7 @@ Windows 移植位于 `Windows/`，固定审阅 macOS revision：`b1788b07aacb8c0
 实机验证了 FF01/FF03 订阅、初始额度 `01 02`、分片长度 `02 B6 00`、key-zero 握手、P2 型号、电量 100%、纸仓、浓度写入与回读、中文点阵发送及 150 行送纸。用户确认测试纸正常出纸且内容完整；随后连续两次断开重连均完成握手。蓝牙连接错误现在保留具体失败信息以供设置和托盘查看。
 
 开发者可在关闭托盘客户端后运行 `dotnet run --project Windows/tests/Paperang.Tests -c Release -- --ble` 检查实际设备及两次重连；追加 `--print` 会消耗测试纸。工具使用当前用户已保存的打印机地址，不输出服务器密钥。正常客户端不记录通知或点阵原始日志。
+
+## 原生 USB 补充
+
+WinLite0.3.3通过既有IPrinter接入USB，保留BLE与Relay v2。[协议](USB-PROTOCOL.zh-CN.md)记录CRC/倒计数/浓度实测，[发行说明](RELEASE-v0.3.3-winlite.zh-CN.md)说明单Windows版本与升级兼容。

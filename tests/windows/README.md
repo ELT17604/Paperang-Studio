@@ -1,4 +1,6 @@
-# Windows v0.3.2 native acceptance
+# Windows v0.3.3 native acceptance
+
+[Current USB-first release/rollback](../../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../../doc/VALIDATION-v0.3.3-windows.md). Older PS032 labels below remain historical BLE test paths. The shared Relay baseline stays0.3.2/v2/schema1.
 
 Run from the repository root on Windows 10 2004+ / Windows 11 with .NET 10 SDK, Python 3.10+ and Inno Setup 6. Output, owner files, temporary databases and installer logs stay outside tracked source. These tests link the actual WinLite and Core projects; they do not ship an alternative client implementation.
 
@@ -48,3 +50,28 @@ dotnet run --project tests/windows/Paperang.Tests -c Release -- --physical work/
 ```
 
 Each physical attempt creates an exclusive intent record before sending; existing records refuse another attempt. Inspect paper and record owner confirmation separately. Failure/timeout is not permission to delete a record or replay. The isolated Relay uses a synthetic RSA owner and temporary DB, and the actual Windows printer/renderer/engine; it never uses the production server or its identities. Local physical labels are PS032-W-T1 and PS032-W-IT1. The real Relay job ID is recorded in the private attempt file and the public validation report (ID alone grants no authority).
+
+## Standalone USB protocol research (offline / physical opt-in)
+
+```powershell
+python -m unittest discover -s tests/windows -p test_usb_probe.py -v
+python Windows/scripts/usb_probe.py --all --class-info
+# Explicit paper test; only when intended:
+python Windows/scripts/usb_probe.py --print-test --rows 56
+```
+
+[USB protocol/evidence](../../doc/USB-PROTOCOL.md). Twenty offline tests passed, plus separate user-confirmed four-frame real USB output. These Python tests neither build nor replace the .NET/BLE regressions above. Default/--all are non-printing; print attempts reserve unique local records and never replay uncertain writes.
+
+## Native USB / transport diagnostics
+
+```powershell
+# Read-only real hardware; no Relay polling:
+dotnet run --project tests/windows/Paperang.Tests -c Release -- --usb
+dotnet run --project tests/windows/Paperang.Tests -c Release -- --transport-cycle
+# Explicitly authorized one-sheet print, new exclusive attempt path:
+dotnet run --project tests/windows/Paperang.Tests -c Release -- --usb-print work/physical/new-usb-attempt.json --confirm-print
+# Actual SettingsForm with isolated saved preferences, no Relay/automatic paper:
+dotnet run --project tests/windows/Paperang.Tests -c Release -- --usb-ui
+```
+
+The native suite now includes transport selection/cancellation/no-replay, USB CRC modes/framing/countdown/media/density and additive schema1 defaults. Hardware cycle uses only the remembered advertising P2, never a nearby replacement. Native USB paper was confirmed by the owner; exact scope and remaining installer limits are in the validation record.

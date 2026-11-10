@@ -48,3 +48,7 @@ Research records describe observations collected on 2026-11-04. Battery readings
 - [Mac / Linux Agent 完整接手 Prompt](HANDOFF-v0.3.0.zh-CN.md)
 
 - [v0.3.0 validation record](VALIDATION-v0.3.0.md) · [Documentation audit](DOCUMENTATION-AUDIT-v0.3.0.md)
+
+## WinLite 0.3.3 USB connection
+
+[Release / upgrade](RELEASE-v0.3.3-winlite.md) · [中文发行说明](RELEASE-v0.3.3-winlite.zh-CN.md) · [USB protocol](USB-PROTOCOL.md) · [USB中文协议](USB-PROTOCOL.zh-CN.md) · [Profile](p2-usb-profile.json) · [Validation](VALIDATION-v0.3.3-windows.md).
