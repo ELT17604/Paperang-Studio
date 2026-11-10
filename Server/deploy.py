@@ -86,7 +86,9 @@ class Deployment:
         raise RuntimeError('Local version/health check failed')
 
     def public_health(self, version):
-        with urllib.request.urlopen('https://etel.patronum.uk/v2/public/status', timeout=15) as response:
+        request = urllib.request.Request('https://etel.patronum.uk/v2/public/status',
+                                         headers={'User-Agent':'PaperangStudio/'+version})
+        with urllib.request.urlopen(request, timeout=15) as response:
             if json.load(response)['version'] != version:
                 raise RuntimeError('Public version check failed')
 
@@ -129,6 +131,7 @@ class Deployment:
         backup = b/'backups'/stamp
         backup.mkdir(parents=True, mode=0o700)
         backup.chmod(0o700)
+        print('Protected backup: '+str(backup), flush=True)
         self.rehearse(backup, source, python, database, config)
         release = b/'releases'/('0.3.2-'+manifest['source'][:12])
         if release.exists():
@@ -176,6 +179,7 @@ class Deployment:
             shutil.copy2(backup/'manage.py', b/'manage.py')
             self.control('start')
             self.healthy(previous_version)
+            print('Rollback healthy; current database retained. Backup: '+str(backup), flush=True)
             raise
         (b/'docs/deployment.json').write_text(json.dumps(record, indent=2)+'\n')
         print(json.dumps({'installed':manifest['version'], 'backup':str(backup),

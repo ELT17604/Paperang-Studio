@@ -1,5 +1,6 @@
 """Real SQLite upgrade/rollback with simulated service control; no production data."""
 import json
+import io
 import os
 from pathlib import Path
 import shutil
@@ -7,6 +8,7 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 import deploy
 from relay import Store
@@ -113,3 +115,15 @@ class DeploymentTests(unittest.TestCase):
         # Lock is released after the service stops.
         with sqlite3.connect(self.c['database'], timeout=.01) as db:
             db.execute('BEGIN IMMEDIATE')
+
+    def test_public_health_identifies_project_and_does_not_ignore_403(self):
+        def edge(request, timeout):
+            if not request.get_header('User-agent', '').startswith('PaperangStudio/'):
+                raise urllib.error.HTTPError(request.full_url, 403, 'Forbidden', {}, None)
+            return io.BytesIO(json.dumps({'version':'0.3.2-linuxrelayserver'}).encode())
+        with patch('deploy.urllib.request.urlopen', side_effect=edge):
+            deploy.Deployment.public_health(self.d, '0.3.2-linuxrelayserver')
+        failure = urllib.error.HTTPError('https://etel.patronum.uk', 403, 'Forbidden', {}, None)
+        with patch('deploy.urllib.request.urlopen', side_effect=failure):
+            with self.assertRaises(urllib.error.HTTPError):
+                deploy.Deployment.public_health(self.d, '0.3.2-linuxrelayserver')
