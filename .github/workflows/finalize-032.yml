@@ -1,0 +1,66 @@
+name: Finalize reviewed v0.3.2 draft
+on:
+  push:
+    branches: [xdev/032task]
+    paths: [.github/workflows/finalize-032.yml]
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Verify immutable baseline and assets, then publish reviewed draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,urllib.request,urllib.error
+          repo='ELT17604/Paperang-Studio'
+          sha='46d55b7d6782d02ba0ff296e0af3c79a7f19b674'
+          release_id=439509824
+          headers={'User-Agent':'PaperangStudio-Release/0.3.2','Accept':'application/vnd.github+json','Content-Type':'application/json','Authorization':'Bearer '+os.environ['GH_TOKEN']}
+          def api(path,method='GET',body=None):
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+path,method=method,headers=headers,data=None if body is None else json.dumps(body).encode())
+              with urllib.request.urlopen(req,timeout=30) as response:return json.load(response)
+          assert api('/git/ref/heads/main')['object']['sha']==sha
+          tag=api('/git/ref/tags/v0.3.2')['object']
+          assert tag['type']=='commit' and tag['sha']==sha
+          jobs=api('/actions/runs/42791492461/jobs')['jobs']
+          for name in ['ubuntu','macos','windows']:
+              assert any(j['name']==name and j['conclusion']=='success' for j in jobs),name
+          release=api('/releases/'+str(release_id))
+          assert release['id']==release_id and release['tag_name']=='v0.3.2'
+          assert release['name']=='Paperang Studio v0.3.2' and not release['prerelease']
+          assert release['draft'] is True
+          assets={a['name']:a for a in release['assets']}
+          expected={'PaperangStudio-0.3.2-macclient-macos-arm64.zip','PaperangStudio-0.3.2-winlite-win-x64-setup.exe','V0.3.2-winlite-win-x64-portable.zip','V0.3.2-winlite-win-x64-lite.zip','PaperangStudio-0.3.2-linuxrelayserver.tar.gz','PaperangStudio-0.3.2-relayskill.tar.gz','Paperang-Studio-v0.3.2-Final-Release-Report.md','SHA256SUMS'}
+          assert set(assets)==expected
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,*args):return None
+          opener=urllib.request.build_opener(NoRedirect())
+          def download(asset):
+              req=urllib.request.Request(asset['url'],headers={**headers,'Accept':'application/octet-stream'})
+              try:response=opener.open(req,timeout=60)
+              except urllib.error.HTTPError as error:
+                  if error.code not in (301,302,303,307,308):raise
+                  location=error.headers['Location'];assert location.startswith('https://')
+                  # The signed storage request must not receive the API token.
+                  response=urllib.request.urlopen(location,timeout=60)
+              with response:data=response.read(asset['size']+1)
+              assert len(data)==asset['size']
+              return data
+          manifest=download(assets['SHA256SUMS']).decode()
+          checks={name:digest for digest,name in (line.split(maxsplit=1) for line in manifest.splitlines())}
+          assert set(checks)==expected-{'SHA256SUMS'}
+          for name,digest in checks.items():
+              assert hashlib.sha256(download(assets[name])).hexdigest()==digest,name
+          print(json.dumps({'reviewed_release':release_id,'tag_commit':sha,'native_checks':'PASS','asset_checksums':'PASS','assets':len(assets)}),flush=True)
+          body=release['body']+'\n\nPublication verification: https://github.com/'+repo+'/actions/runs/'+os.environ['GITHUB_RUN_ID']
+          published=api('/releases/'+str(release_id),'PATCH',{'draft':False,'body':body})
+          assert published['draft'] is False
+          latest=api('/releases/'+str(release_id),'PATCH',{'make_latest':'true'})
+          assert latest['draft'] is False and latest['tag_name']=='v0.3.2'
+          assert api('/git/ref/tags/v0.3.2')['object']['sha']==sha
+          print(json.dumps({'published':True,'url':latest['html_url'],'tag_commit':sha,'assets':len(latest['assets'])}))
+          PY
