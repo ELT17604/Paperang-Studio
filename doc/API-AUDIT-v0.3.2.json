@@ -1,0 +1,2913 @@
+{
+  "parentSHA": "90e2feaccc2d73c048aec7b3079dfe8306015f10",
+  "scope": "Current tracked candidate tree: 226 files; binary assets and this generated inventory excluded from text matching.",
+  "counts": {
+    "compatibility/version/history review": 76,
+    "HTTP v2": 351,
+    "data-schema (preserved)": 27,
+    "HTTP v1 documentation reference": 9,
+    "HTTP v1 retirement": 5,
+    "HTTP v1 historical record": 8,
+    "HTTP v1 rejection test": 7
+  },
+  "matches": [
+    {
+      "file": "CHANGELOG.md",
+      "line": 7,
+      "category": "compatibility/version/history review",
+      "text": "- Template/content/config schema 1 and physical printer protocol remain unchanged. Explicit PATCH exception: Local API v1 consumers must upgrade to v2; normal MINOR compatibility policy remains in force."
+    },
+    {
+      "file": "CHANGELOG.md",
+      "line": 35,
+      "category": "compatibility/version/history review",
+      "text": "- Native macOS build restored; paired owner-file execution, renewable RSA-PSS proof, stable recovery identity and legacy M compatibility."
+    },
+    {
+      "file": "CHANGELOG.md",
+      "line": 58,
+      "category": "compatibility/version/history review",
+      "text": "Redesign the native management center with category navigation, contextual actions, readable tables, 25/50/100-row pages, previous/next navigation and optional hiding of revoked credentials/identities. Credential creation uses a dedicated form and server-generated IDs; existing identities are selected rather than typed. Key generation requires an unlocked owner and writes the registered ID automatically, without placeholder JSON. Add backwards-compatible relay pagination/filtering and content-free C history summaries with selected-record details. Legacy relays remain usable through bounded client paging."
+    },
+    {
+      "file": "CHANGELOG.md",
+      "line": 87,
+      "category": "compatibility/version/history review",
+      "text": "- Add the macOS-compatible v1 block-template editor with four presets, drag/reorder, paper selection, margins/gaps, variables, JSON import/export and shared drawing/text composition."
+    },
+    {
+      "file": "CONTRIBUTING.md",
+      "line": 3,
+      "category": "compatibility/version/history review",
+      "text": "Releases follow the [distribution version policy](doc/VERSIONING.md). Update [VERSIONS.json](VERSIONS.json) and the [feature implementation matrix](doc/FEATURE-MATRIX.md) for every relevant change; run `python scripts/check-versions.py`. Same-baseline compatibility is mandatory for shared contracts; document distribution-specific omissions rather than claiming unverified parity."
+    },
+    {
+      "file": "Clients/paperang-client.js",
+      "line": 22,
+      "category": "HTTP v2",
+      "text": "status() { return this.request('GET', '/v2/status'); }"
+    },
+    {
+      "file": "Clients/paperang-client.js",
+      "line": 23,
+      "category": "HTTP v2",
+      "text": "devices(all = false) { return this.request('GET', `/v2/devices${all ? '?all=true' : ''}`); }"
+    },
+    {
+      "file": "Clients/paperang-client.js",
+      "line": 25,
+      "category": "HTTP v2",
+      "text": "return this.request('POST', '/v2/render', { text, settings, includeRaw });"
+    },
+    {
+      "file": "Clients/paperang-client.js",
+      "line": 28,
+      "category": "HTTP v2",
+      "text": "return this.request('POST', '/v2/jobs', { text, settings, allowPaper });"
+    },
+    {
+      "file": "Clients/paperang-client.js",
+      "line": 31,
+      "category": "HTTP v2",
+      "text": "return this.request('POST', '/v2/jobs', { imageBase64, settings, allowPaper });"
+    },
+    {
+      "file": "Clients/paperang-client.js",
+      "line": 33,
+      "category": "HTTP v2",
+      "text": "job(id) { return this.request('GET', `/v2/jobs/${encodeURIComponent(id)}`); }"
+    },
+    {
+      "file": "Clients/paperang_client.py",
+      "line": 25,
+      "category": "HTTP v2",
+      "text": "return self.request('GET', '/v2/status')"
+    },
+    {
+      "file": "Clients/paperang_client.py",
+      "line": 28,
+      "category": "HTTP v2",
+      "text": "return self.request('GET', '/v2/devices' + ('?all=true' if all_devices else ''))"
+    },
+    {
+      "file": "Clients/paperang_client.py",
+      "line": 31,
+      "category": "HTTP v2",
+      "text": "return self.request('POST', '/v2/render', {'text': text, 'settings': settings or {}, 'includeRaw': include_raw})"
+    },
+    {
+      "file": "Clients/paperang_client.py",
+      "line": 36,
+      "category": "HTTP v2",
+      "text": "return self.request('POST', '/v2/jobs', body)"
+    },
+    {
+      "file": "Clients/paperang_client.py",
+      "line": 41,
+      "category": "HTTP v2",
+      "text": "return self.request('POST', '/v2/jobs', body)"
+    },
+    {
+      "file": "Clients/paperang_client.py",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "return self.request('GET', '/v2/jobs/' + job_id)"
+    },
+    {
+      "file": "Integrations/ChatGPT/README.md",
+      "line": 28,
+      "category": "HTTP v2",
+      "text": "| `relay_capabilities` | `GET /v2/public/status` | policy/content capabilities, **not** physical readiness |"
+    },
+    {
+      "file": "Integrations/ChatGPT/README.md",
+      "line": 29,
+      "category": "HTTP v2",
+      "text": "| `print_text` | `POST /v2/jobs` | explicitly authorized text, exactly one job |"
+    },
+    {
+      "file": "Integrations/ChatGPT/README.md",
+      "line": 30,
+      "category": "HTTP v2",
+      "text": "| `print_raster1` | `POST /v2/jobs` | already packed 576-dot binary raster, optional caption |"
+    },
+    {
+      "file": "Integrations/ChatGPT/README.md",
+      "line": 31,
+      "category": "HTTP v2",
+      "text": "| `print_status` | `GET /v2/jobs/{id}` or `.../lookup/{shortID}` | B-own only; A cannot read status |"
+    },
+    {
+      "file": "Integrations/ChatGPT/README.md",
+      "line": 48,
+      "category": "compatibility/version/history review",
+      "text": "the receiver's active template. `print_raster1` accepts the exact RelaySkill-compatible `content` object (including base64-packed bytes and SHA-256), **not** a PNG/JPEG or arbitrary source URL."
+    },
+    {
+      "file": "Integrations/ChatGPT/README.md",
+      "line": 85,
+      "category": "compatibility/version/history review",
+      "text": "## Optional compatibility: GPT Actions"
+    },
+    {
+      "file": "Integrations/ChatGPT/core.py",
+      "line": 60,
+      "category": "data-schema (preserved)",
+      "text": "\"schemaVersion\", \"type\", \"width\", \"height\", \"encoding\", \"bitOrder\","
+    },
+    {
+      "file": "Integrations/ChatGPT/core.py",
+      "line": 64,
+      "category": "data-schema (preserved)",
+      "text": "if (type(content.get(\"schemaVersion\")) is not int or content[\"schemaVersion\"] != 1"
+    },
+    {
+      "file": "Integrations/ChatGPT/core.py",
+      "line": 148,
+      "category": "HTTP v2",
+      "text": "response = await self.request(\"GET\", \"/v2/auth/me\")"
+    },
+    {
+      "file": "Integrations/ChatGPT/core.py",
+      "line": 154,
+      "category": "HTTP v2",
+      "text": "return await self.request(\"GET\", \"/v2/public/status\")"
+    },
+    {
+      "file": "Integrations/ChatGPT/core.py",
+      "line": 168,
+      "category": "compatibility/version/history review",
+      "text": "or policy.get(\"capabilities\", {}).get(\"contentSchemaVersion\") != 1):"
+    },
+    {
+      "file": "Integrations/ChatGPT/core.py",
+      "line": 173,
+      "category": "HTTP v2",
+      "text": "result = await self.request(\"POST\", \"/v2/jobs\", {**validated, \"request_id\": rid})"
+    },
+    {
+      "file": "Integrations/ChatGPT/core.py",
+      "line": 184,
+      "category": "HTTP v2",
+      "text": "path = \"/v2/jobs/lookup/\" + job_id.upper() if SHORT_ID_RE.fullmatch(job_id) else \"/v2/jobs/\" + job_id"
+    },
+    {
+      "file": "Integrations/ChatGPT/openapi.yaml",
+      "line": 33,
+      "category": "HTTP v2",
+      "text": "/v2/public/status:"
+    },
+    {
+      "file": "Integrations/ChatGPT/openapi.yaml",
+      "line": 46,
+      "category": "HTTP v2",
+      "text": "/v2/jobs:"
+    },
+    {
+      "file": "Integrations/ChatGPT/openapi.yaml",
+      "line": 73,
+      "category": "HTTP v2",
+      "text": "/v2/jobs/{id}:"
+    },
+    {
+      "file": "Integrations/ChatGPT/server.py",
+      "line": 48,
+      "category": "compatibility/version/history review",
+      "text": "\"\"\"Print one explicitly authorized RelaySkill-compatible 576-dot raster1."
+    },
+    {
+      "file": "LICENSE",
+      "line": 87,
+      "category": "compatibility/version/history review",
+      "text": "c. BY-NC-SA Compatible License means a license listed at"
+    },
+    {
+      "file": "LICENSE",
+      "line": 88,
+      "category": "compatibility/version/history review",
+      "text": "creativecommons.org/compatiblelicenses, approved by Creative"
+    },
+    {
+      "file": "LICENSE",
+      "line": 290,
+      "category": "compatibility/version/history review",
+      "text": "later, or a BY-NC-SA Compatible License."
+    },
+    {
+      "file": "README.md",
+      "line": 115,
+      "category": "HTTP v1 documentation reference",
+      "text": "> **Upgrading from v0.2.x?** Relay API v2 requires a coordinated upgrade. Old relay `/v1` and receipt-content access are retired; the **Mac local API now requires v2**. Read the [upgrade/rollback guide](doc/UPGRADE-v0.3.0.md), [auth contract](doc/AUTH-v2.md) and [validation record](doc/VALIDATION-v0.3.0.md) before deployment. Source availability does not imply every platform is already deployed or natively validated."
+    },
+    {
+      "file": "Server/ADMIN-CONSOLE.md",
+      "line": 5,
+      "category": "compatibility/version/history review",
+      "text": "The UI must start as root. It uses the installed venv, then delegates database operations through a private pipe to a worker under `paperang-relay`. This keeps SQLite/WAL ownership compatible with the live service. The local root actor is written to audit events, never inserted as a credential or user. The console creates no persistent daemon. Closing it stops the worker, not the relay."
+    },
+    {
+      "file": "Server/README.md",
+      "line": 5,
+      "category": "HTTP v1 retirement",
+      "text": "Python 3.10+, SQLite, argon2-cffi and cryptography. Relay API v2 is incompatible with v0.2.x; old relay /v1 routes return 410. The Mac local API v2 is separate. Receivers use scoped M keys; C administration is available in native clients. Public submissions require a registered browser identity; Explicit A keys cannot read print status; anonymous browser identities and B can read only their own states. Task content is available only in C history or a matching device-scoped active claim (M or proven public-key C)."
+    },
+    {
+      "file": "Server/README.md",
+      "line": 17,
+      "category": "compatibility/version/history review",
+      "text": "Initial C/M/B credentials are written once to `/var/lib/paperang-relay/initial-credentials.jsonl` with root-only permissions. Keep M in the receiving client and C only for management. Existing configs and credentials are preserved. For upgrades, drain active claims, stop the old service, back up the database and follow the coordinated migration guide before invoking the installer. `--reconfigure` backs up and replaces the config; it does not make an incompatible old client work."
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 31,
+      "category": "HTTP v1 retirement",
+      "text": "if path == '/v1' or path.startswith('/v1/'):"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 33,
+      "category": "HTTP v2",
+      "text": "if method=='GET' and path=='/v2/public/status':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 34,
+      "category": "compatibility/version/history review",
+      "text": "return 200,dict(version=s.version,status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2,anonymousOwnStatus=True,ownerExecution=True,quotaManagement=True,customPassphrasePolicy=\"unrestricted\"))"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/auth/anonymous':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 43,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/auth/login': return 200,a.login(body,ip)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/auth/challenge': return 200,a.challenge(body,ip)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 45,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/auth/prove': return 200,a.prove(body,ip)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 46,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/auth/me' and method=='GET':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 50,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/auth/logout' and method=='POST':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 54,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/jobs':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 68,
+      "category": "HTTP v2",
+      "text": "lookup=re.fullmatch(r'/v2/jobs/(?:lookup/)?([A-Fa-f0-9-]{12,40})',path)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 76,
+      "category": "HTTP v2",
+      "text": "if path.startswith('/v2/admin/'):"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 82,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/admin/quotas/get':return 200,a.quota_status(body.get('scope','anonymous'))"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 83,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/admin/quotas/set':return 200,a.set_quota(body.get('scope'),body.get('limits'),key)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 84,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path in ('/v2/admin/keys/search','/v2/admin/identities/search','/v2/admin/sessions/search'):"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 96,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/security/retire-others' and method=='POST':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 99,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/keys' and method=='GET':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 102,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/keys' and method=='POST':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 105,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/public-keys' and method=='POST':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 110,
+      "category": "HTTP v2",
+      "text": "match=re.fullmatch(r'/v2/admin/keys/([a-f0-9-]{36})/(rename|revoke|rotate|delete)',path)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 130,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/identities' and method=='GET':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 133,
+      "category": "HTTP v2",
+      "text": "rev=re.fullmatch(r'/v2/admin/identities/([a-f0-9-]{36})/revoke',path)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 145,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/sessions' and method=='GET':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 148,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/sessions/revoke' and method=='POST':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 151,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/audit' and method=='POST':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 156,
+      "category": "HTTP v2",
+      "text": "if path in ('/v2/admin/jobs/search','/v2/admin/jobs/export') and method=='POST':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 176,
+      "category": "HTTP v2",
+      "text": "if path.startswith('/v2/device/'):"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 183,
+      "category": "HTTP v2",
+      "text": "if method=='GET' and path=='/v2/device/jobs':"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 190,
+      "category": "HTTP v2",
+      "text": "detail=re.fullmatch(r'/v2/device/jobs/([a-f0-9-]{36,40})',path)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 202,
+      "category": "HTTP v2",
+      "text": "confirm=re.fullmatch(r'/v2/admin/jobs/([a-f0-9-]{36,40})/confirm',path)"
+    },
+    {
+      "file": "Server/api_v2.py",
+      "line": 212,
+      "category": "HTTP v2",
+      "text": "result=s.route_device('POST','/v2/device/jobs/'+confirm.group(1)+'/confirm',body,{**key,'role':'device','device':row['device']},headers)"
+    },
+    {
+      "file": "Server/deploy.py",
+      "line": 80,
+      "category": "HTTP v2",
+      "text": "with opener.open(f\"http://127.0.0.1:{c['port']}/v2/public/status\", timeout=2) as response:"
+    },
+    {
+      "file": "Server/deploy.py",
+      "line": 89,
+      "category": "HTTP v2",
+      "text": "request = urllib.request.Request('https://etel.patronum.uk/v2/public/status',"
+    },
+    {
+      "file": "Server/deploy.py",
+      "line": 126,
+      "category": "compatibility/version/history review",
+      "text": "# silently reuse an incompatible environment for a future release."
+    },
+    {
+      "file": "Server/manage.py",
+      "line": 69,
+      "category": "HTTP v2",
+      "text": "return s.route('POST','/v2/admin/jobs/export',dict(job_id=body['id']),self.actor,'local',{})[1]['jobs']"
+    },
+    {
+      "file": "Server/manage.py",
+      "line": 72,
+      "category": "HTTP v2",
+      "text": "if not path.startswith('/v2/admin/'):"
+    },
+    {
+      "file": "Server/manage.py",
+      "line": 170,
+      "category": "HTTP v2",
+      "text": "with opener.open('http://127.0.0.1:28177/v2/public/status',timeout=2) as response:"
+    },
+    {
+      "file": "Server/manage.py",
+      "line": 266,
+      "category": "HTTP v2",
+      "text": "return self.worker.call('api',path='/v2/admin/'+path,body=body)"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 117,
+      "category": "data-schema (preserved)",
+      "text": "if not isinstance(content,dict) or type(content.get('schemaVersion')) is not int or content.get('schemaVersion')!=1:raise Problem(400,'Unsupported content schema')"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 129,
+      "category": "data-schema (preserved)",
+      "text": "meta=dict(schemaVersion=1,type='raster1',width=width,height=height,encoding='base64',bitOrder='msb-first',blackIsOne=True,sha256=checksum,byteLength=len(raw))"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 209,
+      "category": "HTTP v2",
+      "text": "if path.startswith('/v2/device/'):"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 211,
+      "category": "HTTP v2",
+      "text": "if method=='POST' and path=='/v2/device/status':"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 219,
+      "category": "HTTP v2",
+      "text": "match=re.fullmatch(r'/v2/device/jobs/('+JOB_PATTERN+r')/(claim|result|reject|confirm)',path)"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 297,
+      "category": "HTTP v1 retirement",
+      "text": "if self.path == '/v1' or self.path.startswith('/v1/'):"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 299,
+      "category": "HTTP v2",
+      "text": "key=None if self.path in ['/v2/auth/login','/v2/auth/anonymous','/v2/auth/challenge','/v2/auth/prove'] else self.server.store.api.auth.authenticate(self.headers.get('Authorization',''),self.headers.get('Cookie',''))"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 308,
+      "category": "HTTP v2",
+      "text": "limit=163840 if self.path=='/v2/jobs' else 65536"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 319,
+      "category": "HTTP v2",
+      "text": "if self.path in ['/v2/auth/login','/v2/auth/anonymous','/v2/auth/prove'] and status<300 and not (self.headers.get('X-Paperang-Native')=='1' and not self.headers.get('Origin')):"
+    },
+    {
+      "file": "Server/relay.py",
+      "line": 322,
+      "category": "HTTP v2",
+      "text": "elif self.path=='/v2/auth/logout':"
+    },
+    {
+      "file": "Server/web/app.js",
+      "line": 10,
+      "category": "HTTP v2",
+      "text": "const response=await fetch('/v2/'+path,{method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000),headers:body?{'Content-Type':'application/json','X-CSRF-Token':identity?.csrf||''}:{},body:body?JSON.stringify(body):undefined});"
+    },
+    {
+      "file": "Server/web/app.js",
+      "line": 94,
+      "category": "data-schema (preserved)",
+      "text": "const result={schemaVersion:1,type:'raster1',width,height,encoding:'base64',bitOrder:'msb-first',blackIsOne:true,data:btoa(raw)};"
+    },
+    {
+      "file": "Skills/paperang-relay-print/LICENSE",
+      "line": 87,
+      "category": "compatibility/version/history review",
+      "text": "c. BY-NC-SA Compatible License means a license listed at"
+    },
+    {
+      "file": "Skills/paperang-relay-print/LICENSE",
+      "line": 88,
+      "category": "compatibility/version/history review",
+      "text": "creativecommons.org/compatiblelicenses, approved by Creative"
+    },
+    {
+      "file": "Skills/paperang-relay-print/LICENSE",
+      "line": 290,
+      "category": "compatibility/version/history review",
+      "text": "later, or a BY-NC-SA Compatible License."
+    },
+    {
+      "file": "Skills/paperang-relay-print/references/parameters.md",
+      "line": 3,
+      "category": "compatibility/version/history review",
+      "text": "Current sender implements **v0.3.2 Relay API v2** / raster1 schema 1, compatible with v0.3.2 MacClient and WinLite receivers. Historical relay v1 is retired (410). The Mac-local API v2 is a separate interface."
+    },
+    {
+      "file": "Skills/paperang-relay-print/references/parameters.md",
+      "line": 32,
+      "category": "HTTP v2",
+      "text": "POST `/v2/jobs` has **no per-job thermal density, paper feed, template, copies or client-configuration fields**. The helper realizes copies as separate explicitly requested jobs. Do not pretend unsupported fields override the client."
+    },
+    {
+      "file": "Skills/paperang-relay-print/scripts/relay_print.py",
+      "line": 178,
+      "category": "data-schema (preserved)",
+      "text": "if not isinstance(content, dict) or content.get('type') != 'raster1' or type(content.get('schemaVersion')) is not int or content['schemaVersion'] != 1:"
+    },
+    {
+      "file": "Skills/paperang-relay-print/scripts/relay_print.py",
+      "line": 307,
+      "category": "data-schema (preserved)",
+      "text": "return {'type': 'raster1', 'schemaVersion': 1, 'width': 576, 'height': mono.height,"
+    },
+    {
+      "file": "Skills/paperang-relay-print/scripts/relay_print.py",
+      "line": 321,
+      "category": "compatibility/version/history review",
+      "text": "if job.get('content') and ('raster1' not in public.get('capabilities', {}).get('contentTypes', []) or public.get('capabilities', {}).get('contentSchemaVersion', 1) != 1):"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 16,
+      "category": "compatibility/version/history review",
+      "text": "let service=LocalAPI(port:UInt16(apiPort),token:apiToken,origins:origins)"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 31,
+      "category": "HTTP v1 retirement",
+      "text": "if path==\"/v1\" || path.hasPrefix(\"/v1/\"){return .failure(410,\"api_v1_retired\",\"Use the local API v2 contract\")}"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 34,
+      "category": "HTTP v2",
+      "text": "case \"/v2/status\":return .json(statusObject())"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "case \"/v2/devices\":let all=req.query[\"all\"]==\"true\";return .json([\"scanning\":scanning,\"devices\":devices.filter{all || DeviceMatcher.paperang($0.name)}.map{[\"id\":$0.id.uuidString,\"name\":$0.name,\"rssi\":$0.rssi,\"paperangCandidate\":DeviceMatcher.paperang($0.name)] as [String:Any]}])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 36,
+      "category": "HTTP v2",
+      "text": "case \"/v2/protocol\":return .json([\"model\":\"Paperang_P2\",\"widthDots\":576,\"bytesPerRow\":72,\"nominalDPI\":300,\"defaultFeedLines\":150,\"commands\":Command.all.map{[\"command\":Int($0.code),\"name\":$0.title,\"kind\":$0.kind,\"evidence\":$0.evidence,\"description\":$0.detail,\"expectedResponse\":Command.expected[$0.code].map{Int($0)} as Any? ?? NSNull()]}])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 37,
+      "category": "HTTP v2",
+      "text": "case \"/v2/settings\":return .json([\"defaults\":try! JSONSerialization.jsonObject(with:JSONEncoder().encode(PrintSettings())),\"note\":\"每次请求可传部分settings；宽度固定576\" ])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 38,
+      "category": "HTTP v2",
+      "text": "case \"/v2/jobs\":return .json([\"jobs\":jobs.reversed().map(jobObject)])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 39,
+      "category": "HTTP v2",
+      "text": "case \"/v2/logs\":let limit=min(500,max(1,Int(req.query[\"limit\"] ?? \"100\") ?? 100));return .json([\"order\":\"newest_first\",\"logs\":logs.reversed().prefix(limit).map{[\"timestamp\":ISO8601DateFormatter().string(from:$0.time),\"type\":$0.type,\"text\":$0.text]}])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "case \"/v2/openapi\":if let url=Bundle.main.resourceURL?.appendingPathComponent(\"openapi.json\"),let data=try? Data(contentsOf:url){return APIResponse(status:200,data:data)};return .failure(404,\"missing_schema\",\"未找到API文档\")"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 41,
+      "category": "HTTP v2",
+      "text": "default:if path.hasPrefix(\"/v2/jobs/\"),let id=UUID(uuidString:String(path.dropFirst(9))),let job=jobs.first(where:{$0.id==id}){return .json(jobObject(job))};return .failure(404,\"not_found\",\"未知路由\")"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 48,
+      "category": "HTTP v2",
+      "text": "case \"/v2/scan\":guard central != nil else{return .failure(409,\"offline\",\"离线API模式不能扫描蓝牙\")};guard !busy else{return .failure(409,\"busy\",\"设备正在执行任务\")};scan();return .json([\"accepted\":true,\"scanning\":scanning],status:202)"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 49,
+      "category": "HTTP v2",
+      "text": "case \"/v2/connect\":guard !busy,!ready,let raw=body[\"id\"] as? String,let id=UUID(uuidString:raw),known[id] != nil else{return .failure(409,\"connection\",\"请先扫描，当前不能连接该设备\")};connect(id);return .json([\"accepted\":true,\"id\":raw],status:202)"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 50,
+      "category": "HTTP v2",
+      "text": "case \"/v2/disconnect\":guard !busy else{return .failure(409,\"busy\",\"请先停止活动打印任务\")};disconnect();return .json([\"connected\":false])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 51,
+      "category": "HTTP v2",
+      "text": "case \"/v2/query\":guard let command=body[\"command\"] as? Int,(0...255).contains(command),Command.expected[UInt8(command)] != nil else{throw PrintFailure(\"仅允许已知只读GET命令，command为整数\")};guard ready,!busy else{return .failure(409,\"busy\",\"设备未就绪或正忙\")};let g=generation;busy=true;defer{if generation==g{busy=false}};try await query(UInt8(command));return .json([\"command\":command,\"payloadHex\":response.map(Wire.hex) as Any? ?? NSNull(),\"hasData\":response != nil,\"status\":statusObject()])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 52,
+      "category": "HTTP v2",
+      "text": "case \"/v2/render\":let s=try apiSettings(body[\"settings\"]);let r=try apiRaster(body,settings:s);var result:[String:Any]=[\"width\":r.width,\"height\":r.height,\"bytes\":r.bytes.count,\"previewPngBase64\":r.png?.base64EncodedString() ?? \"\"];if trueConsent(body[\"includeRaw\"]){result[\"rawBase64\"]=r.bytes.base64EncodedString()};return .json(result)"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 53,
+      "category": "HTTP v2",
+      "text": "case \"/v2/jobs\":guard networkJobAuthorized(body[\"allowPaper\"]) else{return .failure(403,\"paper_disabled\",\"请开启全局耗纸并指定allowPaper:true，或进入未暂停的托盘模式\")};guard ready,!busy else{return .failure(409,\"busy\",\"设备未就绪或正忙\")};let s=try apiSettings(body[\"settings\"]);let r=try apiRaster(body,settings:s);let id=try submitRaster(r,settings:s,title:\"API · \"+String((body[\"title\"] as? String ?? \"打印任务\").prefix(120)));return .json([\"id\":id.uuidString,\"state\":\"accepted\",\"note\":\"请轮询任务；接收不等于纸面完成\"],status:202)"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 54,
+      "category": "HTTP v2",
+      "text": "case \"/v2/feed\":guard networkPrintAllowed,trueConsent(body[\"allowPaper\"]) else{return .failure(403,\"paper_disabled\",\"耗纸未授权\")};guard let lines=body[\"lines\"] as? Int,(0...2000).contains(lines),ready,!busy else{return .failure(409,\"busy\",\"行数无效、设备未就绪或正忙\")};let g=generation;busy=true;defer{if generation==g{busy=false}};try await verifyMedia();if lines>0{try await send(26,Wire.u16(lines))};return .json([\"acknowledged\":true,\"lines\":lines,\"physicalCompletion\":\"unknown\"])"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 55,
+      "category": "HTTP v2",
+      "text": "default:if path.hasPrefix(\"/v2/jobs/\"),path.hasSuffix(\"/cancel\"),let id=UUID(uuidString:String(path.dropFirst(9).dropLast(7))),jobs.last?.id==id,jobs.last?.status==\"发送中\"{stopJob();return .json([\"id\":id.uuidString,\"state\":\"cancelled\",\"note\":\"设备已缓存的数据无法撤回\"])};return .failure(404,\"not_found\",\"未知路由或没有此活动任务\")"
+    },
+    {
+      "file": "Sources/PaperangLab/APIRoutes.swift",
+      "line": 67,
+      "category": "HTTP v2",
+      "text": "GroupBox(\"v2接口\"){Text(\"GET /v2/status · /v2/devices · /v2/protocol · /v2/settings\\nGET /v2/jobs · /v2/jobs/{id} · /v2/logs · /v2/openapi\\nPOST /v2/scan · /v2/connect · /v2/disconnect · /v2/query\\nPOST /v2/render · /v2/jobs · /v2/jobs/{id}/cancel · /v2/feed\").font(.system(.body,design:.monospaced)).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading).padding(8)}"
+    },
+    {
+      "file": "Sources/PaperangLab/Bluetooth.swift",
+      "line": 52,
+      "category": "compatibility/version/history review",
+      "text": "var api:LocalAPI?"
+    },
+    {
+      "file": "Sources/PaperangLab/LocalAPI.swift",
+      "line": 9,
+      "category": "compatibility/version/history review",
+      "text": "final class LocalAPI:@unchecked Sendable {"
+    },
+    {
+      "file": "Sources/PaperangLab/LocalAPI.swift",
+      "line": 30,
+      "category": "HTTP v1 retirement",
+      "text": "if request.path==\"/v1\" || request.path.hasPrefix(\"/v1/\"){self.reply(.failure(410,\"api_v1_retired\",\"Use the local API v2 contract\"),request:request,connection:connection,id:id);return}"
+    },
+    {
+      "file": "Sources/PaperangLab/RelayConfiguration.swift",
+      "line": 8,
+      "category": "data-schema (preserved)",
+      "text": "var schemaVersion=1"
+    },
+    {
+      "file": "Sources/PaperangLab/RelayConfiguration.swift",
+      "line": 17,
+      "category": "data-schema (preserved)",
+      "text": "guard schemaVersion==1,[\"owner\",\"M\"].contains(authMode),server.utf8.count<=4096,ownerPath.utf8.count<=4096,(0...100).contains(density),(0...2000).contains(feed),templates.count<=30,(1024...65535).contains(apiPort),apiOrigins.count<=4096 else{throw PrintFailure(\"保存的配置无效\")}"
+    },
+    {
+      "file": "Sources/PaperangLab/RelayConfiguration.swift",
+      "line": 62,
+      "category": "data-schema (preserved)",
+      "text": "let value:[String:Any]=[\"format\":\"paperang-macclient-config\",\"schemaVersion\":1,\"version\":AppIdentity.version,\"exportedAt\":ISO8601DateFormatter().string(from:Date()),\"settings\":settings,\"managementUI\":UserDefaults.standard.dictionary(forKey:\"mac.admin.ui.v1\") ?? [:],\"note\":\"不含原始凭证、私钥内容、会话或待回报任务；换机需单独迁移私钥并更新路径\"]"
+    },
+    {
+      "file": "Sources/PaperangLab/RelayLayout.swift",
+      "line": 11,
+      "category": "data-schema (preserved)",
+      "text": "guard content[\"type\"] as? String==\"raster1\",content[\"schemaVersion\"] as? Int==1,content[\"width\"] as? Int==576,let height=content[\"height\"] as? Int,content[\"bitOrder\"] as? String==\"msb-first\",content[\"blackIsOne\"] as? Bool==true,content[\"encoding\"] as? String==\"base64\",let encoded=content[\"data\"] as? String,encoded.utf8.count<=134400,let data=Data(base64Encoded:encoded),let checksum=content[\"sha256\"] as? String,SHA256.hash(data:data).map({String(format:\"%02x\",$0)}).joined()==checksum else{throw PrintFailure(\"远程内容类型、尺寸或校验和不正确，请更新客户端或重新提交\")}"
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 2,
+      "category": "data-schema (preserved)",
+      "text": "\"schemaVersion\": 1,"
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 4,
+      "category": "compatibility/version/history review",
+      "text": "\"compatibility\": {"
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 5,
+      "category": "HTTP v2",
+      "text": "\"relayApi\": \"v2\","
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 10,
+      "category": "compatibility/version/history review",
+      "text": "\"contentSchemaVersion\": 1,"
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 11,
+      "category": "compatibility/version/history review",
+      "text": "\"templateSchemaVersion\": 1,"
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 13,
+      "category": "HTTP v2",
+      "text": "\"localApi\": \"v2\""
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 32,
+      "category": "HTTP v1 documentation reference",
+      "text": "\"verification\": \"Ubuntu native regressions, real preserving production upgrade, backup/rollback, unchanged row/schema rehearsal, HTTPS/API v2/v1 rejection/web/source hashes and owner-approved Mac connection/task/preview integration passed\","
+    },
+    {
+      "file": "VERSIONS.json",
+      "line": 73,
+      "category": "compatibility/version/history review",
+      "text": "\"compatibilityException\": \"0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged.\""
+    },
+    {
+      "file": "Windows/README.md",
+      "line": 26,
+      "category": "compatibility/version/history review",
+      "text": "Double-click the tray icon, enter a relay root URL and select the paired **owner private file**, scan and select your P2, then save and connect. Requires the compatible v0.3.1 relay; the private key stays on this computer. Closing settings keeps the client running. Use the tray menu to pause new jobs, reconnect, or quit. Automatic connection/printing are Windows-specific user-requested defaults; the macOS defaults are unchanged."
+    },
+    {
+      "file": "Windows/README.md",
+      "line": 28,
+      "category": "compatibility/version/history review",
+      "text": "Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. See the [guide](../doc/WINDOWS.md) for template compatibility, privacy, recovery, limitations, and real-device verification."
+    },
+    {
+      "file": "Windows/installer/WinLite.iss",
+      "line": 14,
+      "category": "compatibility/version/history review",
+      "text": "ArchitecturesAllowed=x64compatible"
+    },
+    {
+      "file": "Windows/installer/WinLite.iss",
+      "line": 15,
+      "category": "compatibility/version/history review",
+      "text": "ArchitecturesInstallIn64BitMode=x64compatible"
+    },
+    {
+      "file": "Windows/src/Paperang.Core/Models.cs",
+      "line": 121,
+      "category": "data-schema (preserved)",
+      "text": "if (c.GetProperty(\"type\").GetString() != \"raster1\" || c.GetProperty(\"schemaVersion\").GetInt32() != 1 ||"
+    },
+    {
+      "file": "Windows/src/Paperang.WinLite/LocalStore.cs",
+      "line": 95,
+      "category": "data-schema (preserved)",
+      "text": "format = \"paperang-winlite-config\", schemaVersion = 1, version = AppVersion.Current,"
+    },
+    {
+      "file": "Windows/src/Paperang.WinLite/TemplateEditor.cs",
+      "line": 221,
+      "category": "data-schema (preserved)",
+      "text": "content = JsonSerializer.SerializeToElement(new { type = \"raster1\", schemaVersion = 1, width = 576, height = 120, bitOrder = \"msb-first\", blackIsOne = true, encoding = \"base64\", data = Convert.ToBase64String(data), sha256 = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(data)) });"
+    },
+    {
+      "file": "Windows/src/Paperang.WinLite/app.manifest",
+      "line": 5,
+      "category": "compatibility/version/history review",
+      "text": "<compatibility xmlns=\"urn:schemas-microsoft-com:compatibility.v1\"><application><supportedOS Id=\"{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}\" /></application></compatibility>"
+    },
+    {
+      "file": "doc/API-v2-032.md",
+      "line": 9,
+      "category": "HTTP v2",
+      "text": "All previously implemented local resources move to `/v2`: status, devices, protocol, settings, jobs, logs, openapi, scan, connect, disconnect, query, render, feed, job lookup and cancellation. HTTP methods and request shapes are retained; text and imageBase64 remain mutually exclusive. No shell or terminal-input endpoint is added. HTTP errors remain `{ \"error\": { \"code\": \"...\", \"message\": \"...\" } }`."
+    },
+    {
+      "file": "doc/API-v2-032.md",
+      "line": 11,
+      "category": "HTTP v1 documentation reference",
+      "text": "After Host/Origin/authentication and rate checks, `/v1` and `/v1/*` return 410 with code `api_v1_retired`, for GET/POST/OPTIONS, before JSON parsing or content-type checks. Invalid authorization still returns 403, malformed HTTP 400, throttling 429. No old request executes business logic or is translated. Unknown non-v1 routes return 404. No v1 runtime adapter remains. Saved user configuration keys and schema 1 remain supported."
+    },
+    {
+      "file": "doc/API-v2-032.md",
+      "line": 25,
+      "category": "compatibility/version/history review",
+      "text": "## Compatibility exception"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 34,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/status` | None | `apiVersion`, `connected`, `busy`, `printer`, `state`, `lastError`, `progress`, `jobStatus`, `charging`, `readings`, `printingEnabled` |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/devices` | Optional `?all=true` | `{scanning, devices:[{id,name,rssi,paperangCandidate}]}`; latest scan, candidates by default |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 36,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/scan` | `{}` | 202 `{accepted,scanning}`; about 10 seconds, no automatic connection; poll devices |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 37,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/connect` | `{\"id\":\"discovered UUID\"}` | 202 accepted; poll status until `connected:true`. The UUID is local to CoreBluetooth, not a MAC |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 38,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/disconnect` | `{}` | `{connected:false}`; 409 during a print, cancel first |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 39,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/query` | `{\"command\":12}` | `{command,payloadHex,hasData,status}`; allowlisted read-only GET, decimal integer command |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/protocol` | None | Model, width 576, 72 bytes/row, nominal DPI 300, default feed 150, command evidence catalog |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 41,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/settings` | None | `{defaults:PrintSettings,note}`; request settings merge over defaults, not current GUI edits |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 42,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/render` | RenderInput | Offline `{width,height,bytes,previewPngBase64}`; `includeRaw:true` adds `rawBase64` |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 43,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/jobs` | RenderInput plus `allowPaper`/`title` | 202 `{id,state:\"accepted\",note}`; poll the job; 409 when busy, no automatic queue/retry |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/jobs` | None | `{jobs:[Job]}`, newest first, latest 30 session jobs |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 45,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/jobs/{id}` | None | One Job |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 46,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/jobs/{id}/cancel` | `{}` | Only the active sending job; stops/disconnects, cannot recall printer-buffered data |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 47,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/feed` | `{\"lines\":150,\"allowPaper\":true}` | Integer 0–2000; `{acknowledged:true,lines,physicalCompletion:\"unknown\"}` after media check and ACK |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 48,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/logs` | Optional `?limit=100`, clamped 1–500 | `{order:\"newest_first\",logs:[{timestamp,type,text}]}`; may include local device information |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 49,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/openapi` | None | Bundled OpenAPI document |"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 64,
+      "category": "HTTP v1 documentation reference",
+      "text": "`physicalCompletion` is always `unknown`; this local API has no paper-confirmation endpoint. Authenticated `/v1` and `/v1/*` requests return 410 `api_v1_retired`, including preflight after Origin checks. See [the v0.3.2 contract](API-v2-032.md)."
+    },
+    {
+      "file": "doc/API.md",
+      "line": 124,
+      "category": "HTTP v2",
+      "text": "http://127.0.0.1:8176/v2/status"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 128,
+      "category": "HTTP v2",
+      "text": "http://127.0.0.1:8176/v2/render"
+    },
+    {
+      "file": "doc/API.md",
+      "line": 155,
+      "category": "HTTP v2",
+      "text": "Clients expose a generic request method for other endpoints. Python bypasses system HTTP proxies for loopback; JavaScript uses fetch. The `/v2` path is the API contract version, separate from app version 0.3.2 and OpenAPI format version 3.0.3."
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/status` | 无 | 当前连接、busy、printer、state、lastError、progress、jobStatus、charging、readings、printingEnabled、apiVersion |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 36,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/devices` | `?all=true`可选 | `{scanning,devices:[{id,name,rssi,paperangCandidate}]}`；默认仅系列候选，列表来自最近扫描 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 37,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/scan` | `{}` | 202 `{accepted,scanning}`；扫描约10秒，不自动连接；随后GET devices |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 38,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/connect` | `{\"id\":\"扫描返回UUID\"}` | 202请求已提交；轮询status直到connected=true。UUID由本机CoreBluetooth分配，不是MAC |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 39,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/disconnect` | `{}` | `{connected:false}`；打印中409，先取消任务 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/query` | `{\"command\":12}` | `{command,payloadHex,hasData,status}`；仅白名单GET，十进制整数命令；只有ACK时hasData=false、payloadHex=null |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 41,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/protocol` | 无 | 型号、576点/72字节、300DPI、150送纸与commands目录（名称、证据、说明、响应）。研究目录不代表可调用 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 42,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/settings` | 无 | `{defaults:PrintSettings,note}`；每次渲染/打印从确定的默认值合并settings，不继承当前GUI编辑值 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 43,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/render` | RenderInput | 离线渲染；`{width,height,bytes,previewPngBase64}`，includeRaw=true另含rawBase64；不耗纸、不要求蓝牙 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/jobs` | RenderInput + allowPaper/title | 202 `{id,state:\"accepted\",note}`；启动打印，轮询任务结果；忙时409，不排队自动重打 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 45,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/jobs` | 无 | `{jobs:[Job]}`；最新在前，最近30个会话任务，App重启清空 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 46,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/jobs/{id}` | 无 | 单个Job |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 47,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/jobs/{id}/cancel` | `{}` | 仅当前发送中任务；停止并断开，设备已缓存数据无法撤回；返回cancelled并非纸面撤销 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 48,
+      "category": "HTTP v2",
+      "text": "| POST `/v2/feed` | `{\"lines\":150,\"allowPaper\":true}` | lines整数0–2000；`{acknowledged:true,lines,physicalCompletion:\"unknown\"}`，等待媒体检查和ACK |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 49,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/logs` | `?limit=100`，1–500 | `{order:\"newest_first\",logs:[{timestamp,type,text}]}`；可能包含本机设备信息 |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 50,
+      "category": "HTTP v2",
+      "text": "| GET `/v2/openapi` | 无 | 完整OpenAPI3.0.3；也见[离线文件](openapi.json) |"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 56,
+      "category": "HTTP v1 documentation reference",
+      "text": "Job：`{id,title,detail,state,stateLabel,physicalCompletion,createdAt}`，时间为 ISO8601。稳定状态为 `printing`、`sent`、`unknown`、`cancelled`；`stateLabel` 仅供中文显示。`physicalCompletion` 恒为 `unknown`，本地 API 不提供纸面确认接口。202 仅表示接受，sent 仅表示传输完成。任务不跨重启持久化，不自动重印。旧 `/v1` 与 `/v1/*` 在认证及 Origin 检查后统一返回 410 `api_v1_retired`，不转发。见 [v0.3.2 契约](API-v2-032.md)。"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 105,
+      "category": "HTTP v2",
+      "text": "http://127.0.0.1:8176/v2/status"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 108,
+      "category": "HTTP v2",
+      "text": "http://127.0.0.1:8176/v2/render"
+    },
+    {
+      "file": "doc/API.zh-CN.md",
+      "line": 135,
+      "category": "HTTP v2",
+      "text": "客户端是薄封装；其他端点可用其request方法。Python绕过系统HTTP代理访问回环，JavaScript调用浏览器/Node的fetch。API版本固定/v2；新增能力以兼容字段扩展，破坏性变更另开版本。"
+    },
+    {
+      "file": "doc/ARCHITECTURE.md",
+      "line": 31,
+      "category": "compatibility/version/history review",
+      "text": "The recorded local toolchain failed with duplicate AIModel specifications in the default SwiftBuild system. The script uses the working `native` build-system option; that option is deprecated and should be reevaluated if a future toolchain removes it. The script builds targets, copies the executable, PTY helper, OpenAPI, ICNS, LICENSE, and NOTICE, generates Info.plist, ad-hoc signs helper/app, and performs strict signature verification. It does not run the external validation programs."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 5,
+      "category": "HTTP v1 historical record",
+      "text": "Relay and Mac local HTTP APIs use v2 with separate responsibilities. Relay v1 was retired during the historical v0.3.0 migration; raster1 schema 1, template schema 1 and BLE framing remain separate contracts. Upgrade the relay, receivers and senders together; all `/v1/*` relay routes return HTTP 410. Never restore old receipt/content routes for compatibility."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 33,
+      "category": "HTTP v2",
+      "text": "- `GET /v2/public/status`; `POST /v2/auth/anonymous {browser_id}`; `POST /v2/auth/login {credential}`; `GET /v2/auth/me`; `POST /v2/auth/logout {}`."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 34,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/auth/challenge {id}` → challenge/message; `POST /v2/auth/prove {challenge,signature}` → native C session token."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/jobs {text?,content?,request_id}`. UUID request_id required; duplicates within retained history return the original acceptance and never create another job. Do not replay uncertain physical output."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 36,
+      "category": "HTTP v2",
+      "text": "- `GET /v2/jobs/{id}` or `/v2/jobs/lookup/{shortID}`: B-own/C fixed status only. Legacy X-Job-Receipt has no authority."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 37,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/device/status`; `GET /v2/device/jobs`: M queue descriptors only; `POST /v2/device/jobs/{id}/claim`; `GET /v2/device/jobs/{id}` with X-Job-Claim: active matching claim only; `POST .../result` with claim/state; `POST .../reject` for queued jobs. M cannot read completed history or manually confirm paper."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 38,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/keys/search`, `/identities/search`, `/sessions/search`: C, `{before?}`. At most 100 metadata rows/page; cursor `next`. GET collections are bounded legacy UI conveniences."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 39,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/keys {name,role,kind,device?,user_id?,password?}`; kind token/passphrase. M requires token. Existing user_id creates another credential for the same identity."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/keys/{id}/rename {name}`, `/rotate {password?}`, `/revoke {}`. Rotation revokes old sessions and keeps user_id; queued work continues. Current admin credential cannot revoke/rotate itself. Last proven C is protected. Deletion retains an audit tombstone."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 41,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/identities/{user_id}/revoke {}`: blocks all credentials and rejects queued jobs. Admin identities require individual credential revocation. Already buffered printer data cannot be recalled."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 42,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/sessions/revoke {credential_id}`: invalidates all sessions for that credential."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 43,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/public-keys {name,public_key}`: recent C login required."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/jobs/search` or `/export {before?,user_id?,job_id?}`: five full jobs/page, cursor next is an opaque SQLite row-order integer, not a timestamp. Full body/raster data, identity links, delivery metadata and job events; no claim/receipt/auth secrets. Native clients stream JSONL pages, including base64 attachments. JSONL avoids CSV formula execution. Do not request huge pages."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 45,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/jobs/{id}/confirm {}`: C manual paper confirmation of sent jobs."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 46,
+      "category": "HTTP v2",
+      "text": "- `POST /v2/admin/audit {before?}`: 100 records/page, 90-day retention. Content retention defaults to seven days. Session cleanup and expired-history event cleanup run during queue/submission activity."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 60,
+      "category": "compatibility/version/history review",
+      "text": "Anonymous browser identities may read only their own fixed state/progress responses. Explicit A tokens remain mailbox-only. The active payload rendering whitelist includes IP and User-Agent for local template fields; customer-facing routes still never return body/content/metadata. WinLite defaults to a paired RSA owner file for both management and execution, automatically renewing short-lived native proof sessions. C bearer/passphrase credentials alone cannot enter device execution routes; only a proven public-key C session can, still scoped to its registered device. Existing M execution routes remain for other compatible receivers. An owner-only retire-others action refuses active claims, preserves the current proven owner, invalidates other credentials/sessions and audits the cutover."
+    },
+    {
+      "file": "doc/AUTH-v2.md",
+      "line": 64,
+      "category": "HTTP v2",
+      "text": "C-only `POST /v2/admin/quotas/get {scope}` and `/set {scope,limits}` accept scopes `anonymous`, `authenticated`, `user:<UUID>`. Fields: `hourly_limit` jobs, `hourly_chars` text characters + raster rows, `max_length` units/submission (hard maximum 10000). Null inherits; zero blocks. Config defaults → class defaults → individual identity. SQLite persistence and transactional acceptance counters; stable identity usage survives rotation/additional credentials. Idempotent retries do not consume quota twice. Independent credential, IP and global limits still apply. Class usage is aggregate information; class limits apply separately per identity. Counters reset at the next epoch-hour boundary (`resetAt`). `auth/me` returns only the caller's effective quota/usage."
+    },
+    {
+      "file": "doc/AUTH-v2.zh-CN.md",
+      "line": 5,
+      "category": "HTTP v1 historical record",
+      "text": "中转与 Mac 本地 HTTP API 均使用 v2，职责独立。中转 v1 在历史 v0.3.0 迁移中淘汰；模板版本 1、raster1 和 BLE 协议保持兼容。服务器旧 /v1 路由统一返回 410，旧 receipt 不再授予任何读取权限。"
+    },
+    {
+      "file": "doc/CHARGING-AND-LED.md",
+      "line": 26,
+      "category": "compatibility/version/history review",
+      "text": "- Bit0x08 existed at 13% and disappeared at 58/65%. This is compatible with a low-battery hypothesis, but charging, time, and load changed together. It is not calibrated as either low-battery or charging."
+    },
+    {
+      "file": "doc/CHATGPT.md",
+      "line": 18,
+      "category": "HTTP v2",
+      "text": "- Submit explicitly user-approved text as **one physical print job** through `/v2/jobs`."
+    },
+    {
+      "file": "doc/CHATGPT.md",
+      "line": 27,
+      "category": "compatibility/version/history review",
+      "text": "See [the full deployment guide](../Integrations/ChatGPT/README.md). Requirements: Python 3.10+, the repository's compatible v0.3.0 relay, a dedicated revocable A/B `psr_` key, an online MacClient/WinLite receiver and a separately deployed authenticated HTTPS gateway. A dedicated B key is recommended if status reads are desired. ChatGPT plugin creation/connection is a separate account-specific action. For legacy GPT Actions, see the optional `openapi.yaml` compatibility file (direct relay HTTPS path; no MCP server)."
+    },
+    {
+      "file": "doc/CHATGPT.zh-CN.md",
+      "line": 18,
+      "category": "HTTP v2",
+      "text": "- 在用户明确要求后发送一份文字打印任务：`POST /v2/jobs`。"
+    },
+    {
+      "file": "doc/FEATURE-MATRIX.md",
+      "line": 30,
+      "category": "compatibility/version/history review",
+      "text": "**Experimental non-distribution:** The [ChatGPT adapter](CHATGPT.md) reuses A/B Relay API v2 for text, validated pre-rendered raster1, and B-only own-status reads. Implementation reviewed at source level with mock-transport tests provided; no deployed MCP/OAuth gateway, ChatGPT account connection, or P2 paper verification is claimed. This is not an additional release column or shared compatibility contract."
+    },
+    {
+      "file": "doc/FEATURE-MATRIX.md",
+      "line": 48,
+      "category": "compatibility/version/history review",
+      "text": "WinLite `v0.3.1-winlite-fix1`: native management layout, automatic credential/identity IDs, hide-revoked and 25/50/100-row paging. Legacy relay compatibility is retained; server summary/filter pagination is additive. See [Windows guide](WINDOWS.md)."
+    },
+    {
+      "file": "doc/FEATURE-MATRIX.md",
+      "line": 59,
+      "category": "compatibility/version/history review",
+      "text": "Server source ready; live deployment pending. Compatible API v2 baseline remains 0.3.1."
+    },
+    {
+      "file": "doc/FEATURE-MATRIX.zh-CN.md",
+      "line": 37,
+      "category": "compatibility/version/history review",
+      "text": "WinLite `v0.3.1-winlite-fix1`: native management layout, automatic credential/identity IDs, hide-revoked and 25/50/100-row paging. Legacy relay compatibility is retained; server summary/filter pagination is additive. See [Windows guide](WINDOWS.md)."
+    },
+    {
+      "file": "doc/FEATURE-MATRIX.zh-CN.md",
+      "line": 48,
+      "category": "compatibility/version/history review",
+      "text": "Server source ready; live deployment pending. Compatible API v2 baseline remains 0.3.1."
+    },
+    {
+      "file": "doc/HANDOFF-v0.3.0.zh-CN.md",
+      "line": 13,
+      "category": "HTTP v1 historical record",
+      "text": "新合同：中转 /v2，旧 /v1 返回 410；Mac 本地 HTTP /v1 不变。A 只投递，B 只查同 user_id 状态，C 完整管理，M 独立设备执行。网页只存安全 Cookie 和非秘密浏览器/任务 ID。完整正文/投递 metadata 只在 C 管理历史中开放；M 只能认领后携带 X-Job-Claim 读取活动正文，任务结束后不可读取。sent 不等于纸面确认，unknown 不自动重印。"
+    },
+    {
+      "file": "doc/HANDOFF-v0.3.0.zh-CN.md",
+      "line": 33,
+      "category": "HTTP v1 historical record",
+      "text": "必须保持边界：A 只接收受理及 ID，状态 403；B 只查同 user_id 固定状态字段；C 管理全部身份/凭证/会话/公钥/完整历史及导出；M 只看所属设备待处理描述符，认领后 X-Job-Claim 获取活动正文，完成后禁止内容访问。所有旧 relay /v1 路由 410，任何 receipt/shortID 不授予正文权限。公共 status 无打印遥测。Mac 本地 /v1 是另一个 API，不要误改。"
+    },
+    {
+      "file": "doc/MACCLIENT-v0.3.1.md",
+      "line": 9,
+      "category": "compatibility/version/history review",
+      "text": "Choose the paired owner private-key JSON file in Remote Print, check the server address, then connect. The file must belong to that server. RSA-PSS proof obtains a short-lived session, renewed before expiry; a rejected session is renewed once. The stable fingerprint uses the paired ID and SHA-256 of SPKI, matching WinLite. Existing M credentials remain a compatibility option; an M key revoked during server owner cutover cannot be reused."
+    },
+    {
+      "file": "doc/OPTIMIZATION-opt1.md",
+      "line": 7,
+      "category": "compatibility/version/history review",
+      "text": "Compatible baseline **0.3.1** is unchanged. Current distribution versions are `0.3.1-macclient-opt1`, `0.3.1-linuxrelayserver-opt1`, `0.3.1-winlite-opt1` and `0.3.1-relayskill-opt1`. Relay API v2, Mac local API v1, templates v1 and raster1 schema1 retain their contracts. This is a local source/build update; it does not install a server, publish a release or establish new physical-print evidence."
+    },
+    {
+      "file": "doc/OWNER-CUTOVER-v0.3.1.zh-CN.md",
+      "line": 5,
+      "category": "HTTP v2",
+      "text": "M 设备执行密钥返回 403 管理拒绝属于权限隔离本身，不应把 M 升级成无限管理权限或尝试从它反查 C 秘密。诊断可在本机请求 GET /v2/auth/me 确认 role；A/B/M 无权管理，旧秘密也不能从摘要恢复。"
+    },
+    {
+      "file": "doc/OWNER-CUTOVER-v0.3.1.zh-CN.md",
+      "line": 18,
+      "category": "HTTP v2",
+      "text": "4. 新所有者调用 POST /v2/admin/security/retire-others，明确 confirm=true、keep=当前 id。服务器拒绝正在打印的切换，保留新所有者，吊销所有其他既有凭证/会话并写入审计。不能用普通 C bearer 或未证明公钥调用。"
+    },
+    {
+      "file": "doc/PROTOCOL.md",
+      "line": 28,
+      "category": "compatibility/version/history review",
+      "text": "The envelope is 10 bytes and payload at most 1023. CRC covers **payload only**. It is zlib-compatible reflected CRC32, reflected polynomial `EDB88320`, initial/final XOR `FFFFFFFF`. `Wire.crc(data,seed:)` matches `zlib.crc32(data,seed)`. Notifications can split or combine frames: use length, terminator, and CRC rather than notification boundaries."
+    },
+    {
+      "file": "doc/README.md",
+      "line": 17,
+      "category": "compatibility/version/history review",
+      "text": "| Version naming and compatibility | [Version policy](VERSIONING.md) | [版本命名与兼容规则](VERSIONING.zh-CN.md) |"
+    },
+    {
+      "file": "doc/README.zh-CN.md",
+      "line": 115,
+      "category": "HTTP v1 documentation reference",
+      "text": "> **从 v0.2.x 升级：**中转 API v2 必须协调升级；旧中转 /v1 和 receipt 正文能力已关闭，**Mac 本地 API 已迁移到 v2**。部署前阅读[升级与回滚](UPGRADE-v0.3.0.zh-CN.md)、[鉴权合同](AUTH-v2.zh-CN.md)和[验证记录](VALIDATION-v0.3.0.md)。源码已提供不代表各平台已经部署或通过原生验证。"
+    },
+    {
+      "file": "doc/RELAY-SKILL.md",
+      "line": 25,
+      "category": "compatibility/version/history review",
+      "text": "## Credentials and compatibility"
+    },
+    {
+      "file": "doc/RELEASE-v0.3.2.md",
+      "line": 7,
+      "category": "compatibility/version/history review",
+      "text": "## Compatibility and upgrade"
+    },
+    {
+      "file": "doc/RELEASE-v0.3.2.md",
+      "line": 9,
+      "category": "compatibility/version/history review",
+      "text": "HTTP API v1 is retired; obsolete requests receive explicit rejection and cannot execute business operations. Update old Local API consumers to v2 and coordinate clients/server upgrades. This release explicitly permits the scoped PATCH breaking-change exception documented in the version policy; it does not imply generic compatibility with API v1."
+    },
+    {
+      "file": "doc/REMOTE-PRINTING.md",
+      "line": 9,
+      "category": "HTTP v2",
+      "text": "Earlier 0.2.x /v2, receipt-content and standard-library-only deployment instructions are retired. Do not re-enable old content routes for compatibility."
+    },
+    {
+      "file": "doc/REMOTE-PRINTING.zh-CN.md",
+      "line": 9,
+      "category": "HTTP v1 documentation reference",
+      "text": "原 0.2.x 的 /v1、receipt、设备历史和“纯标准库”部署说明已被本版替代。不要为兼容旧客户端重开权限旁路。"
+    },
+    {
+      "file": "doc/RESEARCH.md",
+      "line": 68,
+      "category": "compatibility/version/history review",
+      "text": "| D1 /ZYB-D1 model |Model metadata,384-dot/PID5585 candidate |Claiming verified compatibility without hardware |"
+    },
+    {
+      "file": "doc/RICH-MEDIA.md",
+      "line": 11,
+      "category": "HTTP v2",
+      "text": "The Mac must run this updated build. It advertises `X-Paperang-Content-Types: text,raster1`; old clients see only text jobs and cannot claim raster jobs. Upgrade both server and app before use. The server advertises `capabilities.contentTypes` and `contentSchemaVersion` at `/v2/public/status`; the website disables Drawing when this capability is absent."
+    },
+    {
+      "file": "doc/RICH-MEDIA.md",
+      "line": 15,
+      "category": "HTTP v2",
+      "text": "## POST /v2/jobs"
+    },
+    {
+      "file": "doc/RICH-MEDIA.md",
+      "line": 23,
+      "category": "data-schema (preserved)",
+      "text": "\"schemaVersion\": 1,"
+    },
+    {
+      "file": "doc/RICH-MEDIA.md",
+      "line": 41,
+      "category": "HTTP v2",
+      "text": "Only POST `/v2/jobs` accepts up to **160 KiB (163840 bytes)** JSON; all other JSON requests remain 64 KiB. The largest raw raster is 100800 bytes, base64 134400 characters. Ensure reverse proxy body limits allow at least 160 KiB. The bounded JSON envelope avoids multipart uploads and a second upload lifecycle for these small print-ready bitmaps. Base64 has 33% wire overhead, but one-bit raster is 1/24 of RGB before that overhead (a 576×384 image is 27648 bytes raw)."
+    },
+    {
+      "file": "doc/RICH-MEDIA.md",
+      "line": 55,
+      "category": "compatibility/version/history review",
+      "text": "Checks cover stale lookup vs submission, unknown-state fallback, exact raster bit/row packing and hash; server size/encoding/hash rejection, row quotas, legacy compatibility and migration, private access, and a real HTTP maximum-height authenticated submission. A real browser drawing was submitted and queued locally. Native validation covers full-content fetch, pixel preservation and checksum rejection. These software checks do not establish a new physical print or phone-hardware touch test."
+    },
+    {
+      "file": "doc/RICH-MEDIA.zh-CN.md",
+      "line": 11,
+      "category": "HTTP v2",
+      "text": "必须同时更新服务端和 App。新客户端声明请求头 `X-Paperang-Content-Types: text,raster1`，旧客户端只能列出文字任务，也不能认领图片。服务器 `/v2/public/status` 的 capabilities 返回 contentTypes/contentSchemaVersion；旧服务端缺少能力声明时网页禁用绘图。"
+    },
+    {
+      "file": "doc/RICH-MEDIA.zh-CN.md",
+      "line": 17,
+      "category": "HTTP v2",
+      "text": "仍使用 POST `/v2/jobs`，旧请求 `{\"text\":\"hello\"}` 保持兼容。图片在 text（可空）旁增加 content："
+    },
+    {
+      "file": "doc/RICH-MEDIA.zh-CN.md",
+      "line": 23,
+      "category": "data-schema (preserved)",
+      "text": "\"schemaVersion\": 1,"
+    },
+    {
+      "file": "doc/RICH-MEDIA.zh-CN.md",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "只有 POST `/v2/jobs` 请求上限扩大至 160 KiB（163840 字节），其他接口仍为 64 KiB。最大原始图像 100800 字节，Base64 134400 字符；反向代理应允许至少 160 KiB 请求。当前小图采用单次受限 JSON 提交，避免先上传后提交的孤立附件。Base64 有约 33% 编码开销，但黑白点阵本身仅为 RGB 的 1/24；576×384 原始点阵仅 27648 字节。"
+    },
+    {
+      "file": "doc/TRAY-MODE.md",
+      "line": 15,
+      "category": "HTTP v2",
+      "text": "Network print consent is separate from the workspace's sidebar paper switch. `GET /v2/status` reports `appVersion`, `trayMode`, `networkPrintAllowed`, `automaticNetworkConsent`, `workspacePrintingEnabled`, and `printingEnabled` (effective network permission). These flags authorize jobs; they do not assert printer readiness or paper completion. `apiRunning` in the menu comes from the listener's actual startup callback; port conflicts are shown as listener failure rather than a false connected state."
+    },
+    {
+      "file": "doc/TRAY-MODE.md",
+      "line": 17,
+      "category": "HTTP v2",
+      "text": "| State | POST /v2/jobs | Relay inbox |"
+    },
+    {
+      "file": "doc/TRAY-MODE.zh-CN.md",
+      "line": 15,
+      "category": "HTTP v2",
+      "text": "托盘网络授权独立于侧栏“全局允许耗纸”，不会自动打开工作台打印权限。`GET /v2/status` 返回 appVersion、trayMode、networkPrintAllowed、automaticNetworkConsent、workspacePrintingEnabled 和 printingEnabled（当前有效网络权限）。权限不等于打印机就绪或纸面完成。本地 API 是否在线以监听回调为准，端口占用会显示失败。"
+    },
+    {
+      "file": "doc/TRAY-MODE.zh-CN.md",
+      "line": 17,
+      "category": "HTTP v2",
+      "text": "| 模式 | 本地 POST /v2/jobs | 中转任务 |"
+    },
+    {
+      "file": "doc/UPGRADE-v0.3.0.md",
+      "line": 14,
+      "category": "HTTP v1 historical record",
+      "text": "4. Legacy submit/admin/device hashes migrate to B/C/M. Named jobs map to stable identities; old anonymous jobs remain unassigned. Old receipt/private-content access is retired; all relay /v1 routes return 410."
+    },
+    {
+      "file": "doc/UPGRADE-v0.3.0.zh-CN.md",
+      "line": 24,
+      "category": "HTTP v1 historical record",
+      "text": "5. 启动 v0.3.0 服务器，验证 HTTPS、Cookie、Origin、CSRF、可信反代。所有 relay /v1 路径必须 410。旧网页刷新加载 v2；旧 receipt 失效，需重新建立身份。"
+    },
+    {
+      "file": "doc/UPGRADE-v0.3.2.md",
+      "line": 5,
+      "category": "compatibility/version/history review",
+      "text": "## Compatibility"
+    },
+    {
+      "file": "doc/UPGRADE-v0.3.2.md",
+      "line": 7,
+      "category": "HTTP v1 historical record",
+      "text": "All application HTTP business calls use API v2. Old HTTP v1 paths are rejected with 410, without authentication dispatch, body interpretation or business execution on Relay. This small explicit rejection guard is retained to distinguish retirement from an unknown route; there is no forwarding adapter. Mac loopback authentication/Origin rules apply before its retirement rejection. Bare `/v1` is also rejected. Template/content/configuration schema 1 and the BLE physical protocol are independent version domains and remain unchanged."
+    },
+    {
+      "file": "doc/UPGRADE-v0.3.2.md",
+      "line": 9,
+      "category": "compatibility/version/history review",
+      "text": "This is the explicitly approved PATCH exception to the normal pre-1.0 MINOR breaking-change policy: Mac local v1 consumers must upgrade to v2. Relay v2 remains compatible with existing v0.3.1 v2 receivers. Upgrade native clients before final cross-platform acceptance. Never infer physical paper completion from `sent`."
+    },
+    {
+      "file": "doc/UPGRADE-v0.3.2.md",
+      "line": 33,
+      "category": "compatibility/version/history review",
+      "text": "It refuses active prints, stops the relay, backs up the **current** database again, switches to the old program/console, then restarts. **It never replaces the live database with the pre-upgrade snapshot.** All post-upgrade writes survive. This is safe only because both programs have been rehearsed against the same persistent schema/rows. A future incompatible schema change must supply a different verified migration/rollback procedure; this updater refuses rehearsal differences."
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-macos.md",
+      "line": 7,
+      "category": "compatibility/version/history review",
+      "text": "| Native arm64 macOS | `PAPERANG_WORK_DIR=\"$PWD/work/native\" zsh scripts/build.sh` | Release build, PTY host signing, app ad-hoc signing and `codesign --verify --deep --strict` passed; runtime 0.3.2-macclient, numeric bundle version 0.3.2, build 3201. SwiftPM warns that `--build-system native` is deprecated. |"
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-macos.md",
+      "line": 13,
+      "category": "HTTP v2",
+      "text": "| Current production Ubuntu Relay | GET only `/v2/public/status`, native ephemeral URLSession | HTTP 200. Runtime `0.3.1-linuxrelayserver-opt1`; authVersion 2; contentSchemaVersion 1; text/raster1; identityRequired, anonymousOwnStatus, ownerExecution, quotaManagement advertised. Acceptance true. Initial sandbox/proxy/handshake attempts failed; one successful connection counts as connectivity success per owner instruction. |"
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-macos.md",
+      "line": 20,
+      "category": "compatibility/version/history review",
+      "text": "Production checks did **not** log in, create identities, submit/claim jobs, read private history, rotate credentials, change policy, touch source/database, restart systemd, or upgrade the server. No dedicated production test identity was supplied, so authenticated end-to-end production print/management was deliberately not exercised; native authenticated integration uses isolated fixtures. Public capabilities do not prove every management call works online. No new server behavior is required by this stage, and no server incompatibility was observed by the public probe."
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-ubuntu.md",
+      "line": 24,
+      "category": "HTTP v1 historical record",
+      "text": "- New program start, local HTTP and public HTTPS return the new version; `/` includes the new web version. `/v1` and `/v1/jobs` return HTTP410. The v1 guards do not dispatch business operations."
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-windows.md",
+      "line": 15,
+      "category": "HTTP v2",
+      "text": "| HTTP client | `RelayClient.cs`, `OwnerAuthentication.cs`, `AdminForm.cs`, `QuotaForm.cs`, `Program.cs` | All actual business requests use Relay `/v2`; no HTTP v1 execution adapter. Windows has no Mac loopback HTTP service. Local and Relay error formats remain distinct. |"
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-windows.md",
+      "line": 25,
+      "category": "compatibility/version/history review",
+      "text": "The existing Windows runtime already used v2. No artificial bulk migration or schema-1 removal was needed. Removed stale external-only test directions in current Windows docs; promoted the usable historical test harness and corrected its obsolete v1 mock/detail/auth defaults. Preserved historical release evidence, necessary v2 pagination compatibility, config backup/migration, DPAPI, ACL handling and installer rollback/data-retention behavior. No server or macOS implementation changed; no new shared wire contract was introduced."
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-windows.md",
+      "line": 57,
+      "category": "compatibility/version/history review",
+      "text": "## Existing Ubuntu compatibility and limitations"
+    },
+    {
+      "file": "doc/VALIDATION-v0.3.2-windows.md",
+      "line": 61,
+      "category": "compatibility/version/history review",
+      "text": "Separate Python public-status reads failed with an 8-second timeout, two .NET public probes failed at 30 seconds, and curl direct TLS failed its handshake. The observed successful GUI receiver recovery does not turn these failed probes into passed tests. Production connectivity remains intermittent from this environment; exact cause and production runtime version were not established. No new production print job, credential, quota or manual confirmation was created. Full live submit/claim/print/confirm remains unverified; real remote printing used isolation. Ubuntu must recheck endpoint/TLS/network health and production end-to-end behavior before release. This does not prove a server outage or a WinLite API incompatibility."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 1,
+      "category": "compatibility/version/history review",
+      "text": "# Version naming and compatibility policy"
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 7,
+      "category": "compatibility/version/history review",
+      "text": "The owner explicitly requires retiring Mac local HTTP API v1 in this patch baseline. This compatibility exception returns 410, requires local callers to migrate to v2 and stable English job states, and does not change Relay v2, template/content schema 1 or physical protocol. Historical tags remain immutable. The final product tag is `v0.3.2`; platform suffixes remain in runtime and package names."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 16,
+      "category": "compatibility/version/history review",
+      "text": "The numeric baseline identifies one product generation and its compatibility contract. Matching baselines mean the declared shared relay API, content and template schemas interoperate, with equivalent semantics for implemented common features. It does not mean a relay server has a printer UI or a tray-only client has every full-client tool. Scope differences must be explicit in the matrix; an unimplemented mandatory feature blocks a full-client parity claim."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 20,
+      "category": "compatibility/version/history review",
+      "text": "- **MAJOR** changes for a breaking shared contract or incompatible product generation."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 22,
+      "category": "compatibility/version/history review",
+      "text": "- **PATCH** changes for a shared baseline correction requiring coordination across distributions, even if backward compatible."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 23,
+      "category": "compatibility/version/history review",
+      "text": "- **`fixN`** identifies a distribution-only compatible correction or local improvement. Counters are local to each baseline/distribution and restart when the baseline changes. Never change API/schema semantics incompatibly under a fix note."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 36,
+      "category": "compatibility/version/history review",
+      "text": "1. Update that distribution's VERSION/runtime metadata, `VERSIONS.json`, changelog and bilingual guide. Retain the baseline for a compatible distribution fix."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 38,
+      "category": "compatibility/version/history review",
+      "text": "3. Test client/server compatibility, template round trips, state transitions and no-replay behavior. Full clients must meet their required matrix rows; WinLite exclusions stay explicit."
+    },
+    {
+      "file": "doc/VERSIONING.md",
+      "line": 44,
+      "category": "compatibility/version/history review",
+      "text": "`optN` identifies a compatible optimization revision. For stable update checks at the same baseline, initial/fix revisions precede opt revisions; opt counters compare numerically. After opt1, use opt2 or a newer numeric baseline. Historical tags are unchanged. See [opt1 review](OPTIMIZATION-opt1.md)."
+    },
+    {
+      "file": "doc/VERSIONING.zh-CN.md",
+      "line": 44,
+      "category": "compatibility/version/history review",
+      "text": "`optN` identifies a compatible optimization revision. For stable update checks at the same baseline, initial/fix revisions precede opt revisions; opt counters compare numerically. After opt1, use opt2 or a newer numeric baseline. Historical tags are unchanged. See [opt1 review](OPTIMIZATION-opt1.md)."
+    },
+    {
+      "file": "doc/WINDOWS-PORTING.zh-CN.md",
+      "line": 22,
+      "category": "compatibility/version/history review",
+      "text": "| LocalAPI.swift、APIRoutes.swift、IntegrationCore/HTTP.swift、Clients/ | 本机鉴权 API 和 SDK | 本版未开启本地 API |"
+    },
+    {
+      "file": "doc/WINDOWS.md",
+      "line": 37,
+      "category": "compatibility/version/history review",
+      "text": "JSON retains original font names. Windows maps PingFang SC to Microsoft YaHei, Menlo to Consolas, and Helvetica to Arial. Glyphs and line breaks may differ between operating systems; the template structure and image composition remain compatible."
+    },
+    {
+      "file": "doc/WINDOWS.zh-CN.md",
+      "line": 94,
+      "category": "data-schema (preserved)",
+      "text": "“启动与状态 → 导出全部配置”导出带版本和 schemaVersion 的 JSON，包含模板、所有设置、界面偏好及私钥路径，不包含私钥文件内容、原始密钥、短期会话或待回报任务。禁止将配置导出覆盖到当前私钥路径。换机时需要单独迁移私钥并调整路径；此版提供配置导出，未提供图形化导入。"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 6,
+      "category": "HTTP v1 documentation reference",
+      "text": "\"description\": \"Paperang Studio 0.3.2-macclient authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project. This is the Mac local HTTP API v2. Relay API v2 is documented separately in doc/AUTH-v2.md. Removed /v1 and /v1/* return 410 after authentication, including OPTIONS. See API-v2-032.md. Local jobs are session-only; sent never proves paper completion.\","
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 27,
+      "category": "HTTP v2",
+      "text": "\"/v2/status\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 64,
+      "category": "HTTP v2",
+      "text": "\"/v2/devices\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 122,
+      "category": "HTTP v2",
+      "text": "\"/v2/protocol\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 182,
+      "category": "HTTP v2",
+      "text": "\"/v2/settings\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 227,
+      "category": "HTTP v2",
+      "text": "\"/v2/jobs\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 352,
+      "category": "HTTP v2",
+      "text": "\"/v2/jobs/{id}\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 400,
+      "category": "HTTP v2",
+      "text": "\"/v2/logs\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 463,
+      "category": "HTTP v2",
+      "text": "\"/v2/openapi\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 493,
+      "category": "HTTP v2",
+      "text": "\"/v2/scan\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 553,
+      "category": "HTTP v2",
+      "text": "\"/v2/connect\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 622,
+      "category": "HTTP v2",
+      "text": "\"/v2/disconnect\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 682,
+      "category": "HTTP v2",
+      "text": "\"/v2/query\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 774,
+      "category": "HTTP v2",
+      "text": "\"/v2/render\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 841,
+      "category": "HTTP v2",
+      "text": "\"/v2/feed\": {"
+    },
+    {
+      "file": "doc/openapi.json",
+      "line": 936,
+      "category": "HTTP v2",
+      "text": "\"/v2/jobs/{id}/cancel\": {"
+    },
+    {
+      "file": "scripts/audit-api.py",
+      "line": 8,
+      "category": "data-schema (preserved)",
+      "text": "pattern=re.compile(r'/v[12]|api/v[12]|API_VERSION|localApi|relayApi|schemaVersion|deprecated|compatib',re.I)"
+    },
+    {
+      "file": "scripts/audit-api.py",
+      "line": 16,
+      "category": "data-schema (preserved)",
+      "text": "if 'schemaVersion' in text:category='data-schema (preserved)'"
+    },
+    {
+      "file": "scripts/audit-api.py",
+      "line": 17,
+      "category": "HTTP v1 documentation reference",
+      "text": "elif '/v1' in text:category='HTTP v1 rejection test' if name.startswith('tests/') else ('HTTP v1 retirement' if name.startswith(('Server/','Sources/')) else ('HTTP v1 historical record' if any(x in name for x in ['UPGRADE','HANDOFF','VALIDATION','OPTIMIZATION','CHANGELOG','MACCLIENT','AUDIT','AUTH-v2']) else 'HTTP v1 documentation reference'))"
+    },
+    {
+      "file": "scripts/audit-api.py",
+      "line": 18,
+      "category": "HTTP v2",
+      "text": "elif '/v2' in text or 'relayApi' in text or 'localApi' in text:category='HTTP v2'"
+    },
+    {
+      "file": "scripts/audit-api.py",
+      "line": 20,
+      "category": "compatibility/version/history review",
+      "text": "else:category='compatibility/version/history review'"
+    },
+    {
+      "file": "scripts/check-versions.py",
+      "line": 34,
+      "category": "HTTP v2",
+      "text": "assert registry['compatibility']['localApi'] == registry['compatibility']['relayApi'] == 'v2'"
+    },
+    {
+      "file": "scripts/publish-release.py",
+      "line": 62,
+      "category": "HTTP v2",
+      "text": "req = urllib.request.Request('https://etel.patronum.uk/v2/public/status',"
+    },
+    {
+      "file": "tests/native_check.swift",
+      "line": 33,
+      "category": "compatibility/version/history review",
+      "text": "fflush(stdout);print(\"PASS: PKCS8/PKCS1 and Windows-compatible fingerprint; RSA-PSS proof, coalesced renewal, C execution and active-claim privacy\")"
+    },
+    {
+      "file": "tests/run_native_check.py",
+      "line": 27,
+      "category": "data-schema (preserved)",
+      "text": "raw=bytes([0xaa])*72*24;body['content']={'schemaVersion':1,'type':'raster1','width':576,'height':24,'bitOrder':'msb-first','blackIsOne':True,'encoding':'base64','data':base64.b64encode(raw).decode(),'sha256':hashlib.sha256(raw).hexdigest()}"
+    },
+    {
+      "file": "tests/run_native_check.py",
+      "line": 28,
+      "category": "HTTP v2",
+      "text": "code,job=store.route('POST','/v2/jobs',body,actor,'127.0.0.1',{})"
+    },
+    {
+      "file": "tests/run_native_check.py",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/admin/validation-mode':"
+    },
+    {
+      "file": "tests/run_native_check.py",
+      "line": 37,
+      "category": "HTTP v2",
+      "text": "if legacy[0] and path in ['/v2/admin/keys/search','/v2/admin/identities/search','/v2/admin/jobs/search']:"
+    },
+    {
+      "file": "tests/run_native_check.py",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/device/status':"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 28,
+      "category": "data-schema (preserved)",
+      "text": "content = {\"schemaVersion\": 1, \"type\": \"raster1\", \"width\": 576,"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 52,
+      "category": "HTTP v2",
+      "text": "if request.url.path == \"/v2/auth/me\":"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 54,
+      "category": "HTTP v2",
+      "text": "if request.url.path == \"/v2/public/status\":"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 59,
+      "category": "compatibility/version/history review",
+      "text": "\"contentSchemaVersion\": 1}})"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 60,
+      "category": "HTTP v2",
+      "text": "if request.url.path == \"/v2/jobs\" and request.method == \"POST\":"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 65,
+      "category": "HTTP v2",
+      "text": "if request.url.path == \"/v2/jobs/\" + job_id:"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 73,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(events, [(\"GET\", \"/v2/auth/me\"), (\"GET\", \"/v2/public/status\"),"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 74,
+      "category": "HTTP v2",
+      "text": "(\"POST\", \"/v2/jobs\"), (\"GET\", \"/v2/auth/me\"),"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 75,
+      "category": "HTTP v2",
+      "text": "(\"GET\", \"/v2/jobs/\" + job_id)])"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 81,
+      "category": "HTTP v2",
+      "text": "if request.url.path == \"/v2/auth/me\":"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 92,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(events, [\"/v2/auth/me\", \"/v2/public/status\", \"/v2/jobs\"])"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 104,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(events, [\"/v2/auth/me\"])"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 110,
+      "category": "HTTP v2",
+      "text": "if request.url.path == \"/v2/auth/me\":"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 115,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(events[-1], \"/v2/jobs/lookup/ABCDEF012345\")"
+    },
+    {
+      "file": "tests/server/test_chatgpt_core.py",
+      "line": 126,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(events, [\"/v2/auth/me\"])"
+    },
+    {
+      "file": "tests/server/test_console.py",
+      "line": 10,
+      "category": "HTTP v2",
+      "text": "def api(self,path,body):return self.backend.call('api',{'path':'/v2/admin/'+path,'body':body})"
+    },
+    {
+      "file": "tests/server/test_console.py",
+      "line": 26,
+      "category": "HTTP v2",
+      "text": "job=self.store.route('POST','/v2/jobs',{'text':'private fixture 中文','request_id':str(uuid.uuid4())},key,'127.0.0.1',{})[1]"
+    },
+    {
+      "file": "tests/server/test_linux.py",
+      "line": 22,
+      "category": "data-schema (preserved)",
+      "text": "content={'schemaVersion':1,'type':'raster1','width':576,'height':1400,'encoding':'base64','bitOrder':'msb-first','blackIsOne':True,'data':base64.b64encode(raw).decode(),'sha256':hashlib.sha256(raw).hexdigest()}"
+    },
+    {
+      "file": "tests/server/test_linux.py",
+      "line": 26,
+      "category": "HTTP v2",
+      "text": "req=urllib.request.Request('http://127.0.0.1:'+str(server.server_port)+'/v2/jobs',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','Authorization':'Bearer '+self.entry['token']})"
+    },
+    {
+      "file": "tests/server/test_linux.py",
+      "line": 30,
+      "category": "HTTP v2",
+      "text": "replay=restarted.route('POST','/v2/jobs',body,key,'127.0.0.1',{})[1]"
+    },
+    {
+      "file": "tests/server/test_linux.py",
+      "line": 33,
+      "category": "HTTP v2",
+      "text": "exported=restarted.route('POST','/v2/admin/jobs/export',{},c,'127.0.0.1',{})[1]['jobs'][0]"
+    },
+    {
+      "file": "tests/server/test_linux.py",
+      "line": 39,
+      "category": "HTTP v2",
+      "text": "self.s.route('POST','/v2/jobs',body,self.key,'127.0.0.1',{})"
+    },
+    {
+      "file": "tests/server/test_linux.py",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "with self.assertRaises(Problem) as exc:self.s.route('POST','/v2/jobs',{**body,'request_id':str(uuid.uuid4())},self.key,'127.0.0.1',{})"
+    },
+    {
+      "file": "tests/server/test_linux.py",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "with self.assertRaises(Problem) as exc:self.s.route('POST','/v2/jobs',{**body,'request_id':str(uuid.uuid4())},key,'127.0.0.2',{})"
+    },
+    {
+      "file": "tests/server/test_relay_print.py",
+      "line": 32,
+      "category": "HTTP v2",
+      "text": "if self.path == '/v2/public/status':"
+    },
+    {
+      "file": "tests/server/test_relay_print.py",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "elif self.path.startswith('/v2/jobs/'):"
+    },
+    {
+      "file": "tests/server/test_relay_print.py",
+      "line": 39,
+      "category": "HTTP v2",
+      "text": "self.send_response(302); self.send_header('Location', '/v2/public/status'); self.end_headers()"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 46,
+      "category": "HTTP v2",
+      "text": "return self.route('POST','/v2/jobs',role,dict(text='private Chinese 中文',request_id=request_id or str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 51,
+      "category": "HTTP v2",
+      "text": "for path in ['/v2/jobs/'+job['id'],'/v2/jobs/lookup/'+job['shortID']]: self.blocked(403,'GET',path,'A')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 52,
+      "category": "HTTP v1 rejection test",
+      "text": "for path in ['/v1/jobs/'+job['id'],'/v1/jobs/lookup/'+job['shortID'],'/v1/device/jobs']:"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 54,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/jobs',None,dict(text='x',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 57,
+      "category": "HTTP v2",
+      "text": "session=self.route('POST','/v2/auth/anonymous',body={'browser_id':'psb_'+uuid.uuid4().hex})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 61,
+      "category": "HTTP v2",
+      "text": "state=self.route('GET','/v2/jobs/lookup/'+own['shortID'],'anon')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 64,
+      "category": "HTTP v2",
+      "text": "self.blocked(404,'GET','/v2/jobs/'+other['id'],'anon')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 65,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/admin/jobs/search','anon')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 66,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'GET','/v2/jobs/'+own['id'],'A')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 70,
+      "category": "HTTP v2",
+      "text": "self.route('GET','/v2/device/jobs','owner')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 71,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'GET','/v2/device/jobs','C')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 72,
+      "category": "HTTP v2",
+      "text": "job=self.submit('B');path='/v2/device/jobs/'+job['id']"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 76,
+      "category": "HTTP v2",
+      "text": "self.blocked(409,'POST','/v2/admin/security/retire-others','owner',{'keep':owner['id'],'confirm':True})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 78,
+      "category": "HTTP v2",
+      "text": "result=self.route('POST','/v2/admin/security/retire-others','owner',{'keep':owner['id'],'confirm':True})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 86,
+      "category": "HTTP v2",
+      "text": "self.blocked(503,'POST','/v2/device/jobs/'+job['id']+'/claim','M')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 87,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.route('GET','/v2/jobs/'+job['id'],'B')['state'],'queued')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 90,
+      "category": "HTTP v2",
+      "text": "job=self.submit('B');state=self.route('GET','/v2/jobs/'+job['id'],'B')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 92,
+      "category": "HTTP v2",
+      "text": "other=self.submit('A');self.blocked(404,'GET','/v2/jobs/'+other['id'],'B')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 93,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/admin/jobs/search','B')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 96,
+      "category": "HTTP v2",
+      "text": "job=self.submit('B');queue=self.route('GET','/v2/device/jobs','M')['jobs']"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 98,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 99,
+      "category": "HTTP v2",
+      "text": "claim=self.route('POST','/v2/device/jobs/'+job['id']+'/claim','M')['claim']"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 100,
+      "category": "HTTP v2",
+      "text": "full=self.route('GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 102,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/jobs','M',dict(text='x',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 103,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/device/jobs/'+job['id']+'/result','M',dict(claim=claim,state='sent'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 104,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'GET','/v2/device/jobs/'+job['id'],'M',headers={'X-Job-Claim':claim})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 105,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.route('GET','/v2/device/jobs','M')['jobs'],[])"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 106,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/device/jobs/'+job['id']+'/confirm','M')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 107,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/jobs/'+job['id']+'/confirm','C')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 111,
+      "category": "HTTP v2",
+      "text": "result=self.route('POST','/v2/admin/jobs/export','C',dict(user_id=self.keys['B']['user_id']))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 120,
+      "category": "HTTP v2",
+      "text": "updated=self.route('POST','/v2/admin/keys/'+entry['id']+'/rotate','C')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 127,
+      "category": "HTTP v2",
+      "text": "self.blocked(400,'POST','/v2/auth/anonymous',body={'browser_id':'fake'})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 128,
+      "category": "HTTP v2",
+      "text": "result=self.route('POST','/v2/auth/anonymous',body={'browser_id':'psb_'+uuid.uuid4().hex})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 131,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/identities/'+key['user_id']+'/revoke','C')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 132,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.route('GET','/v2/jobs/'+job['id'],'C')['state'],'rejected')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 165,
+      "category": "HTTP v2",
+      "text": "first=self.route('POST','/v2/admin/jobs/export','C')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 166,
+      "category": "HTTP v2",
+      "text": "second=self.route('POST','/v2/admin/jobs/export','C',{'before':first['next']})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 171,
+      "category": "HTTP v2",
+      "text": "job=self.submit('B');path='/v2/device/jobs/'+job['id']"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 175,
+      "category": "HTTP v2",
+      "text": "self.route('GET','/v2/device/jobs','M')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 176,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.route('GET','/v2/jobs/'+job['id'],'B')['state'],'unknown')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 178,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.route('GET','/v2/jobs/'+job['id'],'B')['state'],'sent')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 183,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/keys/'+self.keys['B']['id']+'/rename','C',dict(name='renamed'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 186,
+      "category": "HTTP v2",
+      "text": "page=self.route('POST','/v2/admin/jobs/search','C')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 190,
+      "category": "HTTP v2",
+      "text": "raw=json.dumps(self.route('POST','/v2/admin/'+collection+'/search','C'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 199,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/admin/public-keys','C',dict(name='x',public_key=pem))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 212,
+      "category": "HTTP v2",
+      "text": "result=self.route('POST','/v2/auth/anonymous',body={'browser_id':'psb_'+uuid.uuid4().hex})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 214,
+      "category": "HTTP v2",
+      "text": "first=self.route('POST','/v2/jobs','anon',dict(text='browser fields',request_id=str(uuid.uuid4()),browser=dict(language='zh-CN',platform='Windows',timezone='discard',screen='discard',secret='discard')),headers={'User-Agent':'Firefox/132.0'})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 215,
+      "category": "HTTP v2",
+      "text": "claim=self.route('POST','/v2/device/jobs/'+first['id']+'/claim','M')['claim']"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 216,
+      "category": "HTTP v2",
+      "text": "payload=self.route('GET','/v2/device/jobs/'+first['id'],'M',headers={'X-Job-Claim':claim})"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 219,
+      "category": "HTTP v2",
+      "text": "self.assertNotIn('metadata',self.route('GET','/v2/jobs/'+first['id'],'anon'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 221,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','anon',dict(text='sixth',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 222,
+      "category": "HTTP v2",
+      "text": "job=self.route('POST','/v2/admin/jobs/search','C')['jobs'][0]"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 249,
+      "category": "HTTP v2",
+      "text": "job=self.submit('B');path='/v2/device/jobs/'+job['id']"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 266,
+      "category": "HTTP v2",
+      "text": "token=self.route('POST','/v2/admin/keys','C',dict(name='Automatic identity',role='A',kind='token'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 269,
+      "category": "HTTP v2",
+      "text": "phrase=self.route('POST','/v2/admin/keys','C',dict(name='Automatic phrase',role='B',kind='passphrase'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 271,
+      "category": "HTTP v2",
+      "text": "linked=self.route('POST','/v2/admin/keys','C',dict(name='Existing identity',role='B',kind='token',user_id=token['user_id']))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 278,
+      "category": "HTTP v2",
+      "text": "first=self.route('POST','/v2/admin/keys/search','C',dict(limit=2,hide_revoked=True))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 279,
+      "category": "HTTP v2",
+      "text": "second=self.route('POST','/v2/admin/keys/search','C',dict(limit=2,hide_revoked=True,before=first['next']))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 283,
+      "category": "HTTP v2",
+      "text": "all_rows=self.route('POST','/v2/admin/keys/search','C',dict(limit=100,hide_revoked=False))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 286,
+      "category": "HTTP v2",
+      "text": "self.blocked(400,'POST','/v2/admin/keys/search','C',dict(limit=limit))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 287,
+      "category": "HTTP v2",
+      "text": "self.blocked(400,'POST','/v2/admin/identities/search','C',dict(hide_revoked='true'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 289,
+      "category": "HTTP v2",
+      "text": "summary=self.route('POST','/v2/admin/jobs/search','C',dict(summary=True,limit=4))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 292,
+      "category": "HTTP v2",
+      "text": "remaining=self.route('POST','/v2/admin/jobs/search','C',dict(summary=True,limit=4,before=summary['next']))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 294,
+      "category": "HTTP v2",
+      "text": "full=self.route('POST','/v2/admin/jobs/search','C',dict(job_id=jobs[0]['id'],limit=1))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 296,
+      "category": "HTTP v2",
+      "text": "for path in ('/v2/admin/identities/search','/v2/admin/sessions/search','/v2/admin/audit'):"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 305,
+      "category": "HTTP v2",
+      "text": "rotated=self.route('POST','/v2/admin/keys/'+entry['id']+'/rotate','C',dict(password='1'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 312,
+      "category": "HTTP v2",
+      "text": "result=self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=1)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 317,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','extra',dict(text='second',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 318,
+      "category": "HTTP v2",
+      "text": "rotated=self.route('POST','/v2/admin/keys/'+entry['id']+'/rotate','C')"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 320,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','extra',dict(text='second',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 321,
+      "category": "HTTP v2",
+      "text": "status=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 323,
+      "category": "HTTP v2",
+      "text": "own=self.route('GET','/v2/auth/me','B')['quota']"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 328,
+      "category": "HTTP v2",
+      "text": "session=self.route('POST','/v2/auth/anonymous',body=dict(browser_id='psb_'+uuid.uuid4().hex))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 330,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/quotas/set','C',dict(scope='anonymous',limits=dict(hourly_limit=0,max_length=20)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 331,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','anon',dict(text='x',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 332,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=2)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 334,
+      "category": "HTTP v2",
+      "text": "result=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 338,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=None)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 339,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))['effective']['hourly_limit'],0)"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 340,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','anon',dict(text='x',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 341,
+      "category": "HTTP v2",
+      "text": "group=self.route('POST','/v2/admin/quotas/get','C',dict(scope='anonymous'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 346,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_chars=5,max_length=10)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 347,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','B',dict(text='123456',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 349,
+      "category": "data-schema (preserved)",
+      "text": "content=dict(type='raster1',schemaVersion=1,width=576,height=2,bitOrder='msb-first',blackIsOne=True,encoding='base64',data=base64.b64encode(pixels).decode(),sha256=__import__('hashlib').sha256(pixels).hexdigest())"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 350,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/jobs','B',dict(text='123',content=content,request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 351,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','B',dict(text='x',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 352,
+      "category": "HTTP v2",
+      "text": "status=self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 354,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(max_length=1)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 355,
+      "category": "HTTP v2",
+      "text": "self.blocked(400,'POST','/v2/jobs','B',dict(text='12',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 359,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/admin/quotas/get',role,dict(scope='anonymous'))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 360,
+      "category": "HTTP v2",
+      "text": "self.blocked(403,'POST','/v2/admin/quotas/set',role,dict(scope='anonymous',limits=dict(hourly_limit=0)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 362,
+      "category": "HTTP v2",
+      "text": "self.blocked(400,'POST','/v2/admin/quotas/set','C',dict(scope='anonymous',limits=limits))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 363,
+      "category": "HTTP v2",
+      "text": "self.blocked(404,'POST','/v2/admin/quotas/get','C',dict(scope='user:'+str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 365,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/quotas/set','C',dict(scope=scope,limits=dict(hourly_limit=3)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 371,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.route('POST','/v2/admin/quotas/get','C',dict(scope=scope))['usage']['jobs'],3)"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 374,
+      "category": "HTTP v2",
+      "text": "self.route('POST','/v2/admin/quotas/set','C',dict(scope='authenticated',limits=dict(hourly_limit=1)))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 375,
+      "category": "HTTP v2",
+      "text": "self.submit('A');self.blocked(429,'POST','/v2/jobs','A',dict(text='x',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 377,
+      "category": "HTTP v2",
+      "text": "self.blocked(429,'POST','/v2/jobs','B',dict(text='x',request_id=str(uuid.uuid4())))"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 387,
+      "category": "HTTP v1 rejection test",
+      "text": "for path in ('/v1/public/status','/v1/device/jobs'):"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 391,
+      "category": "HTTP v2",
+      "text": "with call('/v2/auth/login',{'credential':self.credentials['B']['token']}) as res:"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 395,
+      "category": "HTTP v2",
+      "text": "with call('/v2/auth/me',headers=header) as res: me=json.load(res)"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 396,
+      "category": "HTTP v2",
+      "text": "with self.assertRaises(urllib.error.HTTPError) as exc:call('/v2/jobs',dict(text='x',request_id=str(uuid.uuid4())),header)"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 400,
+      "category": "HTTP v2",
+      "text": "with call('/v2/jobs',dict(text='x',request_id=str(uuid.uuid4())),header) as res:self.assertTrue(json.load(res)['accepted'])"
+    },
+    {
+      "file": "tests/server/test_security.py",
+      "line": 401,
+      "category": "HTTP v2",
+      "text": "with call('/v2/auth/login',{'credential':self.credentials['C']['token']},{'X-Paperang-Native':'1'}) as res:self.assertIn('token',json.load(res))"
+    },
+    {
+      "file": "tests/test_contract_inventory.py",
+      "line": 6,
+      "category": "HTTP v2",
+      "text": "paths=set(re.findall(r'case \"(/v2/[^\\\"]+)\"',s));declared=set(d['paths'])"
+    },
+    {
+      "file": "tests/test_contract_inventory.py",
+      "line": 7,
+      "category": "HTTP v2",
+      "text": "assert declared==paths|{'/v2/jobs/{id}','/v2/jobs/{id}/cancel'},(paths,declared)"
+    },
+    {
+      "file": "tests/test_contract_inventory.py",
+      "line": 8,
+      "category": "HTTP v2",
+      "text": "assert all(p.startswith('/v2/') for p in declared)"
+    },
+    {
+      "file": "tests/test_contract_inventory.py",
+      "line": 11,
+      "category": "HTTP v1 rejection test",
+      "text": "if p.is_file():assert not re.search(r'[\\\"\\x27](/v1/[^\\\"\\x27]+)[\\\"\\x27]',p.read_text(encoding='utf-8')),p"
+    },
+    {
+      "file": "tests/test_contract_inventory.py",
+      "line": 12,
+      "category": "compatibility/version/history review",
+      "text": "v=json.loads((r/'VERSIONS.json').read_text(encoding='utf-8'));assert v['compatibility']['contentSchemaVersion']==v['compatibility']['templateSchemaVersion']==1"
+    },
+    {
+      "file": "tests/test_contract_inventory.py",
+      "line": 15,
+      "category": "HTTP v2",
+      "text": "assert v['compatibility']['localApi']==v['compatibility']['relayApi']=='v2'"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 27,
+      "category": "HTTP v2",
+      "text": "try:status,value=req('GET','/v2/status');break"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 36,
+      "category": "HTTP v2",
+      "text": "assert req('GET','/v2/openapi')[1]==schema, 'bundled OpenAPI differs from source'"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 37,
+      "category": "HTTP v1 rejection test",
+      "text": "for path in ['/v1','/v1/status','/v1/jobs','/v1/jobs/anything/cancel','/v1/render','/v1/unknown']:"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 43,
+      "category": "HTTP v1 rejection test",
+      "text": "assert req('OPTIONS','/v1/jobs',extra={'Origin':'http://localhost:3000'})[0]==410"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "assert req('OPTIONS','/v2/jobs',extra={'Origin':'http://localhost:3000'})[0]==204"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 46,
+      "category": "HTTP v1 rejection test",
+      "text": "status,value=req(method,'/v1/jobs',{} if method=='POST' else None,token=False);assert status==403"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 47,
+      "category": "HTTP v2",
+      "text": "for extra in [{'Origin':'http://forbidden.example'},{'Host':'evil.example'}]:assert req('GET','/v2/status',extra=extra)[0]==403"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 48,
+      "category": "HTTP v2",
+      "text": "assert req('GET','/v2/status',token=False)[0]==403"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 49,
+      "category": "HTTP v2",
+      "text": "for path,body,code in [('/v2/render',{'text':'PS032 offline render 文字','includeRaw':True},200),('/v2/render',{'text':'x','imageBase64':'bad'},400),('/v2/render',{'imageBase64':'bad'},400),('/v2/render',{'text':'x','settings':{'unknown':1}},400),('/v2/jobs',{'text':'PS032','allowPaper':True},403),('/v2/feed',{'lines':1,'allowPaper':True},403),('/v2/scan',{},409),('/v2/disconnect',{},200),('/v2/query',{'command':255},400),('/v2/unknown',{},404)]:"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 51,
+      "category": "HTTP v2",
+      "text": "if path=='/v2/render' and code==200:assert value['width']==576 and len(base64.b64decode(value['rawBase64']))==72*value['height']"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 53,
+      "category": "HTTP v2",
+      "text": "assert req('POST','/v2/render',b'{')[0]==400"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 54,
+      "category": "HTTP v2",
+      "text": "assert req('POST','/v2/render',{},ctype='text/plain')[0]==415"
+    },
+    {
+      "file": "tests/test_local_v2.py",
+      "line": 55,
+      "category": "HTTP v2",
+      "text": "assert req('GET','/v2/jobs/00000000-0000-0000-0000-000000000000')[0]==404"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 27,
+      "category": "HTTP v2",
+      "text": "code,d=self.req('GET','/v2/public/status');self.assertEqual(code,200);self.assertEqual(d['capabilities']['authVersion'],2);self.assertEqual(d['capabilities']['contentSchemaVersion'],1)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 29,
+      "category": "HTTP v1 rejection test",
+      "text": "for path in ['/v1','/v1/status','/v1/jobs','/v1/content']:"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 34,
+      "category": "HTTP v2",
+      "text": "code,job=self.req('POST','/v2/jobs',body,b);self.assertEqual(code,202)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 35,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST','/v2/jobs',body,b)[1]['id'],job['id'])"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 36,
+      "category": "HTTP v2",
+      "text": "code,state=self.req('GET','/v2/jobs/'+job['id'],key=b);self.assertEqual(code,200);self.assertNotIn('text',state);self.assertEqual(state['state'],'queued')"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 37,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET','/v2/jobs/'+job['id'],key=self.keys['A'])[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 38,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET','/v2/jobs/'+job['id'],key=self.other)[0],404)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 39,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST','/v2/jobs',body,self.keys['M'])[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 40,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST','/v2/admin/keys/search',{},b)[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 41,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST','/v2/jobs',{'text':'missing UUID'},b)[0],400)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 42,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET','/v2/device/jobs',key=self.keys['C'])[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 43,
+      "category": "HTTP v2",
+      "text": "m=self.keys['M'];code,claim=self.req('POST',f\"/v2/device/jobs/{job['id']}/claim\",{},m);self.assertEqual(code,200)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 44,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET',f\"/v2/device/jobs/{job['id']}\",key=m)[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 45,
+      "category": "HTTP v2",
+      "text": "code,payload=self.req('GET',f\"/v2/device/jobs/{job['id']}\",key=m,extra={'X-Job-Claim':claim['claim']});self.assertEqual(code,200);self.assertEqual(payload['text'],body['text'])"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 46,
+      "category": "HTTP v2",
+      "text": "code,result=self.req('POST',f\"/v2/device/jobs/{job['id']}/result\",{'claim':claim['claim'],'state':'sent'},m);self.assertEqual(code,200)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 47,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET',f\"/v2/device/jobs/{job['id']}\",key=m,extra={'X-Job-Claim':claim['claim']})[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 48,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET','/v2/jobs/'+job['id'],key=b)[1]['state'],'sent')"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 51,
+      "category": "HTTP v2",
+      "text": "code,job=self.req('POST','/v2/jobs',{'text':'isolated paper confirmation fixture','request_id':str(uuid.uuid4())},b);self.assertEqual(code,202)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 52,
+      "category": "HTTP v2",
+      "text": "jid=job['id'];confirm='/v2/admin/jobs/'+jid+'/confirm'"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 54,
+      "category": "HTTP v2",
+      "text": "code,claim=self.req('POST',f'/v2/device/jobs/{jid}/claim',{},m);self.assertEqual(code,200)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 57,
+      "category": "HTTP v2",
+      "text": "self.req('GET','/v2/device/jobs',key=m)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 58,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET','/v2/jobs/'+jid,key=b)[1]['state'],'unknown')"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 59,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET',f'/v2/device/jobs/{jid}',key=m,extra={'X-Job-Claim':claim['claim']})[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 60,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/claim',{},m)[0],409)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 62,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/result',{'claim':claim['claim'],'state':'sent'},m)[0],200)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 66,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET','/v2/jobs/'+jid,key=b)[1]['state'],'confirmed')"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 69,
+      "category": "HTTP v2",
+      "text": "code,job=self.req('POST','/v2/jobs',{'text':'isolated cancellation fixture','request_id':str(uuid.uuid4())},b);self.assertEqual(code,202)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 71,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/reject',{},b)[0],403)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 72,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('POST',f'/v2/device/jobs/{jid}/reject',{},m)[0],200)"
+    },
+    {
+      "file": "tests/test_relay_v2.py",
+      "line": 73,
+      "category": "HTTP v2",
+      "text": "self.assertEqual(self.req('GET','/v2/jobs/'+jid,key=b)[1]['state'],'rejected')"
+    },
+    {
+      "file": "tests/windows/Paperang.Tests/Program.cs",
+      "line": 63,
+      "category": "data-schema (preserved)",
+      "text": "var content = JsonSerializer.SerializeToElement(new { type = \"raster1\", schemaVersion = 1, width = 576, height = 1, bitOrder = \"msb-first\", blackIsOne = true, encoding = \"base64\", data = Convert.ToBase64String(image.Bytes), sha256 = Convert.ToHexStringLower(SHA256.HashData(image.Bytes)) });"
+    },
+    {
+      "file": "tests/windows/Paperang.Tests/Program.cs",
+      "line": 65,
+      "category": "data-schema (preserved)",
+      "text": "var corrupt = JsonSerializer.SerializeToElement(new { type = \"raster1\", schemaVersion = 1, width = 576, height = 1, bitOrder = \"msb-first\", blackIsOne = true, encoding = \"base64\", data = Convert.ToBase64String(image.Bytes), sha256 = new string('0', 64) });"
+    },
+    {
+      "file": "tests/windows/Paperang.Tests/Program.cs",
+      "line": 307,
+      "category": "HTTP v2",
+      "text": "if (!p.StartsWith(\"/v2/\", StringComparison.Ordinal)) throw new Exception(\"non-v2 runtime request\");"
+    },
+    {
+      "file": "tests/windows/Paperang.Tests/Program.cs",
+      "line": 317,
+      "category": "HTTP v2",
+      "text": "else if (p == \"/v2/device/jobs\") result = new { jobs = new[] { job with { State = State } } };"
+    },
+    {
+      "file": "tests/windows/Paperang.Tests/Program.cs",
+      "line": 318,
+      "category": "HTTP v2",
+      "text": "else if (p == \"/v2/device/jobs/\" + job.Id) {"
+    },
+    {
+      "file": "tests/windows/run_integration.py",
+      "line": 42,
+      "category": "data-schema (preserved)",
+      "text": "body['content'] = dict(type='raster1', schemaVersion=1, width=576, height=20, bitOrder='msb-first', blackIsOne=True, encoding='base64', data=base64.b64encode(raw).decode(), sha256=hashlib.sha256(raw).hexdigest())"
+    },
+    {
+      "file": "tests/windows/run_integration.py",
+      "line": 43,
+      "category": "HTTP v2",
+      "text": "code, job = store.route('POST', '/v2/jobs', body, actor, '127.0.0.1', {})"
+    }
+  ]
+}

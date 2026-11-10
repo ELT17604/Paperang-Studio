@@ -28,8 +28,8 @@ class APIv2:
 
     def route(self, method, path, body, key, ip, headers):
         s, a = self.store, self.auth
-        if path.startswith('/v1/'):
-            self.fail(410,'api_v1_retired_upgrade_to_v0.3.1')
+        if path == '/v1' or path.startswith('/v1/'):
+            self.fail(410,'relay_v1_retired_use_v2')
         if method=='GET' and path=='/v2/public/status':
             return 200,dict(version=s.version,status=dict(accepting=True),policy=s.policies(),capabilities=dict(contentTypes=['text','raster1'],contentSchemaVersion=1,maxRequestBytes=163840,identityRequired=True,authVersion=2,anonymousOwnStatus=True,ownerExecution=True,quotaManagement=True,customPassphrasePolicy="unrestricted"))
         if method=='POST' and path=='/v2/auth/anonymous':

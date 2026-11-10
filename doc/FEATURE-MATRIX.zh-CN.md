@@ -1,3 +1,9 @@
+# Paperang Studio v0.3.2 platform acceptance
+
+MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.
+
+## Historical implementation matrix
+
 # 版本功能实现矩阵 — 0.3.1
 
 [完整逐项矩阵与证据](FEATURE-MATRIX.md) · [版本规则](VERSIONING.zh-CN.md) · [登记表](../VERSIONS.json)
@@ -12,7 +18,7 @@
 | RelaySkill | v0.3.1-relayskill | A/B 密钥投递、B 状态、A 只受理、文字/图片渲染、防重复投递记录 |
 | WinClient / LinuxClient | 无 | 仍为规划，不以本次登记宣称已经实现 |
 
-通用合同：中转 API v2，旧中转 v1=410；模板 v1/raster1/BLE不变。A 不读状态、B 仅本身份状态、C 全历史/管理、M 限定设备执行。私钥基于 RSA-PSS 挑战，不是 SSH 传输。Mac 本机 API 仍为 v1。
+通用合同：中转 API v2，旧中转 v1=410；模板 v1/raster1/BLE不变。A 不读状态、B 仅本身份状态、C 全历史/管理、M 限定设备执行。私钥基于 RSA-PSS 挑战，不是 SSH 传输。Mac 本机 API 在 0.3.2 中已迁移 v2。
 
 WinLite 继续不提供完整工作台、终端或本机 API；这些是 Lite 范围差异。它现在提供完整 C 管理功能。应用级正文加密、CSV 与独立附件目录导出未实现；本版 JSONL 内含正文、metadata、事件和 raster1 base64。
 

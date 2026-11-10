@@ -1,0 +1,26 @@
+# v0.3.2 macOS validation — 2026-11-10 (Asia/Shanghai)
+
+Scope: Stage 1 only. Start: `ada72fac6e283409a3e28577c1d6bcb257ab4eae`. No main merge, final tag, Release, or production server upgrade.
+
+| Environment | Command / action | Observed result |
+|---|---|---|
+| Native arm64 macOS | `PAPERANG_WORK_DIR="$PWD/work/native" zsh scripts/build.sh` | Release build, PTY host signing, app ad-hoc signing and `codesign --verify --deep --strict` passed; runtime 0.3.2-macclient, numeric bundle version 0.3.2, build 3201. SwiftPM warns that `--build-system native` is deprecated. |
+| Actual offline local HTTP | `python3 tests/test_local_v2.py --app 'work/native/Release/Paperang Studio.app'` | 47 requests passed: local GET route inventory, bundled schema equals source, v1 410 including allowed-Origin OPTIONS, forbidden requests 403, Host/Origin, JSON/content type/error shape, paper gating and 576-dot text rendering. No BLE object created. |
+| Static contract/metadata | `python3 tests/test_contract_inventory.py`; `python3 scripts/check-versions.py` | Passed, including schema 1 preservation and target/runtime distinction. |
+| Static Python/JS | `python3 -m compileall -q Clients tests`; `node --check Clients/paperang-client.js`; `git diff --check` | Passed. |
+| Isolated Relay HTTP | Python with `Server/requirements.txt`, `tests/test_relay_v2.py` | 3 tests passed: public v2 capability/schema, retired v1 GET/POST, B-own/A-forbidden/other-B-hidden, M cannot submit, C management guard, idempotency, claim-only content, sent history isolation. Temporary SQLite/identities only. |
+| Actual native Mac + isolated Relay | `python3 tests/build_native_check.py` then Python `tests/run_native_check.py` | Passed: RSA formats/fingerprint/proof/renewal, native C management paging/details/quotas/lock, preview validity, isolated Keychain durable pending outcomes, M and owner execution, sent/unknown report recovery, saved templates/configuration, stable local job states and version ordering. No physical transmission. |
+| Current production Ubuntu Relay | GET only `/v2/public/status`, native ephemeral URLSession | HTTP 200. Runtime `0.3.1-linuxrelayserver-opt1`; authVersion 2; contentSchemaVersion 1; text/raster1; identityRequired, anonymousOwnStatus, ownerExecution, quotaManagement advertised. Acceptance true. Initial sandbox/proxy/handshake attempts failed; one successful connection counts as connectivity success per owner instruction. |
+| v0.3.2 native GUI | Launch, printer scan/select/connect, workspace/edit/preview/image import/history and local API page | P2 ready, cover closed/paper present, battery 100% sample; Initial physical-test GUI displayed v0.3.2; the final relaunched GUI was verified to display the owner-corrected architecture suffix v0.3.2-macclient. Local v2 routes are unchanged. Existing old GUI receiver disconnected before replacement to avoid duplicate receivers. Global paper consent restored off after tests. |
+| Real P2 T1 | `PS032-T1 文字测试` + `Paperang Studio v0.3.2`, 1 copy, density 60, post-feed 60 | Preview 576×116, 8352 bytes; transmitted once, job “已发送，待核对纸面”. Owner explicitly confirmed paper normal. |
+| Real P2 I1 | PNG labeled `PS032-I1 image density100` plus black bars, 1 copy, density 100, post-feed 60 | Preview 576×101, 7272 bytes; transmitted once. Owner explicitly confirmed paper normal. |
+
+The native integration first failed to save its dedicated Keychain data inside the filesystem sandbox. Repeating with normal host Keychain access passed. This was an environment boundary, not a bypass in application credential storage.
+
+Production checks did **not** log in, create identities, submit/claim jobs, read private history, rotate credentials, change policy, touch source/database, restart systemd, or upgrade the server. No dedicated production test identity was supplied, so authenticated end-to-end production print/management was deliberately not exercised; native authenticated integration uses isolated fixtures. Public capabilities do not prove every management call works online. No new server behavior is required by this stage, and no server incompatibility was observed by the public probe.
+
+Physical failure injection (power loss, paper removal or cancelling buffered printer data) was not performed: uncertain physical work must not be replayed. Failure/report recovery was verified in the isolated native integration; two successful physical jobs were sent with finite counts. Paper terminal execution and every editor widget were not exhaustively exercised; their implementations are unchanged, and native build plus shared render/template/configuration checks passed. Windows and Ubuntu native build/deployment validation remain pending.
+
+Protocol preservation check: `git diff ada72fac6e283409a3e28577c1d6bcb257ab4eae -- Sources/ProtocolCore Sources/PrintCore Sources/PaperangLab/Bluetooth.swift Sources/PaperangLab/Workspace.swift Sources/PaperangLab/Relay.swift` is empty. BLE UUIDs/framing/CRC, 576-dot bytes, density and feed path are unchanged.
+
+Owner correction after physical tests: retain architecture suffixes as documented. Version metadata, OpenAPI, comparator/tests and documentation were corrected to 0.3.2-macclient and native/HTTP checks rerun; BLE/printing code was unchanged, so physical jobs were not repeated.

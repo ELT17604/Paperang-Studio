@@ -6,7 +6,7 @@
 
 Experimental **source integration**, not a released distribution or a connected
 ChatGPT account. Uses existing **Relay API v2**, independent of the Mac-local
-HTTP API v1, with the same A/B credential permissions and raster1 schema 1.
+HTTP API v2, with the same A/B credential permissions and raster1 schema 1.
 
 ## Architecture
 

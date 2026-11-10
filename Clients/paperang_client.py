@@ -1,4 +1,4 @@
-"""Paperang Studio v1 local API client. Python standard library only."""
+"""Paperang Studio v2 local API client. Python standard library only."""
 import json
 import time
 import urllib.request
@@ -22,32 +22,32 @@ class PaperangClient:
             raise RuntimeError(f'Paperang API HTTP {exc.code}: {detail}') from exc
 
     def status(self):
-        return self.request('GET', '/v1/status')
+        return self.request('GET', '/v2/status')
 
     def devices(self, all_devices=False):
-        return self.request('GET', '/v1/devices' + ('?all=true' if all_devices else ''))
+        return self.request('GET', '/v2/devices' + ('?all=true' if all_devices else ''))
 
     def render(self, text, settings=None, include_raw=False):
-        return self.request('POST', '/v1/render', {'text': text, 'settings': settings or {}, 'includeRaw': include_raw})
+        return self.request('POST', '/v2/render', {'text': text, 'settings': settings or {}, 'includeRaw': include_raw})
 
     def print_text(self, text, settings=None, allow_paper=None):
         body = {'text': text, 'settings': settings or {}}
         if allow_paper is not None: body['allowPaper'] = allow_paper
-        return self.request('POST', '/v1/jobs', body)
+        return self.request('POST', '/v2/jobs', body)
 
     def print_image(self, base64_image, settings=None, allow_paper=None):
         body = {'imageBase64': base64_image, 'settings': settings or {}}
         if allow_paper is not None: body['allowPaper'] = allow_paper
-        return self.request('POST', '/v1/jobs', body)
+        return self.request('POST', '/v2/jobs', body)
 
     def job(self, job_id):
-        return self.request('GET', '/v1/jobs/' + job_id)
+        return self.request('GET', '/v2/jobs/' + job_id)
 
     def wait(self, job_id, timeout=300):
         end = time.monotonic() + timeout
         while time.monotonic() < end:
             job = self.job(job_id)
-            if job['state'] != '发送中':
+            if job['state'] not in ('accepted', 'printing'):
                 return job
             time.sleep(0.5)
         raise TimeoutError('Timed out waiting for Paperang job')

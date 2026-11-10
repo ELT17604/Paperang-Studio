@@ -30,6 +30,7 @@ internal sealed class TemplateEditor : Form
 
     public TemplateEditor(List<RelayTemplate> values, string selectedId)
     {
+        SuspendLayout(); AutoScaleDimensions = new SizeF(96, 96);
         Templates = JsonSerializer.Deserialize<List<RelayTemplate>>(JsonSerializer.Serialize(values, RelayClient.Json), RelayClient.Json)!;
         Text = "Paperang Studio · 图形化打印模板编辑器"; ClientSize = new Size(1160, 760); MinimumSize = new Size(1020, 670);
         AutoScaleMode = AutoScaleMode.Dpi; Font = new Font("Microsoft YaHei UI", 9); StartPosition = FormStartPosition.CenterParent;
@@ -123,6 +124,7 @@ internal sealed class TemplateEditor : Form
         };
         FormClosed += (_, _) => { debounce.Dispose(); paper.Image?.Dispose(); };
         int selected = Templates.FindIndex(x => x.Id == selectedId); RefreshTemplateList(Math.Max(0, selected)); ReloadBlocks(0);
+        ResumeLayout(true);
     }
     private void RefreshTemplateList(int selected)
     {

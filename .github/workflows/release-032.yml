@@ -1,0 +1,102 @@
+name: v0.3.2 integration gates
+on:
+  push:
+    branches: [xdev/032task, main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v032-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+jobs:
+  ubuntu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r Server/requirements.txt Pillow httpx
+      - name: Prepare isolated CJK test font
+        run: |
+          mkdir -p work/fonts
+          cd work/fonts
+          apt-get download fonts-noto-cjk
+          dpkg-deb -x fonts-noto-cjk_*.deb extracted
+      - run: python -B -m unittest discover -s tests/server -v
+        env:
+          PYTHONPATH: Server:Skills/paperang-relay-print/scripts:Integrations/ChatGPT
+          PAPERANG_TEST_CJK_FONT: ${{ github.workspace }}/work/fonts/extracted/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+      - run: python tests/test_relay_v2.py && python tests/test_contract_inventory.py && python scripts/check-versions.py
+      - run: bash -n Server/install.sh && bash Server/install.sh --dry-run --port 28177
+      - run: node --check Server/web/app.js && node --check Clients/paperang-client.js
+  macos:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r Server/requirements.txt
+      - run: PAPERANG_WORK_DIR="$PWD/work/native" zsh scripts/build.sh
+      - run: python tests/test_local_v2.py --app 'work/native/Release/Paperang Studio.app'
+      - run: python tests/build_native_check.py && python tests/run_native_check.py
+      - run: ditto -c -k --sequesterRsrc --keepParent 'work/native/Release/Paperang Studio.app' "work/native/Release/PaperangStudio-0.3.2-macclient-macos-$(uname -m).zip"
+      - run: cd work/native/Release && shasum -a 256 *.zip > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macclient-032-candidate
+          path: |
+            work/native/Release/*.zip
+            work/native/Release/SHA256SUMS
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    env:
+      PAPERANG_WIN_WORK_DIR: ${{ github.workspace }}/work/windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: python -m pip install -r Server/requirements.txt
+      - run: dotnet run --project tests/windows/Paperang.Tests -c Release
+      - run: python tests/windows/run_integration.py
+      - run: ./Windows/scripts/build.ps1
+      - run: ./Windows/scripts/build-installer.ps1 -Iscc 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe'
+      - name: Native installed overlay, uninstall and reinstall acceptance
+        shell: pwsh
+        run: |
+          $setup = "$env:PAPERANG_WIN_WORK_DIR/Release/PaperangStudio-0.3.2-winlite-win-x64-setup.exe"
+          Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait
+          python tests/windows/test_installer.py --setup $setup --log-dir work/installer-validation
+          if ($LASTEXITCODE -ne 0) { throw 'Native installer validation failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: winlite-032-candidate
+          path: |
+            work/windows/Release/*.exe
+            work/windows/Release/*.zip
+            work/windows/Release/*.sha256
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ubuntu, macos, windows]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: work/release-input
+      - run: python3 scripts/publish-release.py
+        env:
+          GH_TOKEN: ${{ github.token }}

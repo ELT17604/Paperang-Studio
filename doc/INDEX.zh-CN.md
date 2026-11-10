@@ -36,7 +36,13 @@
 
 - [菜单栏托盘模式](TRAY-MODE.zh-CN.md)
 
-## v0.3.0
+## 当前 v0.3.2
+
+- [发行说明](RELEASE-v0.3.2.md) · [API v2](API-v2-032.md)
+- [保留数据的升级与回滚](UPGRADE-v0.3.2.md) · [Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md)
+- [开发与测试](../tests/README.md)
+
+## 历史 v0.3.0
 
 - [身份和权限 / Authentication](AUTH-v2.zh-CN.md) · [API contract](AUTH-v2.md)
 - [升级 / 回滚与发布记录](UPGRADE-v0.3.0.zh-CN.md)

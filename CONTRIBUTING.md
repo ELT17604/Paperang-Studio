@@ -15,4 +15,4 @@ Contributions/adaptations follow CC BY-NC-SA 4.0: retain ELT Group attribution, 
 
 ### ChatGPT integration (experimental)
 
-Keep `Integrations/ChatGPT/` isolated from the Mac-local API v1 and existing relay API v2 contract. Mirror new integration behavior in `doc/CHATGPT.md` and `doc/CHATGPT.zh-CN.md`; mark live gateway/MCP/hardware validation separately from source and mock tests. Never publish a bare token-bearing MCP endpoint or use M/C credentials for submission. Preserve UUID idempotency and the no-automatic-reprint rule.
+Keep `Integrations/ChatGPT/` isolated from the Mac-local API v2 and existing relay API v2 contract. Mirror new integration behavior in `doc/CHATGPT.md` and `doc/CHATGPT.zh-CN.md`; mark live gateway/MCP/hardware validation separately from source and mock tests. Never publish a bare token-bearing MCP endpoint or use M/C credentials for submission. Preserve UUID idempotency and the no-automatic-reprint rule.

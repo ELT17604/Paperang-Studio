@@ -1,6 +1,6 @@
 # Windows 移植记录
 
-> v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v1 和 BLE/模板记录仍独立有效。
+> v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API 已在 0.3.2 中迁移 v2，BLE/模板记录独立有效。
 
 [English](WINDOWS-PORTING.md) · [Windows 使用说明](WINDOWS.zh-CN.md)
 

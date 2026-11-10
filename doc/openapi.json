@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Paperang Studio Local API",
-    "version": "0.3.1-macclient-opt1",
-    "description": "Paperang Studio 0.3.1-macclient-opt1 authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project. This is the Mac local HTTP API v1. Relay API v2 is documented separately in doc/AUTH-v2.md.",
+    "version": "0.3.2-macclient",
+    "description": "Paperang Studio 0.3.2-macclient authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project. This is the Mac local HTTP API v2. Relay API v2 is documented separately in doc/AUTH-v2.md. Removed /v1 and /v1/* return 410 after authentication, including OPTIONS. See API-v2-032.md. Local jobs are session-only; sent never proves paper completion.",
     "contact": {
       "name": "ELT Group",
       "email": "vox@calx.cc"
@@ -24,7 +24,7 @@
     }
   ],
   "paths": {
-    "/v1/status": {
+    "/v2/status": {
       "get": {
         "summary": "Connection and sampled printer readings",
         "responses": {
@@ -61,7 +61,7 @@
         }
       }
     },
-    "/v1/devices": {
+    "/v2/devices": {
       "get": {
         "summary": "Discovered Paperang candidates; all=true includes all devices",
         "responses": {
@@ -119,7 +119,7 @@
         ]
       }
     },
-    "/v1/protocol": {
+    "/v2/protocol": {
       "get": {
         "summary": "Protocol catalog and geometry",
         "responses": {
@@ -179,7 +179,7 @@
         }
       }
     },
-    "/v1/settings": {
+    "/v2/settings": {
       "get": {
         "summary": "Deterministic API defaults",
         "responses": {
@@ -224,7 +224,7 @@
         }
       }
     },
-    "/v1/jobs": {
+    "/v2/jobs": {
       "get": {
         "summary": "Session job history, newest first",
         "responses": {
@@ -349,7 +349,7 @@
         }
       }
     },
-    "/v1/jobs/{id}": {
+    "/v2/jobs/{id}": {
       "get": {
         "summary": "One session job",
         "responses": {
@@ -397,7 +397,7 @@
         ]
       }
     },
-    "/v1/logs": {
+    "/v2/logs": {
       "get": {
         "summary": "Newest-first logs, limit 1–500",
         "responses": {
@@ -460,7 +460,7 @@
         ]
       }
     },
-    "/v1/openapi": {
+    "/v2/openapi": {
       "get": {
         "summary": "This OpenAPI document",
         "responses": {
@@ -490,7 +490,7 @@
         }
       }
     },
-    "/v1/scan": {
+    "/v2/scan": {
       "post": {
         "summary": "Scan for 10 seconds",
         "requestBody": {
@@ -550,7 +550,7 @@
         }
       }
     },
-    "/v1/connect": {
+    "/v2/connect": {
       "post": {
         "summary": "Connect to a discovered UUID",
         "requestBody": {
@@ -619,7 +619,7 @@
         }
       }
     },
-    "/v1/disconnect": {
+    "/v2/disconnect": {
       "post": {
         "summary": "Disconnect when idle",
         "requestBody": {
@@ -679,7 +679,7 @@
         }
       }
     },
-    "/v1/query": {
+    "/v2/query": {
       "post": {
         "summary": "One whitelisted read-only command",
         "requestBody": {
@@ -771,7 +771,7 @@
         }
       }
     },
-    "/v1/render": {
+    "/v2/render": {
       "post": {
         "summary": "Offline render; does not connect or print",
         "requestBody": {
@@ -838,7 +838,7 @@
         }
       }
     },
-    "/v1/feed": {
+    "/v2/feed": {
       "post": {
         "summary": "Feed paper; network print permission and explicit allowPaper:true required",
         "requestBody": {
@@ -933,7 +933,7 @@
         }
       }
     },
-    "/v1/jobs/{id}/cancel": {
+    "/v2/jobs/{id}/cancel": {
       "post": {
         "summary": "Stop current job and disconnect printer",
         "requestBody": {
@@ -1273,7 +1273,7 @@
           "apiVersion": {
             "type": "string",
             "enum": [
-              "v1"
+              "v2"
             ]
           },
           "connected": {
@@ -1348,17 +1348,33 @@
           "state": {
             "type": "string",
             "enum": [
-              "发送中",
-              "已发送，待核对纸面",
-              "未完成",
-              "已停止"
+              "printing",
+              "sent",
+              "unknown",
+              "cancelled"
             ]
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "stateLabel": {
+            "type": "string"
+          },
+          "physicalCompletion": {
+            "type": "string",
+            "enum": [
+              "unknown"
+            ]
           }
-        }
+        },
+        "required": [
+          "id",
+          "state",
+          "stateLabel",
+          "physicalCompletion",
+          "createdAt"
+        ]
       },
       "RenderResult": {
         "type": "object",

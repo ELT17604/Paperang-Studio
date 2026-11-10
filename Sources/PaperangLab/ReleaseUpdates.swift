@@ -1,17 +1,11 @@
 import AppKit
 import Foundation
+import IntegrationCore
 
 @MainActor enum ReleaseUpdates {
  private static var busy=false
- private struct Release:Decodable {let tag_name:String;let html_url:String;let draft:Bool;let prerelease:Bool}
- private static func version(_ tag:String)->[Int]? {
-  guard tag.range(of:"^v?[0-9]+\\.[0-9]+\\.[0-9]+-macclient(?:-(?:fix|opt)[0-9]+)?$",options:.regularExpression) != nil else{return nil}
-  let parts=tag.hasPrefix("v") ? String(tag.dropFirst()).split(separator:"-"):tag.split(separator:"-")
-  var numbers=parts[0].split(separator:".").compactMap{Int($0)}
-  guard numbers.count==3 else{return nil}
-  if parts.count>2 {guard let revision=Int(parts[2].dropFirst(3)) else{return nil};numbers += [parts[2].hasPrefix("opt") ? 1:0,revision]}else{numbers += [0,0]}
-  return numbers
- }
+ private struct Asset:Decodable {let name:String}
+ private struct Release:Decodable {let tag_name:String;let html_url:String;let draft:Bool;let prerelease:Bool;let assets:[Asset]}
  static func check() {
   guard !busy else{return};busy=true
   Task { @MainActor in
@@ -24,10 +18,10 @@ import Foundation
     guard let http=response as? HTTPURLResponse,http.statusCode==200,data.count<=2*1024*1024 else{throw URLError(.badServerResponse)}
     let releases=try JSONDecoder().decode([Release].self,from:data)
     let latest=releases.compactMap{release -> (Release,[Int])? in
-     guard !release.draft,!release.prerelease,let number=version(release.tag_name) else{return nil};return (release,number)
+     guard !release.draft,!release.prerelease,let number=ProductVersion.release(release.tag_name,assets:release.assets.map(\.name)) else{return nil};return (release,number)
     }.max{$0.1.lexicographicallyPrecedes($1.1)}
     guard let latest else{show("GitHub 尚未发布 MacClient 正式发行版。");return}
-    guard let current=version(AppIdentity.version) else{show("当前版本格式无法比较，请查看 GitHub 发行页面。");return}
+    guard let current=ProductVersion.parse(AppIdentity.version) else{show("当前版本格式无法比较，请查看 GitHub 发行页面。");return}
     guard current.lexicographicallyPrecedes(latest.1) else{show("当前已是最新 MacClient 正式版。");return}
     guard latest.0.html_url.hasPrefix("https://github.com/ELT17604/Paperang-Studio/releases/tag/"),let url=URL(string:latest.0.html_url) else{throw URLError(.badURL)}
     let alert=NSAlert();alert.messageText="发现新版本 "+latest.0.tag_name

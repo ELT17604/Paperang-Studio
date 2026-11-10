@@ -27,13 +27,14 @@ final class LocalAPI:@unchecked Sendable {
    do {if let request=try HTTPParser.parse(next){
      guard HTTPParser.authenticate(request,token:self.token,port:self.port,origins:self.origins) else{self.reply(.failure(403,"forbidden","令牌、Host或Origin不被允许"),request:request,connection:connection,id:id);return}
      self.recent=self.recent.filter{Date().timeIntervalSince($0)<1};guard self.recent.count<20 else{self.reply(.failure(429,"rate_limited","请求过快"),request:request,connection:connection,id:id);return};self.recent.append(Date())
+     if request.path=="/v1" || request.path.hasPrefix("/v1/"){self.reply(.failure(410,"api_v1_retired","Use the local API v2 contract"),request:request,connection:connection,id:id);return}
      if request.method=="OPTIONS"{self.reply(APIResponse(status:204,data:Data()),request:request,connection:connection,id:id);return}
      if request.method=="POST",request.headers["content-type"]?.split(separator:";").first?.trimmingCharacters(in:.whitespaces).lowercased() != "application/json" {self.reply(.failure(415,"content_type","POST需要application/json"),request:request,connection:connection,id:id);return}
      Task{let response=await self.handler?(request) ?? .failure(503,"unavailable","App尚未准备好");self.queue.async{guard self.connections[id] != nil else{return};self.reply(response,request:request,connection:connection,id:id)}}
     }else if complete || error != nil {connection.cancel();self.connections.removeValue(forKey:id)}else{self.receive(connection,id:id,buffer:next)}
    }catch{self.reply(.failure(400,"invalid_http","请求格式无效、超长或不支持chunked"),request:nil,connection:connection,id:id)}
   }}
- private func reply(_ response:APIResponse,request:HTTPRequest?,connection:NWConnection,id:UUID){let reason=[200:"OK",202:"Accepted",204:"No Content",400:"Bad Request",403:"Forbidden",404:"Not Found",409:"Conflict",413:"Payload Too Large",415:"Unsupported Media Type",429:"Too Many Requests",503:"Service Unavailable"][response.status] ?? "Error"
+ private func reply(_ response:APIResponse,request:HTTPRequest?,connection:NWConnection,id:UUID){let reason=[200:"OK",202:"Accepted",204:"No Content",400:"Bad Request",403:"Forbidden",404:"Not Found",409:"Conflict",410:"Gone",413:"Payload Too Large",415:"Unsupported Media Type",429:"Too Many Requests",503:"Service Unavailable"][response.status] ?? "Error"
   var header="HTTP/1.1 \(response.status) \(reason)\r\nContent-Type: \(response.type)\r\nContent-Length: \(response.data.count)\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n"
   if let origin=request?.headers["origin"],origins.contains(origin){header+="Access-Control-Allow-Origin: \(origin)\r\nVary: Origin\r\nAccess-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Headers: Authorization, Content-Type\r\nAccess-Control-Allow-Private-Network: true\r\n"}
   let wire=Data((header+"\r\n").utf8)+response.data

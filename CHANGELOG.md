@@ -1,3 +1,12 @@
+# v0.3.2
+
+- Application HTTP APIs unified on v2; v1 has no business execution. Product version 0.3.2 retains the four distribution suffixes.
+- macOS and Windows native builds, device records and shared contract regression accepted; Ubuntu preserving production upgrade and authenticated Mac task/preview integration accepted.
+- Add consistent backup, unchanged-row/schema rehearsal, claim-safe deployment and program-only rollback retaining post-upgrade writes. Remove the obsolete one-time reset installer.
+- Restore reproducible server/console/adapter regressions and gate native packages/tag/Release on CI and SHA-256 checks. Product Release discovery recognizes matching platform assets.
+- Template/content/config schema 1 and physical printer protocol remain unchanged. Explicit PATCH exception: Local API v1 consumers must upgrade to v2; normal MINOR compatibility policy remains in force.
+- Consolidate current docs and remove completed temporary stage handoffs. See [release notes](doc/RELEASE-v0.3.2.md).
+
 # Changelog
 
 ## v0.3.1-winlite-opt2 — 2026-11-10

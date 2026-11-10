@@ -1,14 +1,15 @@
+> v0.3.2-winlite（未发布）：HTTP Relay API v2；模板/配置 schema 1 保持兼容。当前可复现测试见 [Windows 验证](../doc/VALIDATION-v0.3.2-windows.md)。以下旧版本验收记录仅供历史参考。
+
 > v0.3.1: [Owner-file authentication](../doc/OWNER-CUTOVER-v0.3.1.zh-CN.md). WinLite defaults to a paired owner private key.
 
 
-> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](../doc/OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 # Paperang Studio for Windows
 
 > v0.3.0 uses [relay API v2](../doc/AUTH-v2.md). Settings → 管理 opens the native C panel for keys, identities, sessions, history and JSONL export. Keep the background M token separate.
 
 [English guide](../doc/WINDOWS.md) · [简体中文](../doc/WINDOWS.zh-CN.md)
 
-**V0.3.1-winlite-fix3** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
+**V0.3.2-winlite** · Windows 10 2004 / Windows 11 · .NET 10 Desktop Runtime.
 
 Uses the shared [version policy](../doc/VERSIONING.md) and [feature implementation matrix](../doc/FEATURE-MATRIX.md). Fix1 adds automatic print-preference persistence, live connection status and default continuous 60-second retry cycles, and repairs enabled sign-in startup paths after upgrades.
 
@@ -30,7 +31,7 @@ Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. 
 
 ## 标准安装、更新与卸载
 
-推荐 `PaperangStudio-0.3.1-winlite-fix3-win-x64-setup.exe`，自带 .NET 10，不需另外安装运行环境。按当前用户安装至 `%LOCALAPPDATA%/Programs/Paperang Studio WinLite`，在开始菜单和“已安装的应用”中可见。升级保留原有配置、模板和私钥路径。
+本地验收构建（尚未发布）：`PaperangStudio-0.3.2-winlite-win-x64-setup.exe`，自带 .NET 10，不需另外安装运行环境。按当前用户安装至 `%LOCALAPPDATA%/Programs/Paperang Studio WinLite`，在开始菜单和“已安装的应用”中可见。升级保留原有配置、模板和私钥路径。
 
 托盘 → **检查 GitHub 更新…** 手动读取本仓库最近 100 个发行记录，只比较正式 WinLite 标签。发现新版后打开 GitHub 下载页面，不自动下载安装。没有发行记录或网络失败会明确提示。
 

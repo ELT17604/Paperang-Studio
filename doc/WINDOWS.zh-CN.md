@@ -1,7 +1,8 @@
+> v0.3.2-winlite（未发布）：Relay API v2；模板/配置 schema 1 不变。当前测试与限制见 [Windows 验证](VALIDATION-v0.3.2-windows.md)，下文 fix/opt 验收数字是历史记录。
+
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 
 
-> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.zh-CN.md). Historical test paths below refer to Git revision `4393ae0`.
 # Paperang Studio · V0.3.0-winlite
 
 > **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。

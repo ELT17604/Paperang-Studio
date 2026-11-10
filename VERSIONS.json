@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseline": "0.3.1",
+  "baseline": "0.3.2",
   "compatibility": {
     "relayApi": "v2",
     "contentTypes": [
@@ -9,40 +9,49 @@
     ],
     "contentSchemaVersion": 1,
     "templateSchemaVersion": 1,
-    "printerProfile": "legacy-p2-576-ble"
+    "printerProfile": "legacy-p2-576-ble",
+    "localApi": "v2"
   },
   "distributions": {
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.1-macclient-opt1",
-      "runtimeVersion": "0.3.1-macclient-opt1",
+      "version": "v0.3.2-macclient",
+      "runtimeVersion": "0.3.2-macclient",
       "versionSource": "VERSION",
-      "verification": "Native arm64 build/UI and isolated owner/C/M integration passed; no new physical print"
+      "verification": "Native arm64 CI build/signing, 47 local HTTP checks and actual-source owner/Keychain/recovery/version harness passed; confirmed device records retained; upgraded Ubuntu connection and complete pending task/preview accepted by owner",
+      "targetVersion": "0.3.2",
+      "validation032": "passed"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
       "status": "implemented",
-      "version": "v0.3.1-linuxrelayserver-opt1",
-      "runtimeVersion": "0.3.1-linuxrelayserver-opt1",
+      "version": "v0.3.2-linuxrelayserver",
+      "runtimeVersion": "0.3.2-linuxrelayserver",
       "versionSource": "Server/relay.py",
-      "verification": "Opt1 fresh host reset, sole Windows key retention/reconnect and terminal/config editor installed; 39 regressions, 4 backend, 6 config checks plus console update/rollback and PTY checks passed; root atomic config/worker access verified"
+      "verification": "Ubuntu native regressions, real preserving production upgrade, backup/rollback, unchanged row/schema rehearsal, HTTPS/API v2/v1 rejection/web/source hashes and owner-approved Mac connection/task/preview integration passed",
+      "targetVersion": "0.3.2",
+      "validation032": "passed"
     },
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.1-winlite-opt2",
-      "runtimeVersion": "0.3.1-winlite-opt2",
+      "version": "v0.3.2-winlite",
+      "runtimeVersion": "0.3.2-winlite",
       "versionSource": "Windows/VERSION",
-      "verification": "61 historical Windows regressions and 3 configuration recovery checks passed; overlay upgrade preserves private files; live .NET owner C proof and identity query verified"
+      "verification": "Native x64 CI build, DPAPI/core and real isolated Relay integration passed; setup/upgrade/uninstall/reinstall and confirmed device records retained; product Release discovery validated",
+      "targetVersion": "0.3.2",
+      "validation032": "passed"
     },
     "relayskill": {
       "name": "RelaySkill",
       "status": "implemented",
-      "version": "v0.3.1-relayskill-opt1",
-      "runtimeVersion": "0.3.1-relayskill-opt1",
+      "version": "v0.3.2-relayskill",
+      "runtimeVersion": "0.3.2-relayskill",
       "versionSource": "Skills/paperang-relay-print/VERSION",
-      "verification": "12 local regressions passed on macOS, including restored CJK font discovery"
+      "verification": "12 offline rendering/protocol regressions and actual HTTP sender-to-isolated-Relay v2 integration passed on Ubuntu; no physical print claimed",
+      "targetVersion": "0.3.2",
+      "validation032": "passed"
     },
     "winclient": {
       "name": "WinClient",
@@ -59,5 +68,7 @@
       "versionSource": null
     }
   },
-  "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together."
+  "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
+  "releaseStatus": "v0.3.2 validated; macOS, Windows, Ubuntu and RelaySkill accepted",
+  "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged."
 }

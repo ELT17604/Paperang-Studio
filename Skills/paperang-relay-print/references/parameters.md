@@ -1,6 +1,6 @@
 # Parameters and examples
 
-Current sender implements **v0.3.1 Relay API v2** / raster1 schema 1, compatible with v0.3.1 MacClient and WinLite receivers. Historical relay v1 is retired (410). The Mac-local API v1 is a separate interface.
+Current sender implements **v0.3.2 Relay API v2** / raster1 schema 1, compatible with v0.3.2 MacClient and WinLite receivers. Historical relay v1 is retired (410). The Mac-local API v2 is a separate interface.
 
 | Option | Meaning / range |
 | --- | --- |
