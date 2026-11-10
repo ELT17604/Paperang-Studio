@@ -29,6 +29,8 @@ jobs:
           jobs=api('/actions/runs/42791492461/jobs')['jobs']
           for name in ['ubuntu','macos','windows']:
               assert any(j['name']==name and j['conclusion']=='success' for j in jobs),name
+          releases=api('/releases?per_page=100')
+          print(json.dumps({'release_inventory':[{k:r.get(k) for k in ('id','tag_name','draft','name','target_commitish')} for r in releases]}),flush=True)
           release=api('/releases/'+str(release_id))
           assert release['id']==release_id and release['tag_name']=='v0.3.2'
           assert release['name']=='Paperang Studio v0.3.2' and not release['prerelease']
