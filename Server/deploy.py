@@ -60,6 +60,18 @@ class Deployment:
     def control(self, action):
         subprocess.run(['systemctl', action, 'paperang-relay.service'], check=True)
 
+    def stop_idle(self, database):
+        # Hold the same SQLite writer lock used by claim creation until the
+        # service is stopped. A new receiver cannot claim between check/stop.
+        with contextlib.closing(sqlite3.connect(database, timeout=10)) as db:
+            db.execute('BEGIN IMMEDIATE')
+            try:
+                if db.execute("SELECT 1 FROM jobs WHERE state IN ('claimed','printing') LIMIT 1").fetchone():
+                    raise RuntimeError('Active print: leave service running and retry after completion')
+                self.control('stop')
+            finally:
+                db.rollback()
+
     def healthy(self, version):
         c = json.loads((self.root/'config/config.json').read_text())
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -137,7 +149,7 @@ class Deployment:
         nginx = Path('/etc/nginx/sites-available/paperang')
         if nginx.exists():
             shutil.copy2(nginx, backup/'nginx.conf')
-        self.control('stop')
+        self.stop_idle(database)
         try:
             idle(database)  # Catch a claim created between preflight and stop.
             snapshot(database, backup/'database.sqlite3')
@@ -159,7 +171,7 @@ class Deployment:
         except BaseException:
             # The rehearsal proved old code reads the new database unchanged.
             # Keep all writes accepted since upgrade; never restore the snapshot.
-            self.control('stop')
+            self.stop_idle(database)
             link(previous, b/'current')
             shutil.copy2(backup/'manage.py', b/'manage.py')
             self.control('start')
@@ -174,7 +186,7 @@ class Deployment:
         record = json.loads((backup/'upgrade.json').read_text())
         database = Path(record['database'])
         idle(database)
-        self.control('stop')
+        self.stop_idle(database)
         try:
             idle(database)
             # Preserve an additional consistent copy of ALL post-upgrade data.

@@ -16,7 +16,7 @@ Reproducible commands are in `tests/README.md`. Ubuntu tests use temporary datab
 - PASS: shared five real HTTP v2 cases, roles/status visibility/content claims, deduplication, expiry/late sent, C-only paper confirmation and v1 GET/POST retirement, including bare `/v1`.
 - PASS: isolated security, SQLite legacy migration/restart, stable-identity quotas, concurrent reservation/UUID submission, paging/export, revocation/last-C protection, console/configuration checks and RelaySkill offline rendering/ambiguous-submission safety.
 - PASS: actual RelaySkill and experimental ChatGPT core clients against a real isolated Relay HTTP server; B-own status/short ID, A denial, no duplicate submission. This is not external ChatGPT account/gateway validation.
-- PASS: data-preserving updater simulation with real SQLite; intact rows/schema across new/old code rehearsal; protected backup; failed startup rollback retains post-upgrade writes; busy/checksum failures have no service side effects.
+- PASS: six data-preserving updater simulations, including a claim racing preflight and writer-lock exclusion; with real SQLite; intact rows/schema across new/old code rehearsal; protected backup; failed startup rollback retains post-upgrade writes; busy/checksum failures have no service side effects.
 - PASS: Python source syntax, shell syntax, JavaScript syntax and shared inventory/version guards. CJK rendering requires a real CJK font; tests explicitly use the unpacked Ubuntu Noto CJK package outside source, not a glyph substitution.
 
 ## Physical protocol audit
@@ -37,3 +37,5 @@ Stage 1/2 diffs preserve `Sources/ProtocolCore`, `Sources/PrintCore`, Bluetooth 
 | Temporary handoff removal / merge / v0.3.2 tag / Release | BLOCKED until final acceptance |
 
 The temporary handoffs are deliberately retained until final acceptance. No Linux result is represented as native Mac/Windows GUI or physical printing success. Production deployment results, source SHA, timestamps, backup path and final user confirmations will be appended only after execution.
+
+CI baseline `7748f60`: Ubuntu and Windows jobs passed; macOS native build and all 47 local HTTP checks passed, but the recovery harness raced the queue refresh after heartbeat-online and received the correct 409 on a stale job. The test now waits for the reported job to disappear from the queue before selecting the next one; no server protection or product print behavior was weakened. Native CI rerun required.

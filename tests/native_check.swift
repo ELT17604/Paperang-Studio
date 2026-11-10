@@ -66,7 +66,7 @@ import IntegrationCore
   RelayVault.service=c["vaultService"] as! String
   defer{for account in ["connection","pending","connectionDraft"]{try? RelayVault.remove(account)}}
   let lab=Lab(offline:true,restore:false);lab.relayURL=base.absoluteString;lab.relayAuthMode="owner";lab.relayOwnerPath=path;lab.relayAutoConnect=false
-  lab.startRelay();for _ in 0..<100{if lab.relayOnline{break};try await Task.sleep(for:.milliseconds(50))};if !lab.relayOnline{print("Relay connection diagnostic: "+lab.relayMessage);fflush(stdout)};ensure(lab.relayOnline && !lab.relayIdentityFingerprint.isEmpty)
+  lab.startRelay();for _ in 0..<100{if lab.relayOnline && !lab.relayJobs.isEmpty{break};try await Task.sleep(for:.milliseconds(50))};if !lab.relayOnline{print("Relay connection diagnostic: "+lab.relayMessage);fflush(stdout)};ensure(lab.relayOnline && !lab.relayJobs.isEmpty && !lab.relayIdentityFingerprint.isEmpty)
   owner.invalidate();lab.relayAdminKey=try await owner.token();ensure(!lab.relayJobs.isEmpty);lab.relaySelection=lab.relayJobs[0].id;lab.previewRelay()
   for _ in 0..<100{if !lab.relayPreviewLoading{break};try await Task.sleep(for:.milliseconds(30))}
   ensure(lab.relayPreviewIsCurrent);try await lab.relayTick();ensure(lab.relayPreviewIsCurrent)
@@ -74,14 +74,16 @@ import IntegrationCore
   lab.clearRelayPrivateViews();ensure(lab.relayPreview==nil && !lab.relayPreviewLoading)
   print("PASS: actual full preview survives queue refresh, print-setting changes invalidate it, and locking clears private views")
 
+  // Heartbeat online is published before queue refresh; wait for both before
+  // selecting another job after report-only recovery. Never reclaim stale rows.
   let pendingJob=lab.relayJobs[0];let pendingClaim=try await lab.relayRequest("POST","v2/device/jobs/\(pendingJob.id)/claim",[:])["claim"] as! String
   lab.relayFlight=RelayFlight(serverID:pendingJob.id,claim:pendingClaim,localID:nil,outcome:"unknown");try lab.persistRelayFlight();lab.stopRelay();ensure(lab.relayFlight?.outcome=="unknown")
-  lab.startRelay();for _ in 0..<100{if lab.relayOnline && lab.relayFlight==nil{break};try await Task.sleep(for:.milliseconds(50))};ensure(lab.relayOnline && lab.relayFlight==nil)
+  lab.startRelay();for _ in 0..<100{if lab.relayOnline && lab.relayFlight==nil && !lab.relayJobs.contains(where:{$0.id==pendingJob.id}){break};try await Task.sleep(for:.milliseconds(50))};ensure(lab.relayOnline && lab.relayFlight==nil && !lab.relayJobs.contains(where:{$0.id==pendingJob.id}))
   let active=try RelayVault.read("connection",as:RelaySavedConnection.self)!;ensure(active.credential.isEmpty && active.authMode=="owner" && active.ownerPath==path)
   let secondJob=lab.relayJobs[0];let secondClaim=try await lab.relayRequest("POST","v2/device/jobs/\(secondJob.id)/claim",[:])["claim"] as! String
   lab.relayFlight=RelayFlight(serverID:secondJob.id,claim:secondClaim,localID:nil,outcome:"sent");try lab.persistRelayFlight();lab.stopRelay();ensure(lab.relayFlight?.outcome=="sent")
   let durable=try RelayVault.read("pending",as:RelaySavedClaim.self)!;ensure(durable.state=="sent")
-  lab.startRelay();for _ in 0..<100{if lab.relayOnline && lab.relayFlight==nil{break};try await Task.sleep(for:.milliseconds(50))};ensure(lab.relayFlight==nil && lab.relayOnline)
+  lab.startRelay();for _ in 0..<100{if lab.relayOnline && lab.relayFlight==nil && !lab.relayJobs.contains(where:{$0.id==secondJob.id}){break};try await Task.sleep(for:.milliseconds(50))};ensure(lab.relayFlight==nil && lab.relayOnline && !lab.relayJobs.contains(where:{$0.id==secondJob.id}))
   lab.stopRelay()
   var legacy=RelaySavedConnection(server:base.absoluteString,credential:"fixture");let bytes=try JSONEncoder().encode(legacy);legacy=try JSONDecoder().decode(RelaySavedConnection.self,from:bytes);ensure(legacy.authMode==nil)
   lab.relayStyle="自定义";lab.relayTemplates=[.preset("便签")];lab.relayTemplateID=lab.relayTemplates[0].id.uuidString

@@ -89,3 +89,27 @@ class DeploymentTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'checksum'):
             self.d.apply()
         self.assertEqual(self.d.actions, [])
+
+    def test_claim_racing_preflight_prevents_stop(self):
+        original = self.d.rehearse
+        def race(*args):
+            original(*args)
+            with self.store.connect() as db:
+                db.execute("INSERT INTO jobs(id,device,text,meta,state,receipt,created,updated) VALUES('race','p2','','{}','claimed','',0,0)")
+        self.d.rehearse = race
+        with self.assertRaisesRegex(RuntimeError, 'Active print'):
+            self.d.apply()
+        self.assertEqual(self.d.actions, [])
+        self.assertEqual((self.root/'current').resolve(), self.old)
+
+    def test_writer_lock_excludes_claims_until_service_stops(self):
+        def control(action):
+            self.assertEqual(action, 'stop')
+            with sqlite3.connect(self.c['database'], timeout=.01) as db:
+                with self.assertRaises(sqlite3.OperationalError):
+                    db.execute('BEGIN IMMEDIATE')
+        self.d.control = control
+        self.d.stop_idle(Path(self.c['database']))
+        # Lock is released after the service stops.
+        with sqlite3.connect(self.c['database'], timeout=.01) as db:
+            db.execute('BEGIN IMMEDIATE')
