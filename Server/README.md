@@ -1,8 +1,6 @@
-# Paperang Studio LinuxRelayServer v0.3.0
+# Paperang Studio LinuxRelayServer v0.3.2
 
-
-> opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](../doc/OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
-[Authentication and all API routes](../doc/AUTH-v2.md) · [中文升级指南](../doc/UPGRADE-v0.3.0.zh-CN.md) · [Agent handoff](../doc/HANDOFF-v0.3.0.zh-CN.md)
+[API v2](../doc/API-v2-032.md) · [Authentication](../doc/AUTH-v2.md) · [Upgrade and rollback](../doc/UPGRADE-v0.3.2.md) · [Terminal console](ADMIN-CONSOLE.md) · [Tests](../tests/README.md)
 
 Python 3.10+, SQLite, argon2-cffi and cryptography. Relay API v2 is incompatible with v0.2.x; old relay /v1 routes return 410. The Mac local API v2 is separate. Receivers use scoped M keys; C administration is available in native clients. Public submissions require a registered browser identity; Explicit A keys cannot read print status; anonymous browser identities and B can read only their own states. Task content is available only in C history or a matching device-scoped active claim (M or proven public-key C).
 
@@ -46,10 +44,12 @@ Configuration defaults: loopback:8177, device p2, anonymous 500 units/job, 5 job
 
 key-add prints a newly generated secret once; redirect to a private file rather than logging it. key-import accepts existing offline keygen JSON for legacy role aliases (submit→B, admin→C, device→M). Use C UI/API to create A/passphrase credentials. Fixed owner keys are local RSA PEM files; register only their public key, then prove possession. Never upload the private JSON.
 
-Run regression validation from the external archive described above. See the full auth contract for route schemas, status-only responses, CSRF, pagination, revocation, retention and proof limitations. Tests run with temporary databases; do not run them against a production config.
+Run reproducible regression validation from `tests/server/` and `tests/test_relay_v2.py` as described in the test guide. See the full auth contract for route schemas, status-only responses, CSRF, pagination, revocation, retention and proof limitations. Tests run with temporary databases; do not run them against a production config.
 
-Quota/passphrase revision: `v0.3.1-linuxrelayserver-fix1`. C-only class and stable-identity limits persist in SQLite. Follow [deployment handoff](../doc/HANDOFF-QUOTAS-v0.3.1.zh-CN.md); never rerun owner cutover for a routine upgrade. Local 39-test validation does not mean the production service is deployed.
+## Existing /home/elt/paperang deployment
 
-## Local terminal administration
+Use `Server/deploy.py` with a pinned package as described in the upgrade guide. It verifies checksums, rehearses new and old code on a consistent SQLite copy, refuses active printing, takes a protected backup and switches the release. The configuration, database, users, keys, quotas and history remain intact. A rollback switches programs and keeps the current database, including post-upgrade writes.
 
-Install the host-specific reset package only after identifying the client to retain. [Terminal console and reset guide](ADMIN-CONSOLE.md) documents `sudo python3 /home/elt/paperang/manage.py`: Python curses navigation, local-only privilege boundary, private credential distribution and full history/export. It opens no management port and creates no permanent admin credential. The reset deliberately removes previous user/history/log/backup data after successful verification; preserve the specified Windows key before running it.
+`sudo python3 /home/elt/paperang/manage.py` opens the [local terminal console](ADMIN-CONSOLE.md). It supports configuration, credential distribution/revocation, identities, quotas and history/export through a service-account worker. Pending public keys become usable only after the intended client proves possession; adding one never revokes another.
+
+The default job retention is seven days, pruned during normal API activity; active claims are retained. Audit retention is 90 days. Private exports and deployment backups are retained until explicitly removed by the operator. No backups are removed by this upgrade.

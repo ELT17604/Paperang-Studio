@@ -318,7 +318,7 @@ class Console:
     def credentials(self):
         while True:
             rows=self.worker.call('credentials')
-            choice=self.menu('Credentials (no raw secrets in listings)',[f'{r["role"]} {r["kind"]} {"REVOKED" if r["revoked"] else "active"} {r["name"]}  {r["id"]}' for r in rows])
+            choice=self.menu('Credentials (no raw secrets in listings)',[f'{r["role"]} {r["kind"]} {"REVOKED" if r["revoked"] else "pending proof" if r["kind"]=="pendingkey" else "active"} {r["name"]}  {r["id"]}' for r in rows])
             if choice is None: return
             row=rows[choice];action=self.menu(row['name'],['Details','Rename','Revoke','Rotate / distribute replacement','Revoke sessions','Configure identity quota'])
             if action is None: continue

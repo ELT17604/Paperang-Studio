@@ -40,6 +40,6 @@ $printerHelper = "$env:USERPROFILE/.codex/skills/paperang-relay-print/scripts/re
 
 Keep job JSON, previews, configuration and attempt records outside published source/skill files. Attempt files contain IDs and acceptance/status-readable flags, no bearer receipt secrets. Files use user-only POSIX permissions or the Windows user's inherited profile permissions; they are not a credential vault. The helper never logs keys, receipt tokens, bodies or base64. No server/client source modification or background service is required.
 
-## v0.3.0 contract
+## v0.3.2 contract
 
 The helper uses relay API v2; relay v1 is retired. Public status only advertises inbox acceptance/capabilities, not printer readiness. An accepted A job must not be polled; report acceptance without claiming print success. B wait requires the same identity’s key and the explicit matching server. Density/feed/template remain receiver-owned. A timeout is uncertain; never automatically submit again.

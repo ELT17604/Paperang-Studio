@@ -26,7 +26,7 @@ class RelayContract(unittest.TestCase):
  def test_public(self):
   code,d=self.req('GET','/v2/public/status');self.assertEqual(code,200);self.assertEqual(d['capabilities']['authVersion'],2);self.assertEqual(d['capabilities']['contentSchemaVersion'],1)
  def test_v1_retired(self):
-  for path in ['/v1/status','/v1/jobs','/v1/content']:
+  for path in ['/v1','/v1/status','/v1/jobs','/v1/content']:
    for method in ['GET','POST']:
     code,d=self.req(method,path,{} if method=='POST' else None);self.assertEqual(code,410);self.assertIsInstance(d['error'],str)
  def test_roles_dedup_and_claim(self):

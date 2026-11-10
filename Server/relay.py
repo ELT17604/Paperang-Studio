@@ -5,7 +5,7 @@ import argparse, contextlib, hashlib, hmac, ipaddress, json, os, re, secrets, si
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-APP_VERSION = '0.3.1-linuxrelayserver-opt1'
+APP_VERSION = '0.3.2-linuxrelayserver'
 
 JOB_PATTERN = r'(?:[a-f0-9]{40}|[a-f0-9-]{36})'
 
@@ -294,7 +294,7 @@ class Handler(BaseHTTPRequestHandler):
                 origin=urlsplit(self.headers['Origin'])
                 if origin.scheme not in ['http','https'] or origin.netloc!=self.headers.get('Host'):raise Problem(403,'Cross-origin requests are not allowed')
             if len(self.headers.get_all('Authorization',[]))>1 or len(self.headers.get_all('Host',[]))!=1:raise Problem(400,'Duplicate/missing authentication or Host header')
-            if self.path.startswith('/v1/'):
+            if self.path == '/v1' or self.path.startswith('/v1/'):
                 raise Problem(410,'relay_v1_retired_use_v2')
             key=None if self.path in ['/v2/auth/login','/v2/auth/anonymous','/v2/auth/challenge','/v2/auth/prove'] else self.server.store.api.auth.authenticate(self.headers.get('Authorization',''),self.headers.get('Cookie',''))
             if key and key.get('cookie') and method=='POST':

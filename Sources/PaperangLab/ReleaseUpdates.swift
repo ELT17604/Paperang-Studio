@@ -4,7 +4,8 @@ import IntegrationCore
 
 @MainActor enum ReleaseUpdates {
  private static var busy=false
- private struct Release:Decodable {let tag_name:String;let html_url:String;let draft:Bool;let prerelease:Bool}
+ private struct Asset:Decodable {let name:String}
+ private struct Release:Decodable {let tag_name:String;let html_url:String;let draft:Bool;let prerelease:Bool;let assets:[Asset]}
  static func check() {
   guard !busy else{return};busy=true
   Task { @MainActor in
@@ -17,7 +18,7 @@ import IntegrationCore
     guard let http=response as? HTTPURLResponse,http.statusCode==200,data.count<=2*1024*1024 else{throw URLError(.badServerResponse)}
     let releases=try JSONDecoder().decode([Release].self,from:data)
     let latest=releases.compactMap{release -> (Release,[Int])? in
-     guard !release.draft,!release.prerelease,let number=ProductVersion.parse(release.tag_name) else{return nil};return (release,number)
+     guard !release.draft,!release.prerelease,let number=ProductVersion.release(release.tag_name,assets:release.assets.map(\.name)) else{return nil};return (release,number)
     }.max{$0.1.lexicographicallyPrecedes($1.1)}
     guard let latest else{show("GitHub 尚未发布 MacClient 正式发行版。");return}
     guard let current=ProductVersion.parse(AppIdentity.version) else{show("当前版本格式无法比较，请查看 GitHub 发行页面。");return}

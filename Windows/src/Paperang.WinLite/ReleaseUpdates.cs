@@ -26,6 +26,16 @@ internal static class ReleaseUpdates
         if (result != 0) return result;
         result = a.Stage.CompareTo(b.Stage); return result != 0 ? result : a.Revision.CompareTo(b.Revision);
     }
+    internal static string? DistributionTag(string tag, IEnumerable<string> assets)
+    {
+        if (TryParse(tag, out _)) return tag;
+        if (!System.Text.RegularExpressions.Regex.IsMatch(tag, @"^v\d+\.\d+\.\d+$")) return null;
+        string version = tag[1..], prefix = "PaperangStudio-" + version + "-winlite-win-";
+        if (!assets.Any(name => name.StartsWith(prefix, StringComparison.Ordinal) &&
+            name.EndsWith("-setup.exe", StringComparison.Ordinal))) return null;
+        string distribution = version + "-winlite";
+        return TryParse(distribution, out _) ? distribution : null;
+    }
     public static async Task Check()
     {
         if (Interlocked.Exchange(ref busy, 1) != 0) return;
@@ -39,8 +49,10 @@ internal static class ReleaseUpdates
             foreach (var release in document.RootElement.EnumerateArray()) {
                 if (release.GetProperty("draft").GetBoolean() || release.GetProperty("prerelease").GetBoolean()) continue;
                 string tag = release.GetProperty("tag_name").GetString() ?? "";
-                if (!TryParse(tag, out _)) continue;
-                if (newest == null || Compare(tag, newest) > 0) { newest = tag; url = release.GetProperty("html_url").GetString(); }
+                string? distribution = DistributionTag(tag, release.GetProperty("assets").EnumerateArray()
+                    .Select(asset => asset.GetProperty("name").GetString() ?? ""));
+                if (distribution == null) continue;
+                if (newest == null || Compare(distribution, newest) > 0) { newest = distribution; url = release.GetProperty("html_url").GetString(); }
             }
             if (newest == null) { MessageBox.Show("GitHub 尚未发布 WinLite 正式发行版。当前版本：v" + AppVersion.Current, "检查更新"); return; }
             if (Compare(newest, AppVersion.Current) <= 0) { MessageBox.Show("当前已是最新 WinLite 正式版。\n当前版本：v" + AppVersion.Current, "检查更新"); return; }

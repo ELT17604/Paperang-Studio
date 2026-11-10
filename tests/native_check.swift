@@ -10,6 +10,9 @@ import IntegrationCore
   _ = NSApplication.shared;NSApp.finishLaunching()
   for old in ["0.3.1-macclient", "v0.3.1-macclient-opt99", "0.3.1-macclient-fix99"] {ensure(ProductVersion.parse(old)!.lexicographicallyPrecedes(ProductVersion.parse("0.3.2-macclient")!))}
   ensure(ProductVersion.parse("v0.3.2-macclient")==ProductVersion.parse("0.3.2-macclient"));ensure(ProductVersion.parse("0.3.2")==nil);ensure(ProductVersion.parse("0.3.2-winlite")==nil);ensure(ProductVersion.parse("0.3.2-rc1")==nil)
+  ensure(ProductVersion.release("v0.3.2",assets:["PaperangStudio-0.3.2-macclient-macos-arm64.zip"])==ProductVersion.parse("0.3.2-macclient"))
+  ensure(ProductVersion.release("v0.3.2",assets:[])==nil)
+  ensure(ProductVersion.release("v0.3.2",assets:["PaperangStudio-0.3.2-winlite-win-x64-setup.exe"])==nil)
   let stateLab=Lab(offline:true,restore:false)
   for (label,state) in [("发送中","printing"),("已发送，待核对纸面","sent"),("已停止","cancelled"),("未完成","unknown")] {ensure(stateLab.localJobState(label)==state)}
   let data=try Data(contentsOf:URL(fileURLWithPath:CommandLine.arguments[1]));let c=try JSONSerialization.jsonObject(with:data) as! [String:Any]

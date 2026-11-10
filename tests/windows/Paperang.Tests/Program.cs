@@ -81,6 +81,11 @@ static class Tests
     }
     private static void StorageAndVersionCases()
     {
+        Check(ReleaseUpdates.DistributionTag("v0.3.2", ["PaperangStudio-0.3.2-winlite-win-x64-setup.exe"]) == AppVersion.Current,
+            "product release maps to own distribution only with installer asset");
+        Check(ReleaseUpdates.DistributionTag("v0.3.2", []) == null &&
+            ReleaseUpdates.DistributionTag("v0.3.2", ["PaperangStudio-0.3.2-macclient-macos-arm64.zip"]) == null,
+            "missing and foreign release packages are not offered");
         foreach (string old in new[] { "0.3.1-winlite", "0.3.1-winlite-fix99", "0.3.1-winlite-opt99" })
             Check(ReleaseUpdates.Compare(AppVersion.Current, old) > 0, "0.3.2 update ordering over " + old);
         foreach (string invalid in new[] { "0.3.2", "0.3.2-macclient", "0.3.2-linuxrelayserver", "0.3.2-winlite-opt0", "0.3.2-winlite-opt9999999999999" }) {

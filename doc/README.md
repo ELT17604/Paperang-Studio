@@ -6,7 +6,8 @@ All default documentation pages are in English. Each guide links to its Chinese 
 
 | Topic | English | 简体中文 |
 |---|---|---|
-| opt1 cleanup and validation | [Review](OPTIMIZATION-opt1.md) | [审阅记录](OPTIMIZATION-opt1.zh-CN.md) |
+| Current v0.3.2 contract | [API v2](API-v2-032.md) | [权限与认证](AUTH-v2.zh-CN.md) |
+| v0.3.2 upgrade and rollback | [Preserving upgrade](UPGRADE-v0.3.2.md) | [Ubuntu 验证](VALIDATION-v0.3.2-ubuntu.md) |
 | Project overview | [README](../README.md) | [项目介绍](README.zh-CN.md) |
 | User guide | [User guide](USER-GUIDE.md) | [使用说明](USER-GUIDE.zh-CN.md) |
 | Windows tray client | [Windows guide](WINDOWS.md) | [Windows 使用说明](WINDOWS.zh-CN.md) |

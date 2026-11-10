@@ -19,17 +19,17 @@
       "version": "v0.3.2-macclient",
       "runtimeVersion": "0.3.2-macclient",
       "versionSource": "VERSION",
-      "verification": "arm64 native build/signing, 47 local HTTP requests, isolated Relay HTTP/native owner-management-recovery/config-template checks passed; physical T1 text density60 and I1 image density100 each printed once and owner confirmed both normal; live Relay public v2 status HTTP200 only",
+      "verification": "arm64 native build/signing, 47 local HTTP requests, isolated Relay HTTP/native owner-management-recovery/config-template checks passed; physical T1 text density60 and I1 image density100 each printed once and owner confirmed both normal; live Relay public v2 status HTTP200 only; Stage 3 product Release discovery changed: native revalidation required",
       "targetVersion": "0.3.2",
-      "validation032": "passed"
+      "validation032": "pending"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
       "status": "implemented",
-      "version": "v0.3.1-linuxrelayserver-opt1",
-      "runtimeVersion": "0.3.1-linuxrelayserver-opt1",
+      "version": "v0.3.2-linuxrelayserver",
+      "runtimeVersion": "0.3.2-linuxrelayserver",
       "versionSource": "Server/relay.py",
-      "verification": "Opt1 fresh host reset, sole Windows key retention/reconnect and terminal/config editor installed; 39 regressions, 4 backend, 6 config checks plus console update/rollback and PTY checks passed; root atomic config/worker access verified",
+      "verification": "76 isolated server/console/config/upgrade/rollback/sender/experimental-adapter regressions and 5 shared HTTP contract tests passed on Ubuntu; protected production cutover and final real receiver checks pending",
       "targetVersion": "0.3.2",
       "validation032": "pending"
     },
@@ -39,19 +39,19 @@
       "version": "v0.3.2-winlite",
       "runtimeVersion": "0.3.2-winlite",
       "versionSource": "Windows/VERSION",
-      "verification": "Windows x64 build/installer, 55 native checks, 12 isolated native Relay checks, 5 shared HTTP cases, upgrade/overlay/uninstall/reinstall retention, DPI editor repair and 3 owner-confirmed P2 sheets passed; installed owner receiver recovered to online queue/P2 after network failures; independent public probes timed out/TLS failed, production print not tested",
+      "verification": "Windows x64 build/installer, 55 native checks, 12 isolated native Relay checks, 5 shared HTTP cases, upgrade/overlay/uninstall/reinstall retention, DPI editor repair and 3 owner-confirmed P2 sheets passed; installed owner receiver recovered to online queue/P2 after network failures; independent public probes timed out/TLS failed, production print not tested; Stage 3 product Release discovery changed: native revalidation required",
       "targetVersion": "0.3.2",
-      "validation032": "passed"
+      "validation032": "pending"
     },
     "relayskill": {
       "name": "RelaySkill",
       "status": "implemented",
-      "version": "v0.3.1-relayskill-opt1",
-      "runtimeVersion": "0.3.1-relayskill-opt1",
+      "version": "v0.3.2-relayskill",
+      "runtimeVersion": "0.3.2-relayskill",
       "versionSource": "Skills/paperang-relay-print/VERSION",
-      "verification": "12 local regressions passed on macOS, including restored CJK font discovery",
+      "verification": "12 offline rendering/protocol regressions and actual HTTP sender-to-isolated-Relay v2 integration passed on Ubuntu; no physical print claimed",
       "targetVersion": "0.3.2",
-      "validation032": "pending"
+      "validation032": "passed"
     },
     "winclient": {
       "name": "WinClient",
@@ -69,6 +69,6 @@
     }
   },
   "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
-  "releaseStatus": "stage1-macos-validated; stage2-Windows-native-validated with documented production-network limitations; Ubuntu native validation pending; unreleased",
+  "releaseStatus": "unreleased; Stage 3 Ubuntu integration in progress; final cross-platform production print gate pending",
   "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged."
 }

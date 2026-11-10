@@ -2,7 +2,7 @@
 
 # Paperang Studio v0.3.2
 
-**v0.3.2 target:** Mac and Windows native validation completed; Ubuntu pending. See [API contract](doc/API-v2-032.md) [Stage 1 handoff](xdev/032-handoff/01-macos.md) and [Windows validation](doc/VALIDATION-v0.3.2-windows.md). No final release or deployment is implied.
+**v0.3.2 target:** Mac and Windows native validation completed; Ubuntu pending. See [API contract](doc/API-v2-032.md) [Mac validation](doc/VALIDATION-v0.3.2-macos.md) and [Windows validation](doc/VALIDATION-v0.3.2-windows.md). No final release or deployment is implied.
 
 <p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT integration</p>
 <p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.2 target baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
@@ -85,7 +85,7 @@ Requires Windows 10 2004+ / Windows 11, a BLE adapter, and .NET 10 Desktop Runti
 .\Windows\scriptsuild.ps1
 ```
 
-Run `PaperangStudio.exe` from a stable directory. Open settings from the tray, enter the v0.3.1 relay URL and a **paired owner private-key file**, scan/select your P2, and choose **保存并连接**. Automatic connection and printing are enabled by default after configuration; both are configurable. Settings → **管理** opens C administration. [Full Windows instructions](doc/WINDOWS.md).
+Run `PaperangStudio.exe` from a stable directory. Open settings from the tray, enter the v0.3.2 relay URL and a **paired owner private-key file**, scan/select your P2, and choose **保存并连接**. Automatic connection and printing are enabled by default after configuration; both are configurable. Settings → **管理** opens C administration. [Full Windows instructions](doc/WINDOWS.md).
 
 ### macOS · MacClient
 
@@ -156,4 +156,4 @@ Linux security and migration preparation: [validation record](doc/LINUX-v0.3.0-V
 
 Windows v0.3.2-winlite (unreleased): [installer, update check and uninstall / 安装与卸载](doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md).
 
-Linux opt1 local administration: [sudo terminal console and reset guide](Server/ADMIN-CONSOLE.md). Arrow-key credential/identity/quota/history management uses a service-account database worker and no management listener.
+Linux opt1 local administration: [sudo terminal console guide](Server/ADMIN-CONSOLE.md). Arrow-key credential/identity/quota/history management uses a service-account database worker and no management listener.

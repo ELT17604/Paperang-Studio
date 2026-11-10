@@ -30,3 +30,20 @@ work/probe "$PAPERANG_RELAY_URL"
 Physical text/image/density tests require the native GUI and a real P2. Consult [validation evidence](../doc/VALIDATION-v0.3.2-macos.md); never automatically replay an uncertain print. HTTP acceptance/transport tests are distinct from owner paper confirmation.
 
 Windows-native reproduction: [tests/windows/README.md](windows/README.md). Windows has no Mac loopback HTTP service; its runtime surface is Relay v2. Shared HTTP tests and inventory/version guards also run on Windows.
+
+## Ubuntu / reproducible server and sender regressions
+
+Python 3.10+; keep the venv outside tracked source. Install `Server/requirements.txt`, Pillow and httpx (the experimental MCP server additionally uses `Integrations/ChatGPT/requirements.txt`). Install a real CJK font, or point `PAPERANG_TEST_CJK_FONT` at a privately unpacked Noto CJK TTC file. Missing CJK fonts are a test prerequisite failure, not a successful rendering check.
+
+```sh
+PYTHONPATH=Server:Skills/paperang-relay-print/scripts:Integrations/ChatGPT python -B -m unittest discover -s tests/server -v
+python -B tests/test_relay_v2.py
+python tests/test_contract_inventory.py
+python scripts/check-versions.py
+bash -n Server/install.sh
+bash Server/install.sh --dry-run --port 28177
+node --check Server/web/app.js
+node --check Clients/paperang-client.js
+```
+
+`test_deploy.py` simulates service control while exercising actual SQLite snapshots, row/schema comparison, code switching and rollback retention. It does not claim a real systemd deployment. `test_adapters.py` uses actual HTTP sender clients and an isolated real Relay, with no printer. Native tests and production physical round trips remain separate gates. The historical one-time factory-reset installer is removed; normal upgrades use [the preserving updater](../doc/UPGRADE-v0.3.2.md).
