@@ -1,6 +1,8 @@
-> Current v0.3.2: Mac and Windows native evidence is recorded; Ubuntu deployment and final production integration are pending. The older matrix below is historical.
+# Paperang Studio v0.3.2 platform acceptance
 
-> v0.3.2 Stage 1: MacClient **v0.3.2-macclient** native build, local HTTP v2, isolated Relay/template/config checks and two owner-confirmed P2 text/image jobs passed. Windows/Ubuntu v0.3.2 native validation is pending. The table below preserves historical v0.3.1 platform evidence. See [validation](VALIDATION-v0.3.2-macos.md).
+MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.
+
+## Historical implementation matrix
 
 # Version Feature Implementation Matrix — baseline 0.3.1
 

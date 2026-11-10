@@ -1,7 +1,7 @@
 name: v0.3.2 integration gates
 on:
   push:
-    branches: [xdev/032task]
+    branches: [xdev/032task, main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -62,6 +62,13 @@ jobs:
       - run: python tests/windows/run_integration.py
       - run: ./Windows/scripts/build.ps1
       - run: ./Windows/scripts/build-installer.ps1 -Iscc 'C:/Program Files (x86)/Inno Setup 6/ISCC.exe'
+      - name: Native installed overlay, uninstall and reinstall acceptance
+        shell: pwsh
+        run: |
+          $setup = "$env:PAPERANG_WIN_WORK_DIR/Release/PaperangStudio-0.3.2-winlite-win-x64-setup.exe"
+          Start-Process -FilePath $setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait
+          python tests/windows/test_installer.py --setup $setup --log-dir work/installer-validation
+          if ($LASTEXITCODE -ne 0) { throw 'Native installer validation failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: winlite-032-candidate
@@ -69,3 +76,18 @@ jobs:
             work/windows/Release/*.exe
             work/windows/Release/*.zip
             work/windows/Release/*.sha256
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ubuntu, macos, windows]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: work/release-input
+      - run: python3 scripts/publish-release.py
+        env:
+          GH_TOKEN: ${{ github.token }}

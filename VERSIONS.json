@@ -19,9 +19,9 @@
       "version": "v0.3.2-macclient",
       "runtimeVersion": "0.3.2-macclient",
       "versionSource": "VERSION",
-      "verification": "arm64 native build/signing, 47 local HTTP requests, isolated Relay HTTP/native owner-management-recovery/config-template checks passed; physical T1 text density60 and I1 image density100 each printed once and owner confirmed both normal; live Relay public v2 status HTTP200 only; Stage 3 product Release discovery changed: native revalidation required",
+      "verification": "Native arm64 CI build/signing, 47 local HTTP checks and actual-source owner/Keychain/recovery/version harness passed; confirmed device records retained; upgraded Ubuntu connection and complete pending task/preview accepted by owner",
       "targetVersion": "0.3.2",
-      "validation032": "pending"
+      "validation032": "passed"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
@@ -29,9 +29,9 @@
       "version": "v0.3.2-linuxrelayserver",
       "runtimeVersion": "0.3.2-linuxrelayserver",
       "versionSource": "Server/relay.py",
-      "verification": "76 isolated server/console/config/upgrade/rollback/sender/experimental-adapter regressions and 5 shared HTTP contract tests passed on Ubuntu; protected production cutover and final real receiver checks pending",
+      "verification": "Ubuntu native regressions, real preserving production upgrade, backup/rollback, unchanged row/schema rehearsal, HTTPS/API v2/v1 rejection/web/source hashes and owner-approved Mac connection/task/preview integration passed",
       "targetVersion": "0.3.2",
-      "validation032": "pending"
+      "validation032": "passed"
     },
     "winlite": {
       "name": "WinLite",
@@ -39,9 +39,9 @@
       "version": "v0.3.2-winlite",
       "runtimeVersion": "0.3.2-winlite",
       "versionSource": "Windows/VERSION",
-      "verification": "Windows x64 build/installer, 55 native checks, 12 isolated native Relay checks, 5 shared HTTP cases, upgrade/overlay/uninstall/reinstall retention, DPI editor repair and 3 owner-confirmed P2 sheets passed; installed owner receiver recovered to online queue/P2 after network failures; independent public probes timed out/TLS failed, production print not tested; Stage 3 product Release discovery changed: native revalidation required",
+      "verification": "Native x64 CI build, DPAPI/core and real isolated Relay integration passed; setup/upgrade/uninstall/reinstall and confirmed device records retained; product Release discovery validated",
       "targetVersion": "0.3.2",
-      "validation032": "pending"
+      "validation032": "passed"
     },
     "relayskill": {
       "name": "RelaySkill",
@@ -69,6 +69,6 @@
     }
   },
   "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
-  "releaseStatus": "unreleased; Stage 3 Ubuntu integration in progress; final cross-platform production print gate pending",
+  "releaseStatus": "validated release candidate; publication gated on final main native CI and artifact checksums",
   "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged."
 }

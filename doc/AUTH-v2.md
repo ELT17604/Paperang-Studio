@@ -1,10 +1,8 @@
-> v0.3.2: Mac local HTTP API now uses v2; historical local-v1 references below describe the original migration. Relay contract remains unchanged. See [v0.3.2 contract](API-v2-032.md).
+# Relay API v2 — v0.3.2
 
-# Relay API v2 — v0.3.0
+[简体中文](AUTH-v2.zh-CN.md) · [Upgrade and rollback](UPGRADE-v0.3.2.md) · [Final contract](API-v2-032.md)
 
-[简体中文](AUTH-v2.zh-CN.md) · [Upgrade](UPGRADE-v0.3.0.zh-CN.md) · [Agent handoff](HANDOFF-v0.3.0.zh-CN.md)
-
-This coordinated pre-1.0 minor release breaks relay API v1. Local Mac HTTP API v1, raster1 schema 1, template schema 1 and BLE framing remain separate contracts. Upgrade the relay, receivers and senders together; all `/v1/*` relay routes return HTTP 410. Never restore old receipt/content routes for compatibility.
+Relay and Mac local HTTP APIs use v2 with separate responsibilities. Relay v1 was retired during the historical v0.3.0 migration; raster1 schema 1, template schema 1 and BLE framing remain separate contracts. Upgrade the relay, receivers and senders together; all `/v1/*` relay routes return HTTP 410. Never restore old receipt/content routes for compatibility.
 
 | Role | Submit | Read status | Read historical body/delivery metadata | Manage |
 |---|---|---|---|---|

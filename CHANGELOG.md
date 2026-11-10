@@ -1,12 +1,11 @@
-# v0.3.2 — integration candidate (unreleased)
+# v0.3.2
 
-- Mac local HTTP API and Python/JavaScript clients migrate to v2; retired v1 paths return authenticated HTTP 410 with no business dispatch.
-- Local job states use stable English values with display labels; sent never implies paper completion.
-- Mac runtime/version 0.3.2-macclient retains the documented architecture suffix; update comparison covers historical opt/fix tags. Shared targets for other shipping components are 0.3.2; their deployed runtime labels remain historical until their native stages.
-- Local OpenAPI and final contract index, executable HTTP/native/Relay checks, audit and Stage 1 handoff added. BLE, CRC, UUIDs, raster width, feed and density implementation unchanged.
-- Ubuntu and RelaySkill runtime targets now use 0.3.2 with their platform suffixes; preserving deployment/rollback tooling and committed server/adapter regressions added. Old one-time factory-reset installer removed. Bare Relay `/v1` now explicitly returns 410.
-- Product Release lookup accepts `v0.3.2` only when the corresponding platform package is present; native revalidation and rebuilt packages remain required.
-- Explicit patch-release compatibility exception: local v1 consumers must upgrade; longstanding version policy is retained. Windows/Ubuntu validation, tag and final release are pending.
+- Application HTTP APIs unified on v2; v1 has no business execution. Product version 0.3.2 retains the four distribution suffixes.
+- macOS and Windows native builds, device records and shared contract regression accepted; Ubuntu preserving production upgrade and authenticated Mac task/preview integration accepted.
+- Add consistent backup, unchanged-row/schema rehearsal, claim-safe deployment and program-only rollback retaining post-upgrade writes. Remove the obsolete one-time reset installer.
+- Restore reproducible server/console/adapter regressions and gate native packages/tag/Release on CI and SHA-256 checks. Product Release discovery recognizes matching platform assets.
+- Template/content/config schema 1 and physical printer protocol remain unchanged. Explicit PATCH exception: Local API v1 consumers must upgrade to v2; normal MINOR compatibility policy remains in force.
+- Consolidate current docs and remove completed temporary stage handoffs. See [release notes](doc/RELEASE-v0.3.2.md).
 
 # Changelog
 

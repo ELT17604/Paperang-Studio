@@ -2,7 +2,7 @@
 
 [Project home](../README.md) · [简体中文](INDEX.zh-CN.md)
 
-All default documentation pages are in English. Each guide links to its Chinese counterpart. The application UI and some API enum values remain Chinese; localization of documentation does not change those values.
+All default documentation pages are in English. Each guide links to its Chinese counterpart. The application UI includes Chinese labels; application API v2 job states use the stable values documented in the contract.
 
 | Topic | English | 简体中文 |
 |---|---|---|

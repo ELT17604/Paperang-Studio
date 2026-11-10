@@ -1,6 +1,4 @@
-> Windows v0.3.2-winlite 原生验收：[验证范围与限制](VALIDATION-v0.3.2-windows.md)。Ubuntu 待第三阶段验收，尚未发布。
-
-> **Paperang Studio v0.3.2**：macOS/API v2 阶段记录见 [macOS 验证](VALIDATION-v0.3.2-macos.md) 与 [契约](API-v2-032.md)。Windows 原生验证已完成，Ubuntu 正在验收；以下历史平台结果不代表本次全平台发布。
+> **Paperang Studio v0.3.2**：macOS、Windows、Ubuntu 三端验收通过。[发行说明](RELEASE-v0.3.2.md) · [API v2](API-v2-032.md) · [升级与回滚](UPGRADE-v0.3.2.md) · [Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md)。
 
 <p align="center"><img src="../assets/AppIcon.png" width="112" alt="Paperang Studio 标志"></p>
 
