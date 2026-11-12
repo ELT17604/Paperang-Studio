@@ -56,6 +56,16 @@
       "targetVersion": "0.3.2",
       "validation032": "passed"
     },
+    "localbleskill": {
+      "name": "LocalBLESkill",
+      "status": "implemented",
+      "version": "v0.3.2-localbleskill",
+      "runtimeVersion": "0.3.2-localbleskill",
+      "versionSource": "Skills/paperang-local-ble/VERSION",
+      "validation032": "pending",
+      "verification": "Standalone macOS build and offline 576-dot render verified; direct BLE hardware and physical printing pending",
+      "targetVersion": "0.3.2"
+    },
     "winclient": {
       "name": "WinClient",
       "status": "planned",

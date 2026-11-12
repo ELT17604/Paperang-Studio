@@ -1,5 +1,7 @@
 # Paperang Studio · ChatGPT integration
 
+**Status: ChatGPT MCP development is paused and the current version is unavailable for use.** The adapter source is retained. ChatGPT access requires a separate authenticated HTTPS/OAuth gateway and a configured ChatGPT connection. RelaySkill works independently.
+
 
 > opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](../../doc/OPTIMIZATION-opt1.md). Historical test paths below refer to Git revision `4393ae0`.
 [Project](../../README.md) · [English guide](../../doc/CHATGPT.md) · [简体中文](../../doc/CHATGPT.zh-CN.md) · [RelaySkill](../../doc/RELAY-SKILL.md)

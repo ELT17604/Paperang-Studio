@@ -4,6 +4,8 @@ Native USB-first connection, remembered BLE fallback, persisted manual BLE selec
 
 # Paperang Studio v0.3.2 platform acceptance
 
+**Status: ChatGPT MCP development is paused and the current version is unavailable for use.** The adapter source is retained. ChatGPT access requires a separate authenticated HTTPS/OAuth gateway and a configured ChatGPT connection. RelaySkill works independently.
+
 MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.
 
 ## Historical implementation matrix

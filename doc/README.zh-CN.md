@@ -6,6 +6,8 @@
 
 # Paperang Studio
 
+**状态：ChatGPT MCP 实验暂停开发，当前版本不可用。** 仓库保留适配器源码，接入需要独立的认证 HTTPS/OAuth 网关和 ChatGPT 连接配置。本地 RelaySkill 可独立使用。
+
 **历史优化记录：opt1。** [代码清理、界面调整与验证](OPTIMIZATION-opt1.zh-CN.md)。
 
 <p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT 集成</p>
@@ -24,7 +26,8 @@ Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。M
 | **MacClient · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | 原生构建、界面及本地 API v2 联调通过 |
 | **WinLite · Windows** | 原生 WinForms USB/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
 | **LinuxRelayServer · Linux** | HTTP/SQLite 中转、投稿网页、身份与权限、队列及管理 API | [服务器部署](../Server/README.md) | 本机 HTTP/SQLite 测试通过，Linux 部署验证待完成 |
-| **ChatGPT 集成 · 实验性** | Relay API v2 的 MCP 发送端适配与传统 GPT Actions 兼容接口 | [集成指南](CHATGPT.zh-CN.md) · [源码](../Integrations/ChatGPT/) | 仅源码；网关、ChatGPT 连接和实机验证待完成 |
+| **LocalBLESkill · macOS** | 独立命令行直连 P2 蓝牙，支持扫描、读数、预览和打印 | [本地直连技能](LOCAL-BLE-SKILL.zh-CN.md) | 编译和离线渲染通过，实机待验证 |
+| **ChatGPT 集成 · 实验性** | Relay API v2 的 MCP 发送端适配与传统 GPT Actions 兼容接口 | [集成指南](CHATGPT.zh-CN.md) · [源码](../Integrations/ChatGPT/) | MCP 暂停开发，当前不可用 |
 | **RelaySkill · 投稿工具** | Agent 打印技能：文字/图片渲染、参数调整、明确投递及按权限查询状态 | [技能指南](RELAY-SKILL.zh-CN.md) · [源码](../Skills/paperang-relay-print/SKILL.md) | 本地协议与渲染测试通过 |
 
 完整 **WinClient**、**LinuxClient** 仍在规划中。当前 Windows 接收端是 WinLite；LinuxRelayServer 是服务器，不是 Linux 蓝牙客户端。各端范围与证据见[功能实现矩阵](FEATURE-MATRIX.zh-CN.md)。

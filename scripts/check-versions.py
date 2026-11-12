@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parents[1]
 registry = json.loads((root / 'VERSIONS.json').read_text(encoding='utf-8'))
 baseline = registry['baseline']
 assert re.fullmatch(r'\d+\.\d+\.\d+', baseline)
-expected = {'macclient', 'linuxrelayserver', 'winlite', 'relayskill', 'winclient', 'linuxclient'}
+expected = {'macclient', 'linuxrelayserver', 'winlite', 'relayskill', 'localbleskill', 'winclient', 'linuxclient'}
 assert set(registry['distributions']) == expected
 exceptions = registry.get('distributionExceptions', {})
 assert set(exceptions) == {'winlite'}, 'Only the documented Windows 0.3.3 exception is permitted'

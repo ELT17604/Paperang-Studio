@@ -4,6 +4,8 @@
 
 # Paperang Studio v0.3.2 platform acceptance
 
+**状态：ChatGPT MCP 实验暂停开发，当前版本不可用。** 仓库保留适配器源码，接入需要独立的认证 HTTPS/OAuth 网关和 ChatGPT 连接配置。本地 RelaySkill 可独立使用。
+
 MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.
 
 ## Historical implementation matrix

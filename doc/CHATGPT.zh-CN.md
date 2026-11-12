@@ -1,5 +1,7 @@
 # ChatGPT 集成 · v0.3.0 实验性源码
 
+**状态：ChatGPT MCP 实验暂停开发，当前版本不可用。** 仓库保留适配器源码，接入需要独立的认证 HTTPS/OAuth 网关和 ChatGPT 连接配置。本地 RelaySkill 可独立使用。
+
 
 > opt1: Regression sources are archived outside the shipping repository. See [validation and reproduction](OPTIMIZATION-opt1.zh-CN.md). Historical test paths below refer to Git revision `4393ae0`.
 [English](CHATGPT.md) · [中文文档目录](INDEX.zh-CN.md) · [集成源码与部署](../Integrations/ChatGPT/README.md) · [现有 RelaySkill](RELAY-SKILL.zh-CN.md)

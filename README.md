@@ -2,6 +2,8 @@
 
 # Paperang Studio v0.3.2
 
+**Status: ChatGPT MCP development is paused and the current version is unavailable for use.** The adapter source is retained. ChatGPT access requires a separate authenticated HTTPS/OAuth gateway and a configured ChatGPT connection. RelaySkill works independently.
+
 **Windows update:0.3.3-winlite candidate** — [USB-first connection and upgrade](doc/RELEASE-v0.3.3-winlite.md); other distributions remain0.3.2.
 
 **v0.3.2:** macOS, Windows and Ubuntu accepted. [Release notes](doc/RELEASE-v0.3.2.md) · [API v2](doc/API-v2-032.md) · [Upgrade and rollback](doc/UPGRADE-v0.3.2.md).
@@ -22,7 +24,8 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 | **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | v0.3.2 native build, local v2, isolated Relay and confirmed text/image device records passed |
 | **WinLite · Windows** | Native WinForms USB/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | 0.3.3 USB-first candidate; [current validation](doc/VALIDATION-v0.3.3-windows.md); historical0.3.2 acceptance retained |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | v0.3.2 production deployment, backup/rollback, API/web and Mac task/preview acceptance passed |
-| **ChatGPT integration · experimental** | MCP sender adapter and legacy GPT Actions schema for Relay API v2 | [Integration guide](doc/CHATGPT.md) · [Code](Integrations/ChatGPT/) | Source only; gateway, ChatGPT connection and hardware test pending |
+| **ChatGPT integration · experimental** | MCP sender adapter and legacy GPT Actions schema for Relay API v2 | [Integration guide](doc/CHATGPT.md) · [Code](Integrations/ChatGPT/) | MCP paused and unavailable |
+| **LocalBLESkill · macOS** | Standalone agent skill for direct P2 BLE scan, queries, preview and printing | [Local BLE guide](doc/LOCAL-BLE-SKILL.md) | Offline build and render verified; hardware pending |
 | **RelaySkill · sender** | Agent skill for text/images, layout parameters, explicit submission and permission-aware status tracking | [Skill guide](doc/RELAY-SKILL.md) · [Skill source](Skills/paperang-relay-print/SKILL.md) | Local protocol/rendering tests passed |
 
 Full **WinClient** and **LinuxClient** are planned distributions. WinLite is the existing Windows receiver; LinuxRelayServer is a server, not a Linux Bluetooth client. See the [implementation matrix](doc/FEATURE-MATRIX.md) for exact scope and evidence.

@@ -5,7 +5,7 @@ description: 通过 Paperang Studio 中转服务器向 P2 打印文字、图片�
 
 # Paperang relay printing
 
-Use `scripts/relay_print.py` with Python 3.10+. Text-only jobs, status and receipts use the standard library; rendered text/images need Pillow. On this Windows machine the prepared interpreter is `%LOCALAPPDATA%/PaperangRelaySkill/python/Scripts/python.exe`. If missing, create that external venv and install Pillow there; do not add runtimes or credentials to this skill directory.
+Use `scripts/relay_print.py` with Python 3.10+. Text-only jobs, status and receipts use the standard library; rendered text/images need Pillow. Use an external Python environment with Pillow for raster jobs. On macOS use that environment’s `bin/python`; on Windows use `Scripts/python.exe`. Resolve the script relative to this skill directory.
 
 ## Resolve the request
 
@@ -13,6 +13,13 @@ Use `scripts/relay_print.py` with Python 3.10+. Text-only jobs, status and recei
 - Default to **one copy**. Do not split long content into extra jobs unless requested/accepted. Prepare/preview without submitting when asked only for layout or a preview.
 - Direct text with receiver typography: `prepare --mode text`. Specified typography/layout: `--mode raster`. Images always become raster1. Width is fixed at 576 dots, 72 bytes/row, MSB-first, black=1.
 - Read [references/parameters.md](references/parameters.md) for rendering options, examples and limits. **Thermal density, physical feed and receiver template cannot be overridden by this relay API.** Do not invent `settings` fields or claim they worked. Adjust the local client when available/authorized, or explain the required local change. Darkening pixels is not changing thermal density.
+
+## Layout and paper length
+
+- The raster canvas is **576 dots wide**. Usable width is `576 − 2 × margin` dots (552 with the default 12-dot side margins). Wrap by measured font width, not by character count. For example, a 24-dot full-width glyph gives roughly 23 characters per line at the default margins; measure the actual font for mixed Chinese and Latin text.
+- For readable notes, use short paragraphs, explicit breaks at meaningful boundaries, and a font that covers the text. Preview long URLs, code and mixed-width text: automatic wrapping measures glyphs and can split a word. For images use `--fit contain` to preserve the whole image, and check small text after scaling. Use cropping only when the requested layout allows it.
+- Estimate text raster rows as `wrapped lines × (font ascent + descent + line spacing) + 2 × vertical margin`. Estimate image rows from the scaled image height plus vertical margins, or the explicit canvas height. Run `prepare --mode raster --preview …` and read `content.height` in the job JSON for the exact payload row count. The default cap is 1000 rows and the protocol cap is 1400. Leave room for any receiver template and caption.
+- To estimate physical length, divide rows by the printer's verified dots per millimetre and add the receiver's template and paper feed. For example, at 8 dots/mm, 1000 raster rows are about 125 mm before those additions. Native text mode uses the receiver's font, wrapping and template, so use its preview to estimate final length. If content exceeds the limit, revise the layout or obtain approval to split it into multiple jobs.
 
 ## Connection and credentials
 
