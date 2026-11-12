@@ -18,4 +18,6 @@ The first row is the top row. Each row is exactly 72 bytes, scanned left to righ
 
 For a one-row orientation test, black pixels at x=0, 7, 8 and 575 yield first bytes `81 80`, then 69 zero bytes, then `01` (hexadecimal). Decode the file and compare the preview with the intended layout before delivery.
 
+The MacClient limits the **JSON file itself to 144000 bytes** and the Base64 field to **134400 bytes**. The Base64 string must be canonical (round-trip encoding unchanged). Use `scripts/verify_raster.py` to check these rules, length and SHA-256; `--preview` reconstructs the image from the packed bytes, and `--raw` optionally exports those exact bytes.
+
 The updated MacClient also accepts the workbench's existing .raw export. It contains only the packed bytes with no header or checksum. The MacClient infers height from file length. Prefer JSON for generated files so accidental data corruption and incompatible dimensions can be detected. The JSON contains the raster object itself, without a Relay job wrapper. Import does not resize, apply the workbench's image filters, or change print density, paper feed or copy settings.

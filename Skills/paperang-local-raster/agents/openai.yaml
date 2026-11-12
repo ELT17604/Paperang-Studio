@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paperang 可打印位图"
+  short_description: "生成、排版并校验 Paperang P2 可导入的 576 点黑白位图"
+  default_prompt: "Use $paperang-local-raster to make a verified printable raster1 bitmap and preview from my content, without sending a print job."
