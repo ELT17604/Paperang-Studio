@@ -8,12 +8,13 @@ root = Path(__file__).resolve().parents[1]
 registry = json.loads((root / 'VERSIONS.json').read_text(encoding='utf-8'))
 baseline = registry['baseline']
 assert re.fullmatch(r'\d+\.\d+\.\d+', baseline)
-expected = {'macclient', 'linuxrelayserver', 'winlite', 'relayskill', 'localbleskill', 'winclient', 'linuxclient'}
+expected = {'macclient', 'linuxrelayserver', 'winlite', 'winclient', 'linuxclient'}
 assert set(registry['distributions']) == expected
 exceptions = registry.get('distributionExceptions', {})
-assert set(exceptions) == {'winlite'}, 'Only the documented Windows 0.3.3 exception is permitted'
-assert exceptions['winlite']['version'] == '0.3.3' and exceptions['winlite']['compatibleBaseline'] == baseline == '0.3.2'
-assert (root / exceptions['winlite']['documentation']).is_file()
+assert set(exceptions) == {'winlite', 'macclient'}
+for exception in exceptions.values():
+    assert exception['version'] == '0.3.3' and exception['compatibleBaseline'] == baseline == '0.3.2'
+    assert (root / exception['documentation']).is_file()
 for name, item in registry['distributions'].items():
     if item['status'] == 'planned':
         assert item['version'] is None and item['runtimeVersion'] is None
@@ -37,10 +38,8 @@ assert f'Current = "{win}"' in (root / 'Windows/src/Paperang.Core/AppVersion.cs'
 assert f'<InformationalVersion>{win}</InformationalVersion>' in (root / 'Windows/src/Paperang.WinLite/Paperang.WinLite.csproj').read_text(encoding='utf-8')
 for doc in ('VERSIONING', 'FEATURE-MATRIX'):
     assert (root / f'doc/{doc}.md').exists() and (root / f'doc/{doc}.zh-CN.md').exists()
-skill = registry['distributions']['relayskill']['runtimeVersion']
-assert f"__version__ = '{skill}'" in (root / 'Skills/paperang-relay-print/scripts/relay_print.py').read_text(encoding='utf-8')
 assert registry['compatibility']['localApi'] == registry['compatibility']['relayApi'] == 'v2'
-assert (root / 'VERSION').read_text().strip() == baseline + '-macclient'
+assert (root / 'VERSION').read_text().strip() == registry['distributions']['macclient']['runtimeVersion']
 print('PASS product/component versions, API baseline and policy/matrix')
 
 for project in ('Paperang.Core', 'Paperang.WinLite'):
@@ -53,6 +52,3 @@ installer = (root / 'Windows/installer/WinLite.iss').read_text(encoding='utf-8')
 assert f'#define AppVersion "{win}"' in installer
 assert f'VersionInfoVersion={win_number}.0' in installer
 print('PASS Windows assembly/file/installer numeric versions and distribution suffix')
-
-assert re.search(r"(?m)^  version: " + re.escape(baseline) + r"$", (root / "Integrations/ChatGPT/openapi.yaml").read_text())
-print("PASS experimental adapter OpenAPI product version")

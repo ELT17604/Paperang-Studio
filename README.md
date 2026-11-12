@@ -1,19 +1,21 @@
 <p align="center"><img src="assets/AppIcon.png" width="112" alt="Paperang Studio logo"></p>
 
-# Paperang Studio v0.3.2
+# Paperang Studio
 
-**Status: ChatGPT MCP development is paused and the current version is unavailable for use.** The adapter source is retained. ChatGPT access requires a separate authenticated HTTPS/OAuth gateway and a configured ChatGPT connection. RelaySkill works independently.
+**MacClient 0.3.3** · [Release and upgrade](doc/RELEASE-v0.3.3-macclient.md) · [Print workspace](doc/MACCLIENT-WORKSPACE.zh-CN.md)
 
-**Windows update:0.3.3-winlite candidate** — [USB-first connection and upgrade](doc/RELEASE-v0.3.3-winlite.md); other distributions remain0.3.2.
+**Starting with MacClient 0.3.3, support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill is paused.** Their code and guides have been removed from the current tree.
+
+**Windows update:0.3.3-winlite candidate** — [USB-first connection and upgrade](doc/RELEASE-v0.3.3-winlite.md).
 
 **v0.3.2:** macOS, Windows and Ubuntu accepted. [Release notes](doc/RELEASE-v0.3.2.md) · [API v2](doc/API-v2-032.md) · [Upgrade and rollback](doc/UPGRADE-v0.3.2.md).
 
-<p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web · RelaySkill · ChatGPT integration</p>
+<p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web</p>
 <p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.2 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
-Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. MacClient connects over Bluetooth; WinLite 0.3.3 prefers USB with Bluetooth fallback; the Linux relay accepts notes from a browser or RelaySkill and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
+Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. MacClient connects over Bluetooth; WinLite 0.3.3 prefers USB with Bluetooth fallback; the Linux relay accepts notes from a browser and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
 
-Use **MacClient** for the full print workspace and paper terminal, or **WinLite** for a lightweight Windows tray receiver with template editing and native administration. The relay and sender tools can run independently of the desktop platform.
+Use **MacClient** for the full print workspace and paper terminal, or **WinLite** for a lightweight Windows tray receiver with template editing and native administration. The relay webpage can be used independently of the desktop platform.
 
 [Choose your platform](#platforms) · [See WinLite](#windows-lite-in-action) · [Get started](#get-started) · [Documentation](#documentation)
 
@@ -21,23 +23,17 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 
 | Distribution | What it does | Start here | Platform verification (scope in linked reports) |
 |---|---|---|---|
-| **MacClient · macOS** | SwiftUI/CoreBluetooth app: text/image workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | v0.3.2 native build, local v2, isolated Relay and confirmed text/image device records passed |
+| **MacClient 0.3.3 · macOS** | SwiftUI/CoreBluetooth app: text/image, QR and freeform workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | [0.3.3 build and offline validation](doc/RELEASE-v0.3.3-macclient.md#validation-scope) |
 | **WinLite · Windows** | Native WinForms USB/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | 0.3.3 USB-first candidate; [current validation](doc/VALIDATION-v0.3.3-windows.md); historical0.3.2 acceptance retained |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | v0.3.2 production deployment, backup/rollback, API/web and Mac task/preview acceptance passed |
-| **ChatGPT integration · experimental** | MCP sender adapter and legacy GPT Actions schema for Relay API v2 | [Integration guide](doc/CHATGPT.md) · [Code](Integrations/ChatGPT/) | MCP paused and unavailable |
-| **LocalBLESkill · macOS** | Standalone agent skill for direct P2 BLE scan, queries, preview and printing | [Local BLE guide](doc/LOCAL-BLE-SKILL.md) | Offline build and render verified; hardware pending |
-| **RelaySkill · sender** | Agent skill for text/images, layout parameters, explicit submission and permission-aware status tracking | [Skill guide](doc/RELAY-SKILL.md) · [Skill source](Skills/paperang-relay-print/SKILL.md) | Local protocol/rendering tests passed |
 
 Full **WinClient** and **LinuxClient** are planned distributions. WinLite is the existing Windows receiver; LinuxRelayServer is a server, not a Linux Bluetooth client. See the [implementation matrix](doc/FEATURE-MATRIX.md) for exact scope and evidence.
-
-**ChatGPT (experimental):** A private MCP / GPT Actions source adapter is available at [Integrations/ChatGPT](Integrations/ChatGPT/README.md), with [English](doc/CHATGPT.md) and [中文](doc/CHATGPT.zh-CN.md) guides. This is not a deployed or released distribution; authenticated HTTPS/OAuth gateway and account-side connection are still required.
 
 ## How the parts connect
 
 ```mermaid
 flowchart LR
     Browser["Browser · notes & drawings"] -->|HTTPS| Relay["LinuxRelayServer"]
-    Skill["RelaySkill · text & images"] -->|API v2| Relay
     Relay <-->|"outbound polling · scoped credentials"| Receiver["MacClient or WinLite"]
     Receiver -->|"BLE · WinLite also USB"| P2["Paperang P2 · real paper"]
 ```
@@ -73,7 +69,7 @@ Screenshots show the previous fix3 workspace with offline example data. The inhe
 
 ## What you can do
 
-- **Send a note from elsewhere.** Submit text or a raster drawing through the webpage or RelaySkill, then let a configured desktop receiver print it.
+- **Send a note from elsewhere.** Submit text or a raster drawing through the webpage, then let a configured desktop receiver print it.
 - **Make the paper your own.** MacClient and WinLite share block-template JSON, presets, text/image composition and a 576-dot output format. Font rendering can differ across systems.
 - **Run a quiet Windows receiver.** WinLite starts in the tray, remembers credentials with DPAPI, restores templates, offers sign-in startup and retries server outages in bounded batches.
 - **Manage access from a native client.** A keys submit only; anonymous browser sessions can track their own jobs; B also reads its identity’s status; C manages identities, credentials, sessions, owner public keys and full history. M is the separate printer-execution credential. C history can be filtered and exported as JSONL with raster content.
@@ -113,9 +109,9 @@ sudo bash Server/install.sh
 
 The installer uses a dedicated Python venv with `argon2-cffi` and `cryptography`. Configure HTTPS for browser access and connect a desktop receiver. [Deployment, credentials and temporary mode](Server/README.md).
 
-### Agents · RelaySkill
+### Model-generated local bitmaps
 
-Install the folder `Skills/paperang-relay-print/` into your agent’s skills directory. Configure an **A or B** random key, then invoke `$paperang-relay-print` with the text/image and desired rendering parameters. The sender never borrows the receiver’s M credential. [Installation and parameters](doc/RELAY-SKILL.md).
+Generate a raster1 JSON file with the [local raster Skill](Skills/paperang-local-raster/SKILL.md), then import it in the MacClient workbench and review the preview before printing. [Workspace guide](doc/MACCLIENT-WORKSPACE.zh-CN.md).
 
 > **Upgrading from v0.2.x?** Relay API v2 requires a coordinated upgrade. Old relay `/v1` and receipt-content access are retired; the **Mac local API now requires v2**. Read the [upgrade/rollback guide](doc/UPGRADE-v0.3.0.md), [auth contract](doc/AUTH-v2.md) and [validation record](doc/VALIDATION-v0.3.0.md) before deployment. Source availability does not imply every platform is already deployed or natively validated.
 
@@ -129,7 +125,7 @@ Install the folder `Skills/paperang-relay-print/` into your agent’s skills dir
 | Windows | [Tray/settings/admin guide](doc/WINDOWS.md) · [Build](Windows/README.md) |
 | macOS | [Workspace](doc/USER-GUIDE.md) · [Layout editor](doc/LAYOUT-EDITOR.md) · [Paper terminal](doc/TERMINAL.md) · [Tray mode](doc/TRAY-MODE.md) |
 | Relay and security | [Deploy](Server/README.md) · [Authentication/API v2](doc/AUTH-v2.md) · [Data and retention](doc/RELAY-DATA.md) |
-| Integrations | [ChatGPT adapter](doc/CHATGPT.md) · [RelaySkill](doc/RELAY-SKILL.md) · [Mac local API](doc/API.md) / [OpenAPI](doc/openapi.json) · [Swift modules](doc/SWIFT-API.md) |
+| Integrations | [Mac local API](doc/API.md) / [OpenAPI](doc/openapi.json) · [Swift modules](doc/SWIFT-API.md) |
 | Upgrade and maintain | [Changelog](CHANGELOG.md) · [Upgrade](doc/UPGRADE-v0.3.0.md) · [Mac/Linux agent prompts](doc/HANDOFF-v0.3.0.zh-CN.md) · [Validation](doc/VALIDATION-v0.3.0.md) |
 | Printer research | [Protocol](doc/PROTOCOL.md) · [Physical observations](doc/ACQUISITION.md) · [Research](doc/RESEARCH.md) · [Related projects](doc/RELATED-PROJECTS.md) · [Sources](doc/SOURCES.md) |
 
@@ -140,9 +136,8 @@ Install the folder `Skills/paperang-relay-print/` into your agent’s skills dir
 | `Sources/` | Native Swift/C MacClient and reusable modules |
 | `Windows/` | Native WinLite, template/admin UI, build scripts and tests |
 | `Server/` | Relay API v2, submission webpage, SQLite security/queue and Linux deployment |
-| `Skills/` | Independently versioned RelaySkill |
+| `Skills/` | Local raster generation Skill |
 | `Clients/` | Python/JavaScript clients for the Mac local API |
-| `Integrations/ChatGPT/` | Experimental MCP/GPT Actions sender adapters; not a separate released distribution |
 | `Configurations/` | Importable print presets |
 | `assets/` | Original branding and real application screenshots |
 | `doc/` | Guides, contracts, release records and research |
@@ -165,4 +160,4 @@ Linux opt1 local administration: [sudo terminal console guide](Server/ADMIN-CONS
 
 ## Windows USB connection
 
-WinLite **0.3.3** adds native USB-first connection with remembered BLE fallback and manual switching. MacClient/Relay/RelaySkill remain0.3.2. [Release and upgrade](doc/RELEASE-v0.3.3-winlite.md) · [USB protocol](doc/USB-PROTOCOL.md).
+WinLite **0.3.3** adds native USB-first connection with remembered BLE fallback and manual switching. [Release and upgrade](doc/RELEASE-v0.3.3-winlite.md) · [USB protocol](doc/USB-PROTOCOL.md).

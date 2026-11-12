@@ -1,14 +1,14 @@
-name: v0.3.2 integration gates
+name: Platform integration checks
 on:
   push:
-    branches: [xdev/032task, main]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: v032-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  group: integration-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   ubuntu:
@@ -19,17 +19,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -r Server/requirements.txt Pillow httpx
-      - name: Prepare isolated CJK test font
-        run: |
-          mkdir -p work/fonts
-          cd work/fonts
-          apt-get download fonts-noto-cjk
-          dpkg-deb -x fonts-noto-cjk_*.deb extracted
+      - run: python -m pip install -r Server/requirements.txt
       - run: python -B -m unittest discover -s tests/server -v
         env:
-          PYTHONPATH: Server:Skills/paperang-relay-print/scripts:Integrations/ChatGPT
-          PAPERANG_TEST_CJK_FONT: ${{ github.workspace }}/work/fonts/extracted/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+          PYTHONPATH: Server
       - run: python tests/test_relay_v2.py && python tests/test_contract_inventory.py && python scripts/check-versions.py
       - run: bash -n Server/install.sh && bash Server/install.sh --dry-run --port 28177
       - run: node --check Server/web/app.js && node --check Clients/paperang-client.js
@@ -45,11 +38,11 @@ jobs:
       - run: PAPERANG_WORK_DIR="$PWD/work/native" zsh scripts/build.sh
       - run: python tests/test_local_v2.py --app 'work/native/Release/Paperang Studio.app'
       - run: python tests/build_native_check.py && python tests/run_native_check.py
-      - run: ditto -c -k --sequesterRsrc --keepParent 'work/native/Release/Paperang Studio.app' "work/native/Release/PaperangStudio-0.3.2-macclient-macos-$(uname -m).zip"
+      - run: ditto -c -k --sequesterRsrc --keepParent 'work/native/Release/Paperang Studio.app' "work/native/Release/PaperangStudio-$(cat VERSION)-macos-$(uname -m).zip"
       - run: cd work/native/Release && shasum -a 256 *.zip > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: macclient-032-candidate
+          name: macclient-current
           path: |
             work/native/Release/*.zip
             work/native/Release/SHA256SUMS
@@ -86,19 +79,3 @@ jobs:
             work/windows/Release/*.exe
             work/windows/Release/*.zip
             work/windows/Release/*.sha256
-  publish:
-    # Historical v0.3.2 is immutable; main synchronization must not publish.
-    if: ${{ false }}
-    needs: [ubuntu, macos, windows]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          path: work/release-input
-      - run: python3 scripts/publish-release.py
-        env:
-          GH_TOKEN: ${{ github.token }}

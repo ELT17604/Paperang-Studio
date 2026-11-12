@@ -11,9 +11,6 @@ All default documentation pages are in English. Each guide links to its Chinese 
 | Project overview | [README](../README.md) | [项目介绍](README.zh-CN.md) |
 | User guide | [User guide](USER-GUIDE.md) | [使用说明](USER-GUIDE.zh-CN.md) |
 | Windows tray client | [Windows guide](WINDOWS.md) | [Windows 使用说明](WINDOWS.zh-CN.md) |
-| ChatGPT integration (experimental) | [ChatGPT](CHATGPT.md) | [ChatGPT 集成](CHATGPT.zh-CN.md) |
-| Local BLE print skill | [LocalBLESkill](LOCAL-BLE-SKILL.md) | [本地蓝牙打印技能](LOCAL-BLE-SKILL.zh-CN.md) |
-| Relay print skill | [RelaySkill](RELAY-SKILL.md) | [中转打印技能](RELAY-SKILL.zh-CN.md) |
 | Windows porting | [Porting notes](WINDOWS-PORTING.md) | [Windows 移植记录](WINDOWS-PORTING.zh-CN.md) |
 | Version naming and compatibility | [Version policy](VERSIONING.md) | [版本命名与兼容规则](VERSIONING.zh-CN.md) |
 | Cross-platform feature parity | [Implementation matrix](FEATURE-MATRIX.md) | [版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md) |
@@ -53,3 +50,5 @@ Research records describe observations collected on 2026-11-04. Battery readings
 ## WinLite 0.3.3 USB connection
 
 [Release / upgrade](RELEASE-v0.3.3-winlite.md) · [中文发行说明](RELEASE-v0.3.3-winlite.zh-CN.md) · [USB protocol](USB-PROTOCOL.md) · [USB中文协议](USB-PROTOCOL.zh-CN.md) · [Profile](p2-usb-profile.json) · [Validation](VALIDATION-v0.3.3-windows.md).
+
+[MacClient 0.3.3 · 打印工作台](MACCLIENT-WORKSPACE.zh-CN.md) · [发行与升级](RELEASE-v0.3.3-macclient.zh-CN.md) · [位图 Skill](../Skills/paperang-local-raster/SKILL.md)

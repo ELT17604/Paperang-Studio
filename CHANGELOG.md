@@ -1,3 +1,9 @@
+## v0.3.3-macclient
+
+- Add searchable system fonts, configurable QR codes, freeform layout and local raster import.
+- Pause support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill and remove their code, docs and dedicated automation. Keep the new local raster file generation Skill.
+- Preserve shared baseline 0.3.2, Relay API v2 and local API v2. [Release and upgrade](doc/RELEASE-v0.3.3-macclient.md).
+
 # v0.3.3-winlite — Windows candidate
 
 Native USB-first printer connection, remembered BLE fallback, explicit persistent BLE-only switching and USB-connected Bluetooth scan suppression. Reuse media/density guards and durable no-replay results. Other distributions remain0.3.2; Relay v2/schema1 are unchanged. [Upgrade and validation](doc/RELEASE-v0.3.3-winlite.md).

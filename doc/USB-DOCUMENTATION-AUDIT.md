@@ -21,15 +21,15 @@ Baseline documents: **89**. No AGENTS.md was found in the checkout. Local ignore
 | --- | ---: | --- | --- |
 | [CHANGELOG.md](../CHANGELOG.md) | 13951 | `94f1a667ceca34806e5c48035701fc8c15ac80fa06891fee27c2a2bdef8f6046` | Windows / platform / entrypoint |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | 2180 | `38ff0dd9a611e23dd15f7b5b23ec8101f749dddf9564fd6b252bdbc9a5e778c5` | Windows / platform / entrypoint |
-| [Integrations/ChatGPT/README.md](../Integrations/ChatGPT/README.md) | 5809 | `aedcc05660e1d29a25039c954b3fbb8122b17ebdae84932878b1ae7d7f9a31be` | Windows / platform / entrypoint |
-| [Integrations/ChatGPT/requirements.txt](../Integrations/ChatGPT/requirements.txt) | 28 | `4eede9b73122f5c0b7cce6cc23d0bd8b71a53e0f270d301d58c51a4be50da69a` | separate application/server/history contract |
+| [Integrations/ChatGPT/README.md](https://github.com/ELT17604/Paperang-Studio/blob/a586898fe994a429ada0f1b4b6b9c3ac5e8a2ada/Integrations/ChatGPT/README.md) | 5809 | `aedcc05660e1d29a25039c954b3fbb8122b17ebdae84932878b1ae7d7f9a31be` | Windows / platform / entrypoint |
+| [Integrations/ChatGPT/requirements.txt](https://github.com/ELT17604/Paperang-Studio/blob/a586898fe994a429ada0f1b4b6b9c3ac5e8a2ada/Integrations/ChatGPT/requirements.txt) | 28 | `4eede9b73122f5c0b7cce6cc23d0bd8b71a53e0f270d301d58c51a4be50da69a` | separate application/server/history contract |
 | [README.md](../README.md) | 12972 | `10ea779541d551db286bcc085df837dad198f65e9596401c31b080a96863aa68` | Windows / platform / entrypoint |
 | [Server/ADMIN-CONSOLE.md](../Server/ADMIN-CONSOLE.md) | 4349 | `7f8115cd8154d9dabb2bbc803a9202022629eed266eb5b290f56bc9e7f6c700e` | separate application/server/history contract |
 | [Server/README.md](../Server/README.md) | 5611 | `e039935da3ec9789e1336d850a2a35e45522059585c4a2f894e2fe2b10e7ef87` | Windows / platform / entrypoint |
 | [Server/macOS-Temporary/README.md](../Server/macOS-Temporary/README.md) | 909 | `aa3a8a12f3040fdefed5a54cd05295c411593f1de23b7c932676eb053699e7d4` | Windows / platform / entrypoint |
 | [Server/requirements.txt](../Server/requirements.txt) | 43 | `529e2d7362a873ab95095d1e60e0737a411e538182762cb6a7c3d15b65a607da` | separate application/server/history contract |
-| [Skills/paperang-relay-print/SKILL.md](../Skills/paperang-relay-print/SKILL.md) | 5333 | `55df732fcffac10f5a2d865289a9f5884f83b680e3c87c251781995f921b1a0d` | separate application/server/history contract |
-| [Skills/paperang-relay-print/references/parameters.md](../Skills/paperang-relay-print/references/parameters.md) | 5214 | `7078ba979a49ad481cec61e8d519c04c5801e49bc7381958bab56ef841f7b9d5` | separate application/server/history contract |
+| [Skills/paperang-relay-print/SKILL.md](https://github.com/ELT17604/Paperang-Studio/blob/a586898fe994a429ada0f1b4b6b9c3ac5e8a2ada/Skills/paperang-relay-print/SKILL.md) | 5333 | `55df732fcffac10f5a2d865289a9f5884f83b680e3c87c251781995f921b1a0d` | separate application/server/history contract |
+| [Skills/paperang-relay-print/references/parameters.md](https://github.com/ELT17604/Paperang-Studio/blob/a586898fe994a429ada0f1b4b6b9c3ac5e8a2ada/Skills/paperang-relay-print/references/parameters.md) | 5214 | `7078ba979a49ad481cec61e8d519c04c5801e49bc7381958bab56ef841f7b9d5` | separate application/server/history contract |
 | [Windows/README.md](../Windows/README.md) | 4285 | `cd3e186b27ae0ab4508562af26a7bc9d0f27d1d92cb359737aa504d97c26c70c` | Windows / platform / entrypoint |
 | [assets/screenshots/README.md](../assets/screenshots/README.md) | 1410 | `19bcc34aec5085eee68903d0800a4b8b3af96a3cd6ccea622e146423ac77dd49` | Windows / platform / entrypoint |
 | [doc/ACQUISITION.md](../doc/ACQUISITION.md) | 5984 | `a395a939c6c0321e4fe7022ee859db33d8e0c589e7048251ec64a9299a53423b` | protocol / device evidence |

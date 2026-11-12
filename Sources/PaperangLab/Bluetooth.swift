@@ -16,6 +16,10 @@ struct LogRow: Identifiable {let id=UUID();let time=Date();let type:String;let t
  @Published var state="未连接";@Published var ready=false;@Published var busy=false;@Published var scanning=false;@Published var error=""
  @Published var text="Hello Paperang P2!\n你好，喵喵机。" {didSet{schedulePreview()}}
  @Published var settings=PrintSettings() {didSet{schedulePreview()}}
+ var paperComposition = PaperComposition()
+ var importedRaster: Raster?
+ var importedRasterName = ""
+ @Published var paperDraft: PaperComposition?
  @Published var mode="文字" {didSet{schedulePreview()}}
  @Published var page="打印工作台";@Published var engineer=false;@Published var engineerPage="设备字段"
  @Published var search="";@Published var selected:UInt8=4;@Published var rawCommand="04";@Published var rawPayload="01"

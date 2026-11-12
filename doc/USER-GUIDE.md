@@ -1,5 +1,7 @@
 # User guide
 
+[MacClient 0.3.3 upgrade](RELEASE-v0.3.3-macclient.md) · [QR, freeform layout and local bitmap import](MACCLIENT-WORKSPACE.zh-CN.md)
+
 
 [MacClient 0.3.1 fix3 upgrade / 升级与验证](MACCLIENT-v0.3.1.md)
 > v0.3.0: historical observations/screenshots below remain recorded evidence. Current relay authentication, history access, dependencies and validation status are defined by [API v2](AUTH-v2.md), [upgrade](UPGRADE-v0.3.0.zh-CN.md) and [matrix](FEATURE-MATRIX.md). Local API v2 and BLE/template records are separate contracts.

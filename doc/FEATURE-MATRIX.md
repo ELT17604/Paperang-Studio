@@ -1,12 +1,14 @@
 ## WinLite 0.3.3 — Windows-only USB
 
+MacClient 0.3.3: [workspace and compatibility](RELEASE-v0.3.3-macclient.md). Support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill is paused starting with this release. Tables below describe earlier versions.
+
+
 Native USB-first connection, remembered BLE fallback, persisted manual BLE selection, USB-connected scan suppression and no cross-transport print replay are implemented. Other distribution versions stay0.3.2. [Release](RELEASE-v0.3.3-winlite.md) · [Current validation](VALIDATION-v0.3.3-windows.md). Historical tables below remain dated evidence.
 
 # Paperang Studio v0.3.2 platform acceptance
 
-**Status: ChatGPT MCP development is paused and the current version is unavailable for use.** The adapter source is retained. ChatGPT access requires a separate authenticated HTTPS/OAuth gateway and a configured ChatGPT connection. RelaySkill works independently.
 
-MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.
+Historical v0.3.2 validation passed for MacClient, WinLite, LinuxRelayServer and RelaySkill. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned.
 
 ## Historical implementation matrix
 
@@ -33,7 +35,6 @@ Reviewed 2026-11-09. **N** native macOS software build/local HTTP integration ve
 | Full text/image workspace, terminal, local API | N existing Mac | O | O Lite scope | O | P |
 | Optional at-rest app encryption / CSV folders | P | P | P | O | P |
 
-**Experimental non-distribution:** The [ChatGPT adapter](CHATGPT.md) reuses A/B Relay API v2 for text, validated pre-rendered raster1, and B-only own-status reads. Implementation reviewed at source level with mock-transport tests provided; no deployed MCP/OAuth gateway, ChatGPT account connection, or P2 paper verification is claimed. This is not an additional release column or shared compatibility contract.
 
 API v2 breaks relay v1; local Mac API v2, template JSON v1, raster1 schema1 and legacy BLE framing remain separate. A cannot read state. B state is own-identity only. C manages complete history. M is scoped execution, not full historical access. A short ID/old receipt never conveys content authority. `sent` is transport only; physical confirmation requires owner action.
 

@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Paperang Studio Local API",
-    "version": "0.3.2-macclient",
-    "description": "Paperang Studio 0.3.2-macclient authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project. This is the Mac local HTTP API v2. Relay API v2 is documented separately in doc/AUTH-v2.md. Removed /v1 and /v1/* return 410 after authentication, including OPTIONS. See API-v2-032.md. Local jobs are session-only; sent never proves paper completion.",
+    "version": "0.3.3-macclient",
+    "description": "Paperang Studio 0.3.3-macclient authenticated loopback API. Tray mode automatically authorizes network jobs; otherwise global paper consent and allowPaper:true are required. Explicit allowPaper:false always refuses. Feed still requires allowPaper:true. Independent non-commercial project. This is the Mac local HTTP API v2. Relay API v2 is documented separately in doc/AUTH-v2.md. Removed /v1 and /v1/* return 410 after authentication, including OPTIONS. See API-v2-032.md. Local jobs are session-only; sent never proves paper completion.",
     "contact": {
       "name": "ELT Group",
       "email": "vox@calx.cc"

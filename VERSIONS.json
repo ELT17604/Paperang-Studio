@@ -16,12 +16,13 @@
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.2-macclient",
-      "runtimeVersion": "0.3.2-macclient",
+      "version": "v0.3.3-macclient",
+      "runtimeVersion": "0.3.3-macclient",
       "versionSource": "VERSION",
-      "verification": "Native arm64 CI build/signing, 47 local HTTP checks and actual-source owner/Keychain/recovery/version harness passed; confirmed device records retained; upgraded Ubuntu connection and complete pending task/preview accepted by owner",
-      "targetVersion": "0.3.2",
-      "validation032": "passed"
+      "verification": "See the MacClient 0.3.3 release notes for current build and validation scope",
+      "targetVersion": "0.3.3",
+      "validation032": "passed",
+      "compatibleBaseline": "0.3.2"
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
@@ -46,26 +47,6 @@
       "validation033": "passed",
       "publicationStatus": "local candidate; not published"
     },
-    "relayskill": {
-      "name": "RelaySkill",
-      "status": "implemented",
-      "version": "v0.3.2-relayskill",
-      "runtimeVersion": "0.3.2-relayskill",
-      "versionSource": "Skills/paperang-relay-print/VERSION",
-      "verification": "12 offline rendering/protocol regressions and actual HTTP sender-to-isolated-Relay v2 integration passed on Ubuntu; no physical print claimed",
-      "targetVersion": "0.3.2",
-      "validation032": "passed"
-    },
-    "localbleskill": {
-      "name": "LocalBLESkill",
-      "status": "implemented",
-      "version": "v0.3.2-localbleskill",
-      "runtimeVersion": "0.3.2-localbleskill",
-      "versionSource": "Skills/paperang-local-ble/VERSION",
-      "validation032": "pending",
-      "verification": "Standalone macOS build and offline 576-dot render verified; direct BLE hardware and physical printing pending",
-      "targetVersion": "0.3.2"
-    },
     "winclient": {
       "name": "WinClient",
       "status": "planned",
@@ -82,7 +63,7 @@
     }
   },
   "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
-  "releaseStatus": "Shared0.3.2 accepted; Windows-only0.3.3 candidate locally validated, not published",
+  "releaseStatus": "MacClient 0.3.3 local release; WinLite 0.3.3 candidate; shared compatibility baseline 0.3.2",
   "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged.",
   "distributionExceptions": {
     "winlite": {
@@ -90,6 +71,12 @@
       "compatibleBaseline": "0.3.2",
       "reason": "Owner-directed Windows-only patch for USB-first connection; Relay v2 and schema1 unchanged",
       "documentation": "doc/RELEASE-v0.3.3-winlite.md"
+    },
+    "macclient": {
+      "version": "0.3.3",
+      "compatibleBaseline": "0.3.2",
+      "reason": "Mac-only workspace update with unchanged Relay v2 and schema 1",
+      "documentation": "doc/RELEASE-v0.3.3-macclient.md"
     }
   },
   "printerTransports": {
@@ -102,5 +89,13 @@
       "verification": "17 established GETs, physical cover/paper differential, user-confirmed four-frame countdown USB raster; device printing/completion/charging unknown",
       "integrationVersion": "0.3.3-winlite"
     }
+  },
+  "pausedSupport": {
+    "since": "v0.3.3-macclient",
+    "components": [
+      "ChatGPT MCP/GPT Actions",
+      "RelaySkill",
+      "LocalBLESkill"
+    ]
   }
 }

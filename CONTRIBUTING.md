@@ -13,6 +13,6 @@ Validate UI changes in the app and record hardware validation scope. Keep build/
 Contributions/adaptations follow CC BY-NC-SA 4.0: retain ELT Group attribution, [LICENSE](LICENSE), and [NOTICE](NOTICE). Distribution to other Macs may require Developer ID signing and notarization.
 
 
-### ChatGPT integration (experimental)
+### MacClient local bitmap files
 
-Keep `Integrations/ChatGPT/` isolated from the Mac-local API v2 and existing relay API v2 contract. Mirror new integration behavior in `doc/CHATGPT.md` and `doc/CHATGPT.zh-CN.md`; mark live gateway/MCP/hardware validation separately from source and mock tests. Never publish a bare token-bearing MCP endpoint or use M/C credentials for submission. Preserve UUID idempotency and the no-automatic-reprint rule.
+Keep raster1 imports consistent with the [local bitmap contract](Skills/paperang-local-raster/references/raster1.md). Importing must only prepare the preview. Physical printing uses the existing explicit print action and device checks.

@@ -10,7 +10,21 @@ extension Lab {
  var mediaSummary:String {readings.first{$0.id==12}?.value ?? "尚未读取纸仓状态"}
  var batterySummary:String {guard let r=readings.first(where:{$0.id==16}) else{return "电量未读取"};return "电量 \(r.value)%（采样值）"}
  func schedulePreview(){guard !trayMode else{return};previewTask?.cancel();rendering=true;previewTask=Task{do{try await Task.sleep(for:.milliseconds(220));try Task.checkCancellation();try updatePreview()}catch is CancellationError {}catch{previewError=error.localizedDescription;raster=nil;preview=nil};if !Task.isCancelled{rendering=false}}}
- func updatePreview() throws {let r=try Renderer.render(text:text,image:sourceImage,mode:mode,settings:settings);raster=r;preview=r.image;previewError=""}
+ func updatePreview() throws {
+  let output: Raster
+  switch mode {
+  case "导入位图":
+   guard let importedRaster else { throw PrintFailure("请先导入位图文件") }
+   output = importedRaster
+  case "高级排版":
+   output = try paperComposition.raster(settings:settings)
+  default:
+   output = try Renderer.render(text:text,image:sourceImage,mode:mode,settings:settings)
+  }
+  raster = output
+  preview = output.image
+  previewError = ""
+ }
  func importImage(){let panel=NSOpenPanel();panel.allowedContentTypes=[.png,.jpeg,.tiff,.heic,.gif,.bmp];panel.canChooseDirectories=false;guard panel.runModal() == .OK,let url=panel.url else{return};do{sourceImage=try Renderer.loadImage(url);imageName=url.lastPathComponent;mode="图片";schedulePreview()}catch{self.error=error.localizedDescription}}
  func savePreview(raw:Bool=false){do{try updatePreview();guard let r=raster else{return};let p=NSSavePanel();p.nameFieldStringValue=raw ? "Paperang-576.raw":"Paperang-preview.png";p.allowedContentTypes=raw ? [.data]:[.png];guard p.runModal() == .OK,let url=p.url else{return};guard let data=raw ? r.bytes:r.png else{throw PrintFailure("PNG编码失败")};try data.write(to:url,options:.atomic);notice="已导出与打印一致的\(raw ? "位图数据":"PNG预览")"}catch{self.error=error.localizedDescription}}
  func applyPreset(_ name:String){settings=PrintSettings.preset(name);notice="已应用\(name)预设，尚未修改打印机"}
@@ -22,7 +36,15 @@ extension Lab {
  func applyDensity(){guard ready,!busy else{return};let n=settings.density;run{try await self.verifyDensity(n);self.notice="打印机浓度已设为\(n)并确认"}}
  func feedPaper(){guard ready,!busy,allowPaper else{return};let n=settings.feedAfter;run{try await self.verifyMedia();if n>0{try await self.send(26,Wire.u16(n))};self.notice="送纸\(n)行指令已确认"}}
  func stopJob(){jobStatus="已停止后续发送；已进入设备的数据无法撤回";if let i=jobs.indices.last,jobs[i].status=="发送中"{jobs[i].status="已停止"};disconnect()}
- func submitJob(){guard ready,!busy,allowPaper else{return};do{try updatePreview();guard let r=raster else{return};_ = try submitRaster(r,settings:settings,title:mode=="图片" ? imageName:String(text.prefix(30)))}catch{self.error=error.localizedDescription}}
+ private var workspaceJobTitle: String {
+  switch mode {
+  case "导入位图": return importedRasterName
+  case "高级排版": return "高级排版"
+  case "图片": return imageName
+  default: return String(text.prefix(30))
+  }
+ }
+ func submitJob(){guard ready,!busy,allowPaper else{return};do{try updatePreview();guard let r=raster else{return};_ = try submitRaster(r,settings:settings,title:workspaceJobTitle)}catch{self.error=error.localizedDescription}}
  @discardableResult func submitRaster(_ r:Raster,settings s:PrintSettings,title:String)throws->UUID {
   guard ready,!busy else{throw PrintFailure("打印机未就绪或正在执行另一项任务")};try s.validate()
   let packets=(r.bytes.count+s.packetBytes-1)/s.packetBytes;guard packets<=256 else{throw PrintFailure("分包数量超过8位序号容量；请增加工程分包大小或缩短内容")}

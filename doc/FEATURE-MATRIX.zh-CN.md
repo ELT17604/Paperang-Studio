@@ -1,12 +1,14 @@
 ## WinLite 0.3.3 — 仅Windows的USB扩充
 
+[MacClient 0.3.3 工作台与兼容性](RELEASE-v0.3.3-macclient.zh-CN.md)。本代起暂停支持 ChatGPT MCP／GPT Actions、RelaySkill 和 LocalBLESkill。下方表格为历史版本记录。
+
+
 已实现原生USB优先、记住BLE回退、持久手动BLE选择、USB成功禁用扫描及不跨传输重打。其他端保持0.3.2。[发行](RELEASE-v0.3.3-winlite.zh-CN.md) · [当前验证](VALIDATION-v0.3.3-windows.md)。下方旧表保留历史证据。
 
 # Paperang Studio v0.3.2 platform acceptance
 
-**状态：ChatGPT MCP 实验暂停开发，当前版本不可用。** 仓库保留适配器源码，接入需要独立的认证 HTTPS/OAuth 网关和 ChatGPT 连接配置。本地 RelaySkill 可独立使用。
 
-MacClient, WinLite and LinuxRelayServer: **PASS**. RelaySkill: **PASS**. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned; ChatGPT remains experimental.
+Historical v0.3.2 validation passed for MacClient, WinLite, LinuxRelayServer and RelaySkill. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned.
 
 ## Historical implementation matrix
 
@@ -57,7 +59,6 @@ Server source ready; live deployment pending. Compatible API v2 baseline remains
 
 当前 Mac 原生构建、管理分页/配额/私钥续期及恢复已验证；上方 fix1 的待验标签为历史记录。服务器 39 项测试通过，未新增实机出纸或生产部署验证。[详细范围](MACCLIENT-v0.3.1.zh-CN.md)。
 
-**实验性集成（非正式分发版本）：** [ChatGPT 适配器](CHATGPT.zh-CN.md) 复用 A/B Relay API v2，提供文字、预渲染 raster1 与 B 级本人任务查询；已提供模拟 HTTP 测试，但尚未完成 MCP/OAuth 网关部署、ChatGPT 账户连接或实机纸面验证。不增加兼容基线或正式分发版本。
 
 ## opt1
 

@@ -1,3 +1,9 @@
+## v0.3.3-macclient
+
+- 新增系统字体搜索、自定义二维码、自由排版和本地位图导入。
+- 从本代暂停 ChatGPT MCP／GPT Actions、RelaySkill 和 LocalBLESkill 支持，移除相关实现、文档及自动化。保留本地位图生成 Skill。
+- 共享兼容基线维持 0.3.2。[发行和升级](RELEASE-v0.3.3-macclient.zh-CN.md)。
+
 # v0.3.3-winlite — Windows候选版
 
 原生USB优先、记住BLE回退、持久的手动仅蓝牙选择、USB连上禁用客户端蓝牙扫描；复用纸仓/浓度与持久不重打机制。其他端保持0.3.2，Relay v2/schema1不变。[升级与验证](RELEASE-v0.3.3-winlite.zh-CN.md)。

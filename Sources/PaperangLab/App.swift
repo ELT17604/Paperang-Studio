@@ -62,10 +62,21 @@ struct Content:View {
   default:return "编辑内容，预览后打印"
   }
  }
+ private func editPaper(addQR: Bool = false) {
+  var draft = lab.paperComposition
+  if addQR {
+   guard draft.layers.count < 24 else {lab.notice="排版已达 24 个对象，请先删除一个再插入二维码";return}
+   let last = draft.layers.last?.frame.maxY ?? 8
+   draft.layers.append(PaperLayer(.qr, y: min(last + 16, CGFloat(max(0, draft.height - 220)))))
+   let index = draft.layers.count - 1
+   draft.layers[index].frame.size.height = min(220, CGFloat(draft.height) - draft.layers[index].frame.minY)
+  }
+  lab.paperDraft = draft
+ }
  var workspace:some View{VStack(spacing:12){
   HStack{Menu("快捷预设"){ForEach(["默认","照片","标签","线稿"],id:\.self){name in Button(name){lab.applyPreset(name)}}};Button("导入预设",action:lab.importPreset);Button("保存预设",action:lab.exportPreset);Spacer();Text(lab.mediaSummary).font(.caption).foregroundStyle(.secondary)}.disabled(lab.busy)
   HSplitView {
-   ScrollView{VStack(alignment:.leading,spacing:18){input;layout;imageProcessing;output}.padding(2)}.frame(minWidth:330,idealWidth:390,maxWidth:470).disabled(lab.busy)
+   ScrollView{VStack(alignment:.leading,spacing:18){input;if lab.mode != "高级排版" && lab.mode != "导入位图"{layout};if lab.mode != "导入位图"{imageProcessing};output}.padding(2)}.frame(minWidth:330,idealWidth:390,maxWidth:470).disabled(lab.busy)
    VStack(alignment:.leading,spacing:12){HStack{Label("最终黑白预览",systemImage:"eye").font(.headline);Spacer();if lab.rendering{ProgressView().controlSize(.small)}}
     Text(lab.previewSummary).font(.caption.monospaced()).foregroundStyle(.secondary)
     if !lab.previewError.isEmpty{Text(lab.previewError).foregroundStyle(.orange).textSelection(.enabled)}
@@ -74,12 +85,26 @@ struct Content:View {
    }.padding(.leading,18).frame(minWidth:430)
   }
   Divider();footer
+ }.sheet(isPresented: Binding(get: { lab.paperDraft != nil }, set: { if !$0 { lab.paperDraft = nil } })) {
+  if let paperDraft = lab.paperDraft {
+   PaperEditor(draft: paperDraft) { composition in
+    let raster = try composition.raster(settings: lab.settings)
+    lab.paperComposition = composition
+    lab.mode = "高级排版"
+    lab.raster = raster
+    lab.preview = raster.image
+    lab.previewError = ""
+   }
+  }
  }}
- var input:some View{GroupBox{VStack(alignment:.leading,spacing:12){Picker("内容",selection:$lab.mode){Text("文字").tag("文字");Text("图片").tag("图片")}.pickerStyle(.segmented)
-  if lab.mode=="文字"{TextEditor(text:$lab.text).font(.system(size:16)).frame(height:130).overlay(RoundedRectangle(cornerRadius:5).stroke(.quaternary));Text("支持中文、换行和自动折行；最多10000字符，最终高度不超过1400像素。").font(.caption).foregroundStyle(.secondary)}else{Button("选择图片…",action:lab.importImage);Text(lab.imageName).lineLimit(2).textSelection(.enabled);Text("PNG / JPEG / HEIC / TIFF / BMP / GIF首帧，透明区域先合成白底，自动处理照片方向。").font(.caption).foregroundStyle(.secondary)}
+ var input:some View{GroupBox{VStack(alignment:.leading,spacing:12){Picker("内容",selection:$lab.mode){Text("文字").tag("文字");Text("图片").tag("图片");if !lab.paperComposition.layers.isEmpty{Text("高级排版").tag("高级排版")};if lab.importedRaster != nil{Text("位图").tag("导入位图")}}.pickerStyle(.segmented)
+  HStack{Button("高级排版…"){editPaper()};Button("插入二维码…"){editPaper(addQR:true)}}
+  Button("导入位图…",action:lab.importRaster)
+  if lab.mode=="导入位图"{Text(lab.importedRasterName).lineLimit(2).textSelection(.enabled);Text("直接使用原始黑白点阵。请核对右侧预览后打印。").font(.caption).foregroundStyle(.secondary)}
+  if lab.mode=="文字"{TextEditor(text:$lab.text).font(.system(size:16)).frame(height:130).overlay(RoundedRectangle(cornerRadius:5).stroke(.quaternary));Text("支持中文、换行和自动折行；最多10000字符，最终高度不超过1400像素。").font(.caption).foregroundStyle(.secondary)}else if lab.mode=="图片"{Button("选择图片…",action:lab.importImage);Text(lab.imageName).lineLimit(2).textSelection(.enabled);Text("PNG / JPEG / HEIC / TIFF / BMP / GIF首帧，透明区域先合成白底，自动处理照片方向。").font(.caption).foregroundStyle(.secondary)}
  }}label:{Label("打印内容",systemImage:"square.and.pencil")}}
  var layout:some View{GroupBox{VStack(alignment:.leading,spacing:12){
-  if lab.mode=="文字" {Picker("字体",selection:$lab.settings.fontName){ForEach(["PingFang SC","Menlo","Helvetica","Times New Roman"],id:\.self){Text($0)}};slider("字号",value:$lab.settings.fontSize,range:8...96,step:1);Toggle("粗体",isOn:$lab.settings.bold);slider("行间距",value:$lab.settings.lineSpacing,range:0...40,step:1)}
+  if lab.mode=="文字" {SystemFontPicker(selection:$lab.settings.fontName);slider("字号",value:$lab.settings.fontSize,range:8...96,step:1);Toggle("粗体",isOn:$lab.settings.bold);slider("行间距",value:$lab.settings.lineSpacing,range:0...40,step:1)}
   else{Picker("缩放方式",selection:$lab.settings.imageFit){ForEach(["适配宽度","保持像素","裁切填满"],id:\.self){Text($0)}};Picker("旋转",selection:$lab.settings.rotation){ForEach([0,90,180,270],id:\.self){Text("\($0)°").tag($0)}};if lab.settings.imageFit=="裁切填满"{integer("裁切高度 px",value:$lab.settings.cropHeight,range:24...1400)}}
   Picker("对齐",selection:$lab.settings.alignment){ForEach(["居左","居中","居右"],id:\.self){Text($0)}}.pickerStyle(.segmented)
   integer("左右最小边距 px",value:$lab.settings.marginX,range:0...120)

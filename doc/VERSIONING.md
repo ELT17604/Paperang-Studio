@@ -1,8 +1,8 @@
 # Version naming and compatibility policy
 
-## Windows-only 0.3.3 exception (owner-directed)
+## Independent 0.3.3 client releases
 
-WinLite advances to **0.3.3-winlite** for native USB-first transport. MacClient/LinuxRelayServer/RelaySkill stay0.3.2, and the shared compatibility baseline remains0.3.2 / Relay v2 / schema1. This explicitly scoped owner-requested exception overrides the general coordinated PATCH rule only for this Windows release. Registry targetVersion is0.3.3 for WinLite with compatibleBaseline0.3.2; version guards still reject unexplained drift. Use unique tag v0.3.3-winlite, not shared v0.3.3. [Release and rollback](RELEASE-v0.3.3-winlite.md).
+MacClient and WinLite have scoped 0.3.3 versions. LinuxRelayServer and the shared compatibility baseline remain 0.3.2 with Relay v2 and schema 1. The independent release tags are v0.3.3-macclient and v0.3.3-winlite. See the [MacClient release notes](RELEASE-v0.3.3-macclient.md) for paused support.
 
 ## v0.3.2 scoped exception (owner-directed)
 

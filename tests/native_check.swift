@@ -8,8 +8,9 @@ import IntegrationCore
  static func ensure(_ condition:@autoclosure()->Bool,line:UInt=#line){if !condition(){FileHandle.standardError.write(Data("FAILED native check at line \(line)\n".utf8));exit(1)}}
  @MainActor static func main() async throws {
   _ = NSApplication.shared;NSApp.finishLaunching()
-  for old in ["0.3.1-macclient", "v0.3.1-macclient-opt99", "0.3.1-macclient-fix99"] {ensure(ProductVersion.parse(old)!.lexicographicallyPrecedes(ProductVersion.parse("0.3.2-macclient")!))}
+  for old in ["0.3.2-macclient", "0.3.1-macclient", "v0.3.1-macclient-opt99", "0.3.1-macclient-fix99"] {ensure(ProductVersion.parse(old)!.lexicographicallyPrecedes(ProductVersion.parse("0.3.3-macclient")!))}
   ensure(ProductVersion.parse("v0.3.2-macclient")==ProductVersion.parse("0.3.2-macclient"));ensure(ProductVersion.parse("0.3.2")==nil);ensure(ProductVersion.parse("0.3.2-winlite")==nil);ensure(ProductVersion.parse("0.3.2-rc1")==nil)
+  ensure(ProductVersion.release("v0.3.3-macclient",assets:[])==ProductVersion.parse("0.3.3-macclient"))
   ensure(ProductVersion.release("v0.3.2",assets:["PaperangStudio-0.3.2-macclient-macos-arm64.zip"])==ProductVersion.parse("0.3.2-macclient"))
   ensure(ProductVersion.release("v0.3.2",assets:[])==nil)
   ensure(ProductVersion.release("v0.3.2",assets:["PaperangStudio-0.3.2-winlite-win-x64-setup.exe"])==nil)

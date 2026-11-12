@@ -33,10 +33,10 @@ Windows-native reproduction: [tests/windows/README.md](windows/README.md). Windo
 
 ## Ubuntu / reproducible server and sender regressions
 
-Python 3.10+; keep the venv outside tracked source. Install `Server/requirements.txt`, Pillow and httpx (the experimental MCP server additionally uses `Integrations/ChatGPT/requirements.txt`). Install a real CJK font, or point `PAPERANG_TEST_CJK_FONT` at a privately unpacked Noto CJK TTC file. Missing CJK fonts are a test prerequisite failure, not a successful rendering check.
+Python 3.10+. Install the server requirements in a separate virtual environment.
 
 ```sh
-PYTHONPATH=Server:Skills/paperang-relay-print/scripts:Integrations/ChatGPT python -B -m unittest discover -s tests/server -v
+PYTHONPATH=Server python -B -m unittest discover -s tests/server -v
 python -B tests/test_relay_v2.py
 python tests/test_contract_inventory.py
 python scripts/check-versions.py
