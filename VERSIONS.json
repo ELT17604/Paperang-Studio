@@ -19,7 +19,6 @@
       "version": "v0.3.3-macclient",
       "runtimeVersion": "0.3.3-macclient",
       "versionSource": "VERSION",
-      "verification": "See the MacClient 0.3.3 release notes for current build and validation scope",
       "compatibleBaseline": "0.3.x",
       "documentation": "doc/RELEASE-v0.3.3-macclient.md",
       "publicationStatus": "source on main; local builds",
@@ -31,9 +30,8 @@
       "version": "v0.3.2-linuxrelayserver",
       "runtimeVersion": "0.3.2-linuxrelayserver",
       "versionSource": "Server/relay.py",
-      "verification": "Ubuntu native regressions, real preserving production upgrade, backup/rollback, unchanged row/schema rehearsal, HTTPS/API v2/v1 rejection/web/source hashes and owner-approved Mac connection/task/preview integration passed",
       "compatibleBaseline": "0.3.x",
-      "documentation": "doc/VALIDATION-v0.3.2-ubuntu.md",
+      "documentation": "Server/README.md",
       "publicationStatus": "published in v0.3.2"
     },
     "winlite": {
@@ -42,7 +40,6 @@
       "version": "v0.3.3-winlite",
       "runtimeVersion": "0.3.3-winlite",
       "versionSource": "Windows/VERSION",
-      "verification": "Local x64 build, 73 regressions, 12 isolated Relay checks, USB/BLE hardware checks and package verification",
       "compatibleBaseline": "0.3.x",
       "publicationStatus": "source on main; local builds",
       "documentation": "doc/RELEASE-v0.3.3-winlite.md",
@@ -69,7 +66,6 @@
       "runtimeVersion": "0.3.3-androidclient",
       "versionSource": "Android/VERSION",
       "compatibleBaseline": "0.3.x",
-      "verification": "Signed APK and Android 13 emulator coverage; physical P2 printing pending",
       "publicationStatus": "source on main; local builds",
       "documentation": "doc/RELEASE-v0.3.3-androidclient.md",
       "buildNumber": 9
@@ -79,12 +75,11 @@
   "releaseStatus": "GitHub product release v0.3.2; current source includes MacClient, WinLite and AndroidClient 0.3.3 on the 0.3.x compatibility baseline",
   "printerTransports": {
     "windowsLegacyP2Usb": {
-      "status": "implemented in WinLite0.3.3; local validation passed",
+      "status": "USB-first with BLE fallback in WinLite 0.3.3",
       "baseline": "0.3.2",
       "branch": "dev/p2-usb-protocol-research",
       "documentation": "doc/USB-PROTOCOL.md",
       "profile": "doc/p2-usb-profile.json",
-      "verification": "17 established GETs, physical cover/paper differential, user-confirmed four-frame countdown USB raster; device printing/completion/charging unknown",
       "integrationVersion": "0.3.3-winlite"
     }
   },

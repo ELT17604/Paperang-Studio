@@ -47,14 +47,6 @@ First trust: `python Server/relay.py --config CONFIG trust-public-key --name Own
 
 Limits include IP, stable identity, credential and aggregate hourly buckets, plus bounded queue/HTTP workers/bodies/responses. These are abuse controls, not proof of a unique physical person. SQLite content remains plaintext at rest; use OS/disk encryption. Optional application-level content encryption and CSV/attachment-folder export are not implemented in this release. HTTPS protects transport; the relay necessarily sees plaintext.
 
-## Validation boundaries
-
-Windows build and local v2 integration are validated on Windows. Swift/AppKit/Security source and Linux deployment files are updated but require their native agents to build and validate before deployment. See the release checklist and handoff prompts. No live database or production service has been migrated by this Windows work.
-
-Primary implementation references: [cryptography RSA](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/), [argon2-cffi](https://argon2-cffi.readthedocs.io/en/stable/api.html), [OWASP sessions](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html).
-
-A late valid result from the same claim can move a timeout-generated unknown to sent when the client already durably recorded transport completion. This updates a report only; it never reclaims or physically resends a job. Stale claims cannot fetch payload after the five-minute activity window.
-
 ## v0.3.1 correction
 
 Anonymous browser identities may read only their own fixed state/progress responses. Explicit A tokens remain mailbox-only. The active payload rendering whitelist includes IP and User-Agent for local template fields; customer-facing routes still never return body/content/metadata. WinLite defaults to a paired RSA owner file for both management and execution, automatically renewing short-lived native proof sessions. C bearer/passphrase credentials alone cannot enter device execution routes; only a proven public-key C session can, still scoped to its registered device. Existing M execution routes remain for other compatible receivers. An owner-only retire-others action refuses active claims, preserves the current proven owner, invalidates other credentials/sessions and audits the cutover.

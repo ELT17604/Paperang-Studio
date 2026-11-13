@@ -155,25 +155,7 @@ IEEE1284返回前缀原始值为 `60 60`，不假定其长度编码正确。工�
 
 模拟器线索 `39/40/42/7F/81` 单列为研究项，不能据此确认真实P2 GET语义，尤其不能把40解释成充电或打印状态。没有扫描未知操作码。LED控制、独立充电标志、动态打印头宽度、压缩、过热故障位、缓存容量、掉电恢复、最大长图及可靠机械完成仍未取得证据。
 
-## 9. 复现工具
-
-仓库根目录，Windows Python3，标准库，无第三方依赖：
-
-```powershell
-python Windows/scripts/usb_probe.py
-python Windows/scripts/usb_probe.py --all --class-info --output work/usb/new-query.json
-python Windows/scripts/usb_probe.py --query status --watch --duration 10
-python Windows/scripts/usb_probe.py --print-test --rows 56 --watch --duration 4
-python -m unittest discover -s tests/windows -p test_usb_probe.py -v
-```
-
-默认、`--all`及watch只读不打印。`--print-test` 会核对型号、合盖有纸、设置浓度100并回读，打印14–140行（14的倍数），最终送纸150行；会耗纸并保留浓度100。没指定输出时自动生成忽略目录内的唯一 `work/usb/attempt-<uuid>.json`。已存在输出文件一律拒绝覆盖。watch最多120秒；interval是每轮查询后的延时，不是保证采样率。`--trace` 输出已解析脱敏帧；没有任意原始命令入口。
-
-20项独立测试覆盖实机黄金帧、分片/粘包、损坏头恢复、纸状态三值、ACK/数据顺序、负ACK、仅ACK/空数据/无响应、MAC例外与脱敏、命令边界。Python诊断与打包.NET后端分离；后续已完成原生集成，实际构建/硬件范围见[0.3.3验证](VALIDATION-v0.3.3-windows.zh-CN.md)。
-
 ## 10. 证据、文档审阅与来源
-
-本地忽略目录：`work/usb/telemetry-all-01.json`、`print-status-01.json`、`class-status-01.json`。物理状态切换采样在本聊天工具记录中，公开脱敏结果同步到本文和机器配置。[文档核对清单](USB-DOCUMENTATION-AUDIT.md)记录基线文件、关联内容与更新决定。
 
 - [Java P2 USB固定版本](https://github.com/hurui200320/java-paperang-p2-usb/tree/c50594c62d6fd6387d41e86b14f1fdf489d2b560)：端点、CRC、单字节浓度、倒计数、不等点阵ACK。AGPL-3.0；仅参考协议行为，未移入源文件。
 - [P2库固定版本](https://github.com/mdj2812/paperang-p2-lib/tree/656fc8f37ff6f7b0744ef10f8a0ae38d4d594730)：USB/SPP及GET目录；未照搬固定cmd+1、u16浓度和跳过CRC的解析。

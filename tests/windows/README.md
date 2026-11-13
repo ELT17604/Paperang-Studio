@@ -1,6 +1,4 @@
-# Windows v0.3.3 native acceptance
-
-[Current USB-first release/rollback](../../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../../doc/VALIDATION-v0.3.3-windows.md). Older PS032 labels below remain historical BLE test paths. The 0.3.x compatibility baseline uses Relay v2 and schema 1.
+# Windows local tests
 
 Run from the repository root on Windows 10 2004+ / Windows 11 with .NET 10 SDK, Python 3.10+ and Inno Setup 6. Output, owner files, temporary databases and installer logs stay outside tracked source. These tests link the actual WinLite and Core projects; they do not ship an alternative client implementation.
 
@@ -60,7 +58,6 @@ python Windows/scripts/usb_probe.py --all --class-info
 python Windows/scripts/usb_probe.py --print-test --rows 56
 ```
 
-[USB protocol/evidence](../../doc/USB-PROTOCOL.md). Twenty offline tests passed, plus separate user-confirmed four-frame real USB output. These Python tests neither build nor replace the .NET/BLE regressions above. Default/--all are non-printing; print attempts reserve unique local records and never replay uncertain writes.
 
 ## Native USB / transport diagnostics
 

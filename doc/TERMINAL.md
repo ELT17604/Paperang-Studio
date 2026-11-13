@@ -23,7 +23,3 @@ Lines are capped at 512 characters, the transcript at 1500 lines, and the visibl
 Automatic printing pauses above 12,000 pending characters. A PTY session stops after 1 MB of total output. Each input is capped at 8192 bytes and the underlying write queue at 64 KiB. Export a transcript explicitly when needed; this is not a persistent unlimited log.
 
 **Private input** uses a secure field, drops PTY output while active, clears pending output, and disables automatic printing. Hidden output is not replayed afterward. Existing paper or exported files are unaffected. General engineering logs record PTY path, PID, and exit events, not command text.
-
-## Validation
-
-The external checks exercised `isatty`, a real `/dev/ttys` path, `stty 24 72`, UTF-8, interruption of a foreground `sleep` by Ctrl-C, and subsequent shell recovery. The printer raster path has earlier physical confirmation; this does not constitute a new physical TTY print test. See [validation scope](ARCHITECTURE.md). No remote shell or TTY-input HTTP endpoint is provided.

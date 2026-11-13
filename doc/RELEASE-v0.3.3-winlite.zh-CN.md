@@ -1,6 +1,6 @@
 # WinLite v0.3.3 — USB 优先连接
 
-[English](RELEASE-v0.3.3-winlite.md) · [Windows指南](WINDOWS.zh-CN.md) · [版本规则](VERSIONING.zh-CN.md) · [验证记录](VALIDATION-v0.3.3-windows.md)
+[English](RELEASE-v0.3.3-winlite.md) · [Windows指南](WINDOWS.zh-CN.md) · [版本规则](VERSIONING.zh-CN.md)
 
 WinLite 0.3.3 的运行时为 `0.3.3-winlite`，程序集和文件版本为 `0.3.3.0`。该版本沿用 `0.3.x` 兼容基线、Relay HTTP API v2 和 schema 1。单独升级 WinLite 可继续使用 LinuxRelayServer 0.3.2 及已有所有者凭证。
 
@@ -22,8 +22,3 @@ WinLite 0.3.3 的运行时为 `0.3.3-winlite`，程序集和文件版本为 `0.3
 4. 回滚时先完成/回报待处理任务，退出后装回0.3.2 WinLite并保留数据；旧JSON读取会忽略新增偏好并继续BLE，不具备USB。独立保存加密数据备份，不删除unknown记录强行回滚。
 
 发布应使用独立 `v0.3.3-winlite` 标签及同版本安装包/ZIP/SHA256，保留历史 `v0.3.2`，不把0.3.3包挂到旧版本、不声称全平台已升级0.3.3。现有手动更新检查支持WinLite标签，0.3.3高于0.3.2，仅打开实际发布的GitHub页面；源码有新版不等于已有下载。
-
-
-## 范围
-
-本轮只扩充WinLite打印机连接，不新增完整WinClient或HTTP API。设备打印中、机械完成、充电状态仍未知；sent只表示主机传输完成，纸面另由用户确认。以[实际验证记录](VALIDATION-v0.3.3-windows.md)为准；未改变macOS/Linux运行时、服务器行为、schema和既有BLE协议。

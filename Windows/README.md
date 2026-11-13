@@ -1,8 +1,3 @@
-> **v0.3.3-winlite** (Windows-only candidate): USB first, compatible with the 0.3.x compatibility baseline (Relay v2 and schema 1). [Upgrade](../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../doc/VALIDATION-v0.3.3-windows.md). Earlier acceptance numbers below are historical.
-
-> v0.3.1: [Owner-file authentication](../doc/OWNER-CUTOVER-v0.3.1.zh-CN.md). WinLite defaults to a paired owner private key.
-
-
 # Paperang Studio for Windows
 
 > v0.3.0 uses [relay API v2](../doc/AUTH-v2.md). Settings → 管理 opens the native C panel for keys, identities, sessions, history and JSONL export. Keep the background M token separate.
@@ -25,21 +20,19 @@ Run these commands from the repository root. Publish output defaults to the sibl
 
 Double-click the tray icon, enter a relay root URL and select the paired **owner private file**, scan and select your P2, then save and connect. Requires the compatible v0.3.2 Relay v2; the private key stays on this computer. Closing settings keeps the client running. Use the tray menu to pause new jobs, reconnect, or quit. Automatic connection/printing are Windows-specific user-requested defaults; the macOS defaults are unchanged.
 
-Source: `src/Paperang.Core/` and `src/Paperang.WinLite/`. Validation: `tests/`. See the [guide](../doc/WINDOWS.md) for template compatibility, privacy, recovery, limitations, and real-device verification.
+[Windows guide](../doc/WINDOWS.md) covers setup, templates and Relay administration.
 
 © 2026 ELT Group · [CC BY-NC-SA 4.0](../LICENSE) · [NOTICE](../NOTICE). This Windows adaptation is an independent, unofficial client, not an official Paperang product.
 
 ## 标准安装、更新与卸载
 
-本地验收构建（尚未发布）：`PaperangStudio-0.3.3-winlite-win-x64-setup.exe`，自带 .NET 10，不需另外安装运行环境。按当前用户安装至 `%LOCALAPPDATA%/Programs/Paperang Studio WinLite`，在开始菜单和“已安装的应用”中可见。升级保留原有配置、模板和私钥路径。
+安装包 `PaperangStudio-0.3.3-winlite-win-x64-setup.exe`，自带 .NET 10，不需另外安装运行环境。按当前用户安装至 `%LOCALAPPDATA%/Programs/Paperang Studio WinLite`，在开始菜单和“已安装的应用”中可见。升级保留原有配置、模板和私钥路径。
 
 托盘 → **检查 GitHub 更新…** 手动读取本仓库最近 100 个发行记录，只比较正式 WinLite 标签。发现新版后打开 GitHub 下载页面，不自动下载安装。没有发行记录或网络失败会明确提示。
 
 卸载会正常退出客户端并清除登录启动项。可选择永久删除本程序数据目录（包括其中的私钥），默认保留；静默卸载保留数据。外部私钥及服务器授权不会被删除。构建：安装 Inno Setup 6，执行 `Windows/scripts/build-installer.ps1 -Dotnet PATH`。
 
 管理面板 **用量与限额…** 支持匿名/注册默认及所选身份覆盖。0 禁止投稿，继承恢复默认；轮换不清零。需要服务器 fix1，旧服务器会明确提示不支持。
-
-参见 [发布物说明](../doc/WINDOWS-RELEASE-ARTIFACTS.zh-CN.md) 与 [服务器/macOS 交接](../doc/HANDOFF-QUOTAS-v0.3.1.zh-CN.md)。
 
 ### opt2 连接恢复与管理登录
 

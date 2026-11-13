@@ -2,9 +2,7 @@
 
 安卓端参阅 [AndroidClient 工作台与打印指南](../Android/README.md)。
 
-
 [MacClient 0.3.3 升级](RELEASE-v0.3.3-macclient.zh-CN.md) · [二维码、自由排版和本地位图导入](MACCLIENT-WORKSPACE.zh-CN.md)
-
 
 [MacClient 0.3.1 fix3 upgrade / 升级与验证](MACCLIENT-v0.3.1.zh-CN.md)
 > v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v2 和 BLE/模板记录仍独立有效。
@@ -77,9 +75,8 @@
 - `Sources/ProtocolCore`：CRC、帧重组、命令目录、P2状态解释。
 - `Sources/PrintCore`：可编码参数、图片解码、排版、黑白处理和位图输出。
 - `Sources/PaperangLab`：SwiftUI界面、CoreBluetooth、打印流程、预设与会话导出。
-- 外部开发目录的 `Validation/`：协议、图片、HTTP与PTY验证；不是发布源码的构建依赖。
 
-验证范围与外部记录位置见 [架构与构建](ARCHITECTURE.zh-CN.md)。
+构建步骤见 [架构与构建](ARCHITECTURE.zh-CN.md)。
 
 ## 0.2.1新增功能
 

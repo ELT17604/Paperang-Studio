@@ -6,7 +6,7 @@ Product release: **Paperang Studio v0.3.2**. Runtime labels retain distribution 
 
 All application HTTP business calls use API v2. Old HTTP v1 paths are rejected with 410, without authentication dispatch, body interpretation or business execution on Relay. This small explicit rejection guard is retained to distinguish retirement from an unknown route; there is no forwarding adapter. Mac loopback authentication/Origin rules apply before its retirement rejection. Bare `/v1` is also rejected. Template/content/configuration schema 1 and the BLE physical protocol are independent version domains and remain unchanged.
 
-This is the explicitly approved PATCH exception to the normal pre-1.0 MINOR breaking-change policy: Mac local v1 consumers must upgrade to v2. Relay v2 remains compatible with existing v0.3.1 v2 receivers. Upgrade native clients before final cross-platform acceptance. Never infer physical paper completion from `sent`.
+Mac Local API callers must use v2. Relay v2 remains compatible with existing v0.3.1 v2 receivers. Never infer physical paper completion from `sent`.
 
 ## Existing Ubuntu host
 
@@ -32,10 +32,4 @@ sudo python3 PACKAGE/Server/deploy.py --package PACKAGE --rollback /home/elt/pap
 
 It refuses active prints, stops the relay, backs up the **current** database again, switches to the old program/console, then restarts. **It never replaces the live database with the pre-upgrade snapshot.** All post-upgrade writes survive. This is safe only because both programs have been rehearsed against the same persistent schema/rows. A future incompatible schema change must supply a different verified migration/rollback procedure; this updater refuses rehearsal differences.
 
-Startup or public health failure automatically restores the previous program and keeps current data. Inspect the protected backup and service status before retrying. Old code must not be deleted until final acceptance; backups remain until the operator explicitly removes them.
-
-## Final publication gates
-
-Native macOS and Windows checks must be rerun if their release-discovery code changes. Historical installed packages must not be relabeled as the new build. Product tag `v0.3.2` and platform runtime suffixes coexist. The release must include correctly named platform assets for update discovery: `PaperangStudio-0.3.2-macclient-macos-ARCH.zip` (or `.dmg`) and `PaperangStudio-0.3.2-winlite-win-x64-setup.exe`.
-
-Ubuntu deployment alone is not final release acceptance. The owner-approved rollout gate combines the existing confirmed platform device records with a fresh authenticated Mac connection and visible pending task on the new Ubuntu Relay. Record each evidence source accurately. Missing required native evidence, unverified artifacts, failed CI or failure of this connection/task gate blocks merge/tag/release. Experimental ChatGPT gateway/account-side integration remains unverified unless tested externally.
+Startup or public health failure automatically restores the previous program and keeps current data. Inspect the protected backup and service status before retrying. Keep the previous program and backup for rollback.

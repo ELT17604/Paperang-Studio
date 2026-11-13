@@ -1,11 +1,4 @@
-> **v0.3.3-winlite**：仅Windows升级，兼容0.3.x（Relay v2 / schema 1）。当前[发行与升级](RELEASE-v0.3.3-winlite.zh-CN.md)与[验证记录](VALIDATION-v0.3.3-windows.md)；下文旧版验收为历史。
-
-> v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
-
-
 # Paperang Studio · V0.3.3-winlite
-
-> **v0.3.0:** [鉴权合同](AUTH-v2.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Agent 接手](HANDOFF-v0.3.0.zh-CN.md)。WinLite 设置含 C 图形化管理；历史正文不再向网页/普通执行凭证开放。
 
 [English](WINDOWS.md) · [Windows 源码](../Windows/README.md)
 
@@ -49,25 +42,13 @@ Paperang P2 的 Windows 原生轻量托盘客户端。基于 ELT Group 的 [Pape
 
 当前版本的统一命名与跨端范围见[版本规则](VERSIONING.zh-CN.md)、[功能实现矩阵](FEATURE-MATRIX.zh-CN.md)。
 
-## 构建与验证
+## ## 构建
 
-fix1 共 51 项检查，增加持久化/重启恢复、旧配置默认值、一分钟等待配置、取消与并发启动/停止。1200 次离线请求保留内存有界，始终单请求在途。实际界面/中转 90 秒采样私有内存约 39–45 MB、句柄总体下降；这不是无限期稳定保证。已验证注册的带引号程序路径/`--background`、静默重复启动及模板恢复，没有实际重启 Windows。
+从仓库根目录[构建 WinLite](../Windows/README.md)。
 
-安装 .NET 10 SDK，运行：
-
-```powershell
-dotnet build Windows/src/Paperang.WinLite -c Release
-./Windows/scripts/build.ps1
-./Windows/scripts/build.ps1 -SelfContained
-```
-
-原服务端真实 HTTP 联调（使用模拟打印机，不耗纸）：
-
-```powershell
 # 在当前仓库根目录运行
 ```
 
-测试覆盖协议黄金向量、分片/CRC/流控、开盖/缺纸/浓度拦截、任务领取与结果重报、重启未知结果、暂停与心跳、中文渲染、模板变量与图片合成、预览/打印一致性和 DPAPI。2026-11-06 已在当前 Windows 与实体 P2 上完成连接、中文打印、150 行送纸及连续两次重连，用户确认纸面完整；其他蓝牙适配器仍需各自验证。研究和移植对应关系见 [移植记录](WINDOWS-PORTING.zh-CN.md)。
 
 © 2026 ELT Group · vox@calx.cc。沿用 [CC BY-NC-SA 4.0](../LICENSE)，保留 [NOTICE](../NOTICE)。独立非官方工程，与 Paperang 及其关联公司无隶属关系。此目录中的 Windows 移植属于修改版本。
 
@@ -82,7 +63,6 @@ dotnet build Windows/src/Paperang.WinLite -c Release
 
 凭证和身份默认隐藏已吊销项，可取消勾选查看。每页可选 25、50、100 条，提供上一页、下一页和页码/本页数量；最多缓存最近 12 页，切换分类、筛选或页大小会重置。旧服务器固定分页也能逐批读取并保留溢出记录，不会因本地裁剪漏项。新版服务器支持先筛选再分页及不含正文的历史摘要；只在选中任务时读取完整正文/图片。旧服务器仍按原接口传输每批最多五条完整任务，客户端页缓存仅保留摘要。服务器增强代码需要另行部署；本机界面、隐藏与分页已兼容当前 v0.3.1 服务。
 
-验证：Windows 54 项回归、Server 33 项测试通过；实际窗口检查了分类、隐藏和新建表单默认项，未在生产创建/吊销测试凭证。使用当前所有者配置连接，原模板和打印设置保留。
 
 
 ### v0.3.1-winlite-fix2 自动保存与配置导出

@@ -1,6 +1,6 @@
 # WinLite v0.3.3 — USB-first printer connection
 
-[简体中文](RELEASE-v0.3.3-winlite.zh-CN.md) · [Windows guide](WINDOWS.md) · [Version policy](VERSIONING.md) · [Validation](VALIDATION-v0.3.3-windows.md)
+[简体中文](RELEASE-v0.3.3-winlite.zh-CN.md) · [Windows guide](WINDOWS.md) · [Version policy](VERSIONING.md)
 
 WinLite 0.3.3 uses runtime `0.3.3-winlite` and assembly/file version `0.3.3.0`. It implements the `0.3.x` compatibility baseline with Relay HTTP API v2 and schema 1. A WinLite-only upgrade can retain LinuxRelayServer 0.3.2 and existing owner credentials.
 
@@ -22,8 +22,3 @@ Native transport uses present-interface SetupAPI enumeration, asynchronous USBPR
 4. For rollback, finish/report pending jobs, exit and reinstall the prior0.3.2 WinLite binary while retaining the same data. Its JSON loader ignores the additive connection preference and uses BLE; USB is unavailable there. Preserve an encrypted-data backup separately, never delete unknown pending work to force rollback.
 
 Publish under the unique Windows-only `v0.3.3-winlite` tag with matching installer/ZIPs and SHA-256 sidecars. Historical `v0.3.2` is immutable; do not attach0.3.3 packages to it or claim a shared0.3.3 product release. Manual update discovery already understands WinLite suffix tags and compares0.3.3 above0.3.2; it opens an actual published GitHub release only. It does not fabricate a downloadable release from source state.
-
-
-## Scope
-
-This adds printer transport to WinLite, not a full WinClient workspace or a new API. Device busy/mechanical completion/charging remain unknown; `sent` is host transport completion and paper confirmation is separate. Hardware/model/Windows limits are documented in the [validation record](VALIDATION-v0.3.3-windows.md). No macOS/Linux runtime, server behavior, schemas or existing BLE protocol was changed.

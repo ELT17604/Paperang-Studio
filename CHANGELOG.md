@@ -1,28 +1,15 @@
-## v0.3.3-macclient
-
-## v0.3.3-androidclient
-
-Android P2 BLE workspace with editable print history, layered layout, full-screen drawing, a local materials library and raster1 export. [Release notes](doc/RELEASE-v0.3.3-androidclient.md)
-
-
-- Add searchable system fonts, configurable QR codes, freeform layout and local raster import.
-- Pause support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill and remove their code, docs and dedicated automation. Keep the new local raster file generation Skill.
-- Preserve the 0.3.x compatibility baseline, Relay API v2 and local API v2. [Release and upgrade](doc/RELEASE-v0.3.3-macclient.md).
-
-# v0.3.3-winlite — Windows candidate
-
-Native USB-first printer connection, remembered BLE fallback, explicit persistent BLE-only switching and USB-connected Bluetooth scan suppression. Reuse media/density guards and durable no-replay results. Other distributions remain0.3.2; Relay v2/schema1 are unchanged. [Upgrade and validation](doc/RELEASE-v0.3.3-winlite.md).
-
-# v0.3.2
-
-- Application HTTP APIs unified on v2; v1 has no business execution. Product version 0.3.2 retains the four distribution suffixes.
-- macOS and Windows native builds, device records and shared contract regression accepted; Ubuntu preserving production upgrade and authenticated Mac task/preview integration accepted.
-- Add consistent backup, unchanged-row/schema rehearsal, claim-safe deployment and program-only rollback retaining post-upgrade writes. Remove the obsolete one-time reset installer.
-- Restore reproducible server/console/adapter regressions and gate native packages/tag/Release on CI and SHA-256 checks. Product Release discovery recognizes matching platform assets.
-- Template/content/config schema 1 and physical printer protocol remain unchanged. Explicit PATCH exception: Local API v1 consumers must upgrade to v2; normal MINOR compatibility policy remains in force.
-- Consolidate current docs and remove completed temporary stage handoffs. See [release notes](doc/RELEASE-v0.3.2.md).
-
 # Changelog
+
+## v0.3.3
+
+- **MacClient:** searchable system fonts, configurable QR codes, freeform layout and RAW/raster1 import.
+- **WinLite:** USB-first connection, BLE fallback and persistent transport selection.
+- **AndroidClient:** touch layout, full-screen drawing, millimeter rulers, saved assets, raster1 export and editable print history.
+
+## v0.3.2
+
+- Standardize local and Relay HTTP APIs on v2.
+- Add data-preserving server upgrades, SQLite backups and program rollback. [Release notes](doc/RELEASE-v0.3.2.md)
 
 ## v0.3.1-winlite-opt2 — 2026-11-10
 
@@ -30,39 +17,33 @@ Native USB-first printer connection, remembered BLE fallback, explicit persisten
 - 配置原子替换时保留 `.previous` 加密备份；不自动生成、替换或配对私钥。
 - 修复所有者登录仍受 4 秒 HTTP 超时限制，以及超时被吞掉导致界面停留“正在登录”；复用已验证会话，避免重复鉴权。
 - 管理中心新增独立“登录 / 重新登录”，登录工具栏分行避免挤出窗口；自动登录失败可重试，缺少文件和权限失败给出提示。
-- 针对空草稿、加密备份和损坏读取新增 3 项隔离验证。首次空路径的具体触发链尚未复现，此版增加加载与恢复防护。
 
 ## `v0.3.1-<distribution>-opt1` — 2026-11-09
 
 - Remove unused Mac management state/cache, unreachable retired relay handlers and redundant preference writes; move regression sources outside the shipping tree.
 - Group Mac remote printing into tasks/connection/style/management; fix preview/active-job refresh and improve responsive web identity/status UI.
 - Support optN update tags; restore macOS CJK font discovery in RelaySkill. Preserve authentication and no-replay boundaries.
-- [Review and validation / 审阅与验证](doc/OPTIMIZATION-opt1.md). Native Windows/hardware/deployment validation not claimed.
 
 ## Unreleased · ChatGPT sender integration (experimental)
 
 - Add loopback MCP sender adapter and optional GPT Actions OpenAPI schema targeting existing Relay API v2.
 - Support explicitly authorized text and pre-rendered raster1, server-side A/B identity verification, B own-status and UUID idempotency; never retry ambiguous POST.
-- Add offline HTTP contract tests, bilingual guides and security/deployment boundaries. OAuth gateway, live ChatGPT connection and paper testing remain pending; no new released distribution or shared protocol change.
 
 ## v0.3.1-macclient-fix3 — 2026-11-09
 
 - Native macOS build restored; paired owner-file execution, renewable RSA-PSS proof, stable recovery identity and legacy M compatibility.
 - Native paginated C management, private history/raster details, scoped quotas, safe owner creation and streamed JSONL export.
 - Autosaved settings/drafts, credential-free configuration export, optional startup/printer reconnect and immutable active-job layout. Known sent results survive disconnects without replay.
-- Native arm64 build/GUI/local relay integration and 39 server tests passed. No new physical print or production deployment. [Upgrade notes](doc/MACCLIENT-v0.3.1.md).
 
 ## v0.3.1-macclient-fix2 — 2026-11-09
 
-- macOS 应用菜单和托盘加入手动检查 GitHub 更新，只比较最近 100 条中的正式 MacClient 标签，发现新版后打开下载页面。无发行版、网络失败均提示；不自动安装。按要求未运行 macOS 验证。
+- macOS 应用菜单和托盘加入手动检查 GitHub 更新，只比较最近 100 条中的正式 MacClient 标签，发现新版后打开下载页面。无发行版、网络失败均提示；不自动安装。
 
 ## v0.3.1-winlite-fix3 / linuxrelayserver-fix1 / macclient-fix1 — 2026-11-09
 
 - Windows 标准按用户安装包，内置 .NET、系统卸载入口和可选数据清除，托盘手动检查 GitHub 正式 WinLite 发行版。
 - 自定义口令移除长度/复杂度规则，留空自动生成；保留传输边界和登录限流。
 - C 管理匿名/注册默认及单身份的小时任务数、内容量和单次大小限额；SQLite 持久化与原子计数，轮换不清零。网页、WinLite 界面及 Swift 管理源代码同步。
-- Windows 61 项、服务器 39 项测试通过。macOS 原生编译与线上服务器部署待验证，见交接文档。
-
 
 ## v0.3.1-winlite-fix2 — 2026-11-09
 
@@ -78,14 +59,11 @@ Fix anonymous own-job progress without content disclosure; restore IP/UA to acti
 
 ## v0.3.0 — 2026-11-08
 
-Coordinated API v2 identity/authentication update, A/B/C/M permissions, persistent browser sessions, RSA owner files, native WinLite/SwiftUI C administration, filtered JSONL history/export and migration safeguards. RelaySkill upgraded; local Mac API v1 retained. Windows tested; native Mac/Linux deployment validation pending. [Complete upgrade record](doc/UPGRADE-v0.3.0.zh-CN.md).
-
 ## v0.2.3-relayskill — 2026-11-08 (independent skill distribution)
 
 - Add `Skills/paperang-relay-print` as a peer distribution: native text and print-ready raster1 submission, CJK typography, image transforms/dithering, previews and bounded receipt tracking.
 - Reuse relay HTTP v1 with explicit Content-Length, capability/quota preflight, explicit intended copies and exclusive attempt records; never automatically replay ambiguous submissions.
 - Keep submit credentials separate from device keys and document density/feed/template as receiver-local controls. No client/server protocol or runtime changes are needed.
-- Extend version policy, registry, feature matrix and bilingual docs. Validate 12 local tests, original relay/SQLite integration and read-only live status.
 
 ## v0.2.3-winlite-fix1 — 2026-11-08 (Windows client)
 
@@ -93,7 +71,6 @@ Coordinated API v2 identity/authentication update, A/B/C/M permissions, persiste
 - Autosave the selected template/style and print options, flush on close, and restore them at launch without changing active-job layout snapshots.
 - Enable continuous recovery by default: after five retries, wait 60 seconds, try another five times and repeat until successful. Disconnect/quit cancels waiting immediately; optional opt-out retains the original stop behavior.
 - Repair enabled startup paths after upgrades, suppress settings on repeated background launch, serialize atomic local writes and coalesce UI refreshes.
-- Add persistence/migration, retry/cancellation, concurrency and 1,200-request outage checks. Short-term verification is not an indefinite stability or actual-reboot claim.
 - Add distribution version naming, the release registry and the cross-platform feature implementation matrix; preserve Mac/server runtime versions as documented legacy aliases.
 
 ## 0.2.3-win_lite — 2026-11-06 (Windows client)
@@ -127,7 +104,6 @@ Coordinated API v2 identity/authentication update, A/B/C/M permissions, persiste
 - Faster flow-controlled defaults: 10 ms BLE writes and 0 ms image-frame pause.
 - Full status/API details in [remote printing](doc/REMOTE-PRINTING.md).
 
-
 [English](CHANGELOG.md) · [简体中文](doc/CHANGELOG.zh-CN.md)
 
 ### Remote-printing features included in 0.2.2
@@ -138,7 +114,6 @@ Coordinated API v2 identity/authentication update, A/B/C/M permissions, persiste
 - Saved default automatic-print preference and graphical block-layout editor with live composition, presets, drag/reorder, and JSON import/export.
 - Persistent systemd installation and temporary foreground relay mode with Ctrl-C/SIGHUP cleanup.
 - Bluetooth scan timer cancellation, live/cache distinction, discovery counters and per-app central-manager recovery.
-
 
 - Ubuntu relay installer with configurable port/address/quotas, local/offline generation of revocable role-based keys, SQLite hourly IP limits, and a metadata-disclosing submission website.
 - Native remote-print inbox with telemetry, manual/automatic handling, four local styles, selectable metadata fields, and uncertain-outcome protection.

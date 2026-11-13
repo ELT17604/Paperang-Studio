@@ -6,7 +6,7 @@ Python 3.10+, SQLite, argon2-cffi and cryptography. Relay API v2 is incompatible
 
 ## Ubuntu installation
 
-Install python3, python3-venv and systemd prerequisites, then run `sudo bash Server/install.sh`. The installer creates `/opt/paperang-relay/venv`, installs requirements.txt and uses this interpreter in systemd. Source is installed in a dedicated directory; database/config are separate. Review the script before privileged use. Linux deployment must be verified on Linux.
+Install python3, python3-venv and systemd prerequisites, then run `sudo bash Server/install.sh`. The installer creates `/opt/paperang-relay/venv`, installs requirements.txt and uses this interpreter in systemd. Source is installed in a dedicated directory; database/config are separate.
 
 ```sh
 bash Server/install.sh --dry-run --port 9088
@@ -44,12 +44,10 @@ Configuration defaults: loopback:8177, device p2, anonymous 500 units/job, 5 job
 
 key-add prints a newly generated secret once; redirect to a private file rather than logging it. key-import accepts existing offline keygen JSON for legacy role aliases (submit→B, admin→C, device→M). Use C UI/API to create A/passphrase credentials. Fixed owner keys are local RSA PEM files; register only their public key, then prove possession. Never upload the private JSON.
 
-Run reproducible regression validation from `tests/server/` and `tests/test_relay_v2.py` as described in the test guide. See the full auth contract for route schemas, status-only responses, CSRF, pagination, revocation, retention and proof limitations. Tests run with temporary databases; do not run them against a production config.
-
-## Existing /home/elt/paperang deployment
+## Upgrade an existing deployment
 
 Use `Server/deploy.py` with a pinned package as described in the upgrade guide. It verifies checksums, rehearses new and old code on a consistent SQLite copy, refuses active printing, takes a protected backup and switches the release. The configuration, database, users, keys, quotas and history remain intact. A rollback switches programs and keeps the current database, including post-upgrade writes.
 
 `sudo python3 /home/elt/paperang/manage.py` opens the [local terminal console](ADMIN-CONSOLE.md). It supports configuration, credential distribution/revocation, identities, quotas and history/export through a service-account worker. Pending public keys become usable only after the intended client proves possession; adding one never revokes another.
 
-The default job retention is seven days, pruned during normal API activity; active claims are retained. Audit retention is 90 days. Private exports and deployment backups are retained until explicitly removed by the operator. No backups are removed by this upgrade.
+The default job retention is seven days, pruned during normal API activity; active claims are retained. Audit retention is 90 days. Private exports and deployment backups are retained until explicitly removed by the operator.

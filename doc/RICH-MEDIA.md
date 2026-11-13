@@ -1,7 +1,5 @@
 # Remote rich media and drawing
 
-> v0.3.0: historical observations/screenshots below remain recorded evidence. Current relay authentication, history access, dependencies and validation status are defined by [API v2](AUTH-v2.md), [upgrade](UPGRADE-v0.3.0.zh-CN.md) and [matrix](FEATURE-MATRIX.md). Local API v2 and BLE/template records are separate contracts.
-
 [简体中文](RICH-MEDIA.zh-CN.md) · [Remote printing](REMOTE-PRINTING.md)
 
 ## Implemented
@@ -45,13 +43,3 @@ SQLite stores `payload` as binary BLOB and `content_meta` separately. Lists omit
 ## Task state and races
 
 Submission invalidates pending lookups before sending and when accepting the response. Tracking versions reject stale polling responses. A slow lookup cannot replace the new receipt or stop its polling. During submission, tracking controls are disabled. The server records `lastStage` when a task is claimed/sending and preserves it when expiring to unknown. Unknown tasks render the last known accepted/sending stage; older records without that information fall back to Accepted with an explicit uncertain-outcome label, never Queued. Transport completion and manual physical-paper confirmation remain separate.
-
-## Extending later
-
-For photos, first add browser resize/crop and grayscale/dithering, then submit the same `raster1` envelope. This requires no new printer-side protocol. Preserve the original vector strokes separately if editable drawings are needed; the printable raster is the authoritative preview. For mixed text/image documents, add a new versioned `document` type with ordered blocks, capability negotiation and a native compositor. Do not silently reinterpret unknown types as text. For originals exceeding this bounded print-ready representation, use a separate authenticated asset upload (size/MIME/dimension/hash/ownership/expiry checks), then reference an opaque asset ID in the task; never fetch arbitrary user URLs from the Mac. Uploads should be idempotent before automatic retries are added. These photo/vector/document/asset features are design guidance, not implemented endpoints.
-
-## Verification
-
-Checks cover stale lookup vs submission, unknown-state fallback, exact raster bit/row packing and hash; server size/encoding/hash rejection, row quotas, legacy compatibility and migration, private access, and a real HTTP maximum-height authenticated submission. A real browser drawing was submitted and queued locally. Native validation covers full-content fetch, pixel preservation and checksum rejection. These software checks do not establish a new physical print or phone-hardware touch test.
-
-Browser lookups/polls send `X-Paperang-Content-Summary: 1` to receive private caption/metadata without base64 payload. Private API clients omit this header to retrieve the full raster. This prevents repeated image downloads during 250 ms progress polling.

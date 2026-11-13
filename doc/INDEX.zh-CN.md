@@ -1,57 +1,14 @@
 # 文档目录
 
-[AndroidClient · 构建与工作台](../Android/README.md) · [发行说明](RELEASE-v0.3.3-androidclient.md)
+[项目首页](README.zh-CN.md) · [English](README.md)
 
-
-
-[MacClient 0.3.1 fix3 upgrade / 升级与验证](MACCLIENT-v0.3.1.zh-CN.md)
-[English](README.md) · [中文文档目录](INDEX.zh-CN.md)
-
-从 [项目首页](README.zh-CN.md) 开始。
-
-- 当前优化：[opt1 代码审阅、清理与界面调整](OPTIMIZATION-opt1.zh-CN.md)
-
-
-
-- 跨端同步：[版本命名与兼容规则](VERSIONING.zh-CN.md)、[版本功能实现矩阵](FEATURE-MATRIX.zh-CN.md)、[版本登记表](../VERSIONS.json)
-
-- Windows：[V0.2.3-win_lite 托盘客户端与模板编辑](WINDOWS.zh-CN.md)、[移植与实机验证](WINDOWS-PORTING.zh-CN.md)
-
-- 使用：[用户指南](USER-GUIDE.zh-CN.md)、[纸带终端](TERMINAL.zh-CN.md)
-- 协议：[完整协议规范](PROTOCOL.zh-CN.md)、[设备配置](p2-profile.json)
-- 研究：[获取步骤与验证](ACQUISITION.zh-CN.md)、[跨型号研究](RESEARCH.zh-CN.md)、[ESP32补充](ESP32-EMULATOR.zh-CN.md)、[充电与LED](CHARGING-AND-LED.zh-CN.md)
-- 开发：[架构与构建](ARCHITECTURE.zh-CN.md)、[来源](SOURCES.zh-CN.md)、[固定版本](source-revisions.json)
-
-文档记录的是2026-11-04本轮项目状态。电量等动态字段是采样快照；研究文档中的历史值不应当作当前值。实测、源码线索、推断与未知分别标记。原始个人设备地址/序列号及完整日志保存在项目外的本地开发档案。
-
-[三个相关项目的可借鉴内容与限制](RELATED-PROJECTS.zh-CN.md)
-
-- 远程：[Ubuntu中转安装与多密钥/IP配额](REMOTE-PRINTING.zh-CN.md)
-
-- 版式：[远程任务列表、可选短编号与图形化编辑器](LAYOUT-EDITOR.zh-CN.md)
-
-- macOS：[终端临时体验与全部可选参数](MACOS-TEMPORARY.zh-CN.md)
-
-- [远程绘图与富媒体 API](RICH-MEDIA.zh-CN.md)
-
-- [菜单栏托盘模式](TRAY-MODE.zh-CN.md)
-
-## 当前 v0.3.2
-
-- [发行说明](RELEASE-v0.3.2.md) · [API v2](API-v2-032.md)
-- [保留数据的升级与回滚](UPGRADE-v0.3.2.md) · [Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md)
-- [开发与测试](../tests/README.md)
-
-## 历史 v0.3.0
-
-- [身份和权限 / Authentication](AUTH-v2.zh-CN.md) · [API contract](AUTH-v2.md)
-- [升级 / 回滚与发布记录](UPGRADE-v0.3.0.zh-CN.md)
-- [Mac / Linux Agent 完整接手 Prompt](HANDOFF-v0.3.0.zh-CN.md)
-
-- [v0.3.0 validation record](VALIDATION-v0.3.0.md) · [Documentation audit](DOCUMENTATION-AUDIT-v0.3.0.md)
-
-## WinLite 0.3.3 USB 连接
-
-[发行、升级与回滚](RELEASE-v0.3.3-winlite.zh-CN.md) · [English](RELEASE-v0.3.3-winlite.md) · [USB完整协议](USB-PROTOCOL.zh-CN.md) · [机器配置](p2-usb-profile.json) · [验证记录](VALIDATION-v0.3.3-windows.md)。
-
-[MacClient 0.3.3 · 打印工作台](MACCLIENT-WORKSPACE.zh-CN.md) · [发行与升级](RELEASE-v0.3.3-macclient.zh-CN.md) · [位图 Skill](../Skills/paperang-local-raster/SKILL.md)
+| 主题 | 文档 |
+|---|---|
+| 平台与版本 | [功能矩阵](FEATURE-MATRIX.zh-CN.md)、[版本规则](VERSIONING.zh-CN.md)、[变更记录](CHANGELOG.zh-CN.md) |
+| MacClient | [使用指南](USER-GUIDE.zh-CN.md)、[排版工作台](MACCLIENT-WORKSPACE.zh-CN.md)、[纸带终端](TERMINAL.zh-CN.md)、[托盘模式](TRAY-MODE.zh-CN.md) |
+| WinLite | [使用指南](WINDOWS.zh-CN.md)、[USB 优先连接](RELEASE-v0.3.3-winlite.zh-CN.md) |
+| AndroidClient | [构建与使用](../Android/README.md)、[发行说明](RELEASE-v0.3.3-androidclient.md) |
+| 中转服务 | [部署](../Server/README.md)、[终端管理](../Server/ADMIN-CONSOLE.md)、[升级与回滚](UPGRADE-v0.3.2.md) |
+| 接口与数据 | [HTTP API v2](API-v2-032.md)、[中转鉴权](AUTH-v2.zh-CN.md)、[本机 HTTP API](API.zh-CN.md)、[raster1 格式](../Skills/paperang-local-raster/references/raster1.md) |
+| 设备协议 | [蓝牙](PROTOCOL.zh-CN.md)、[USB](USB-PROTOCOL.zh-CN.md)、[设备研究](RESEARCH.zh-CN.md) |
+| 开发 | [架构](ARCHITECTURE.zh-CN.md)、[Swift API](SWIFT-API.zh-CN.md)、[参与开发](CONTRIBUTING.zh-CN.md)、[本地测试](../tests/README.md) |

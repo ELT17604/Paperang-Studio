@@ -1,27 +1,15 @@
-## v0.3.3-macclient
-
-## v0.3.3-androidclient
-
-Android P2 蓝牙工作台支持可编辑的打印历史、图层排版、全屏手绘、独立素材库和 raster1 导出。[发行说明](RELEASE-v0.3.3-androidclient.md)
-
-
-- 新增系统字体搜索、自定义二维码、自由排版和本地位图导入。
-- 从本代暂停 ChatGPT MCP／GPT Actions、RelaySkill 和 LocalBLESkill 支持，移除相关实现、文档及自动化。保留本地位图生成 Skill。
-- 沿用 0.3.x 兼容基线。[发行和升级](RELEASE-v0.3.3-macclient.zh-CN.md)。
-
-# v0.3.3-winlite — Windows候选版
-
-原生USB优先、记住BLE回退、持久的手动仅蓝牙选择、USB连上禁用客户端蓝牙扫描；复用纸仓/浓度与持久不重打机制。其他端保持0.3.2，Relay v2/schema1不变。[升级与验证](RELEASE-v0.3.3-winlite.zh-CN.md)。
-
 # 变更记录
+
+## v0.3.3
+
+- **MacClient**：系统字体搜索、可配置二维码、自由排版、RAW 和 raster1 导入。
+- **WinLite**：USB 优先连接、蓝牙回退、持久化手动传输选择。
+- **AndroidClient**：触屏排版、手绘、毫米尺标、素材库、raster1 导出和可编辑的打印历史。
 
 ## v0.3.2
 
-- 应用层 HTTP API 统一为 v2，四个正式组件共享 0.3.2 并保留平台后缀。三端验收通过，打印物理协议和模板/内容 schema 1 保持不变。
-- Ubuntu 保留数据升级、一致性备份和仅回滚程序的恢复路径通过；旧 v1 仅明确拒绝，移除一次性清库安装器。
-- 恢复可重复回归、原生 CI 和校验和发布，整理文档并移除已完成的阶段通信文件。
-- 本次 Local API v1 淘汰为明确批准的 PATCH 兼容性例外，旧调用方须升级；长期版本策略不变。
-- [发行说明](RELEASE-v0.3.2.md) · [Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md)。
+- 本机与中转 HTTP API 统一使用 v2。
+- 服务端支持保留数据的升级、SQLite 备份和程序回滚。[发行说明](RELEASE-v0.3.2.md)
 
 ## v0.3.1-winlite-opt2 — 2026-11-10
 
@@ -29,14 +17,12 @@ Android P2 蓝牙工作台支持可编辑的打印历史、图层排版、全屏
 - 配置原子替换时保留 `.previous` 加密备份；不自动生成、替换或配对私钥。
 - 修复所有者登录仍受 4 秒 HTTP 超时限制，以及超时被吞掉导致界面停留“正在登录”；复用已验证会话，避免重复鉴权。
 - 管理中心新增独立“登录 / 重新登录”，登录工具栏分行避免挤出窗口；自动登录失败可重试，缺少文件和权限失败给出提示。
-- 针对空草稿、加密备份和损坏读取新增 3 项隔离验证。首次空路径的具体触发链尚未复现，此版增加加载与恢复防护。
 
 ## `v0.3.1-<distribution>-opt1` — 2026-11-09
 
 - Remove unused Mac management state/cache, unreachable retired relay handlers and redundant preference writes; move regression sources outside the shipping tree.
 - Group Mac remote printing into tasks/connection/style/management; fix preview/active-job refresh and improve responsive web identity/status UI.
 - Support optN update tags; restore macOS CJK font discovery in RelaySkill. Preserve authentication and no-replay boundaries.
-- [Review and validation / 审阅与验证](OPTIMIZATION-opt1.zh-CN.md). Native Windows/hardware/deployment validation not claimed.
 
 ## 未发布 · ChatGPT 发送端实验性集成
 
@@ -46,15 +32,13 @@ Android P2 蓝牙工作台支持可编辑的打印历史、图层排版、全屏
 
 ## v0.3.1-macclient-fix2 — 2026-11-09
 
-- macOS 应用菜单和托盘加入手动检查 GitHub 更新，只比较最近 100 条中的正式 MacClient 标签，发现新版后打开下载页面。无发行版、网络失败均提示；不自动安装。按要求未运行 macOS 验证。
+- macOS 应用菜单和托盘加入手动检查 GitHub 更新，只比较最近 100 条中的正式 MacClient 标签，发现新版后打开下载页面。无发行版、网络失败均提示；不自动安装。
 
 ## v0.3.1-winlite-fix3 / linuxrelayserver-fix1 / macclient-fix1 — 2026-11-09
 
 - Windows 标准按用户安装包，内置 .NET、系统卸载入口和可选数据清除，托盘手动检查 GitHub 正式 WinLite 发行版。
 - 自定义口令移除长度/复杂度规则，留空自动生成；保留传输边界和登录限流。
 - C 管理匿名/注册默认及单身份的小时任务数、内容量和单次大小限额；SQLite 持久化与原子计数，轮换不清零。网页、WinLite 界面及 Swift 管理源代码同步。
-- Windows 61 项、服务器 39 项测试通过。macOS 原生编译与线上服务器部署待验证，见交接文档。
-
 
 ## v0.3.1 — 2026-11-08
 
@@ -111,7 +95,6 @@ Android P2 蓝牙工作台支持可编辑的打印历史、图层排版、全屏
 - 流控下减少发送等待，默认 BLE 10 ms、图像帧 0 ms。
 - 详见[远程打印文档](REMOTE-PRINTING.zh-CN.md)。
 
-
 ### 0.2.2 同批包含的远程打印功能
 
 - macOS专用终端临时体验文件夹、Python3.10+自动查找、可双击入口及完整服务端参数表。
@@ -120,7 +103,6 @@ Android P2 蓝牙工作台支持可编辑的打印历史、图层排版、全屏
 - 可保存默认自动打印偏好，图形化区块编辑器、实时合成与JSON模板导入导出。
 - 持久systemd安装与临时前台体验（Ctrl-C/关闭终端退出）。
 - 蓝牙扫描取消旧计时器，区分广播/历史记录，显示计数并提供App内部重建恢复。
-
 
 - 新增Ubuntu中转安装脚本、端口/匿名长度/每小时IP配额、多角色密钥及离线生成导入。
 - 新增原生远程打印收件箱、设备上报、四种版式与字段选择、手动/自动打印及不确定结果保护。
@@ -147,8 +129,6 @@ Android P2 蓝牙工作台支持可编辑的打印历史、图层排版、全屏
 ## 0.1
 
 传统P2 BLE握手、只读字段、原始图像与送纸实物验证，工程协议工具。
-
-Linux Relay v0.3.0补充：修复原始密钥Cookie旁路及浏览器公钥会话返回；旧v1先退役；事件按状态转换记录；完成Ubuntu生产迁移、冷重启及公网HTTPS复核，原生接收端/纸面/长期稳定性仍待验证。
 
 Linux opt1新增sudo字符管理终端及固定包全新部署工具，保留指定Windows公钥身份；不监听管理HTTP端口、不增加永久管理密钥。验收成功后按明确请求清理旧用户、任务、日志、备份和旧版本。
 

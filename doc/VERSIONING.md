@@ -19,7 +19,7 @@ Distributions preserve shared contracts within a release series. A later generat
 | Domain | Current value | Scope |
 |---|---|---|
 | Product compatibility baseline | `0.3.x` | Distributions implementing their applicable shared contracts |
-| Published GitHub product release | `v0.3.2` | Published packages and their acceptance record |
+| Published GitHub product release | `v0.3.2` | Published packages and release notes |
 | Relay HTTP API | `v2` | LinuxRelayServer, MacClient and WinLite relay integration |
 | Mac Local HTTP API | `v2` | MacClient loopback HTTP interface |
 | Content, templates and saved configuration | schema 1 | Independently versioned formats, where implemented |

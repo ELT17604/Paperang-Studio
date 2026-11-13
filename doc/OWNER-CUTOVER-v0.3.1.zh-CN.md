@@ -20,12 +20,3 @@ C 的普通 bearer/口令仍不能作为设备执行凭据；只有已证明的 
 6. WinLite --configure-owner <文件> 先验证 C 与执行权限，之后才重新加密保存配置。DeviceKey 清空，保留打印机、模板和打印偏好；重新启用托盘和既有自启设置。
 
 任何步骤失败，不提前吊销旧管理员，不移除唯一可用私钥。新代码启动失败会恢复原代码和配置；数据库不自动回滚，以免丢弃新投稿或恢复已吊销的密钥。备份由操作员私下保管，不上传 Git。工具等候十五分钟仍未证明/退役时保持暂停，并报告恢复位置。
-
-## 验证
-
-Server/test_security.py 覆盖匿名本身份与他人隔离、无内容状态、IP/UA 渲染白名单、所有者执行、旧 C/M 撤销、活动任务阻止切换；Windows 集成测试覆盖原生证明、配置文件鉴权、同公钥管理/执行、稳定 journal 指纹。Linux 分支原有的 Cookie、防旧路由旁路和事务事件修正一并保留。
-
-生产配对、旧凭证撤销和本机运行状态应以本次实际操作记录为准，不能仅凭本文件宣称已经完成。
-
-
-See [v0.3.1 live validation and browser metadata follow-up](VALIDATION-v0.3.1.zh-CN.md) for verified deployment scope and remaining platform checks.

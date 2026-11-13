@@ -5,7 +5,7 @@
 基线：正式仓库 `v0.3.2`，commit `46d55b7d6782d02ba0ff296e0af3c79a7f19b674`；Windows 版本 `0.3.2-winlite`。
 分支：`dev/p2-usb-protocol-research`。原外层 Windows 0.2.3 文件未覆盖。
 
-## 已验证
+## USB 传输
 
 实体 P2 枚举为 `USB\VID_4348&PID_5584`，描述 `MPTII Printer`，服务 `usbprint`，Microsoft `usbprint.inf`。
 通过 USBPRINT 接口 GUID `{28d78fad-5a12-11d1-ae5b-0000f803a8c2}` 打开原始设备，使用 overlapped ReadFile/WriteFile。
@@ -57,7 +57,7 @@ USB 读写有超时取消；失败不自动重放写入。终端只输出设备�
 - [Microsoft USB printer driver](https://learn.microsoft.com/en-us/windows-hardware/drivers/print/usb-printing)：usbprint.sys 提供上层驱动的通信通道。
 - [Microsoft USBPRINT programming](https://learn.microsoft.com/en-us/windows-hardware/drivers/print/programming-considerations-for-usbprint)：USBPRINT 与读写接口背景。
 
-原生 C# 客户端暂未修改；环境默认 dotnet 未发现 SDK，因此本轮验证范围为 Python 离线协议测试与实体 USB 操作。
+WinLite 的原生 USB 路径见[使用指南](../doc/WINDOWS.zh-CN.md)。
 
 ## 完整协议后续
 

@@ -62,7 +62,6 @@ SwiftUI/CoreBluetooth独立实现，渲染预览和发送共用同一raw。实�
 `Legacy/PaperangP2/evidence/`：GATT、查询、充电、送纸、标尺/过宽原始日志。
 `Legacy/PaperangP2/Research/`：下载源码、固定版本、状态四阶段JSONL/摘要、配置、生成实验图脚本。
 `Legacy/PaperangP2/Native/Reports/`：原生会话、发送raw、17帧校验、早期构建与验证。
-`Validation/`：本轮协议/图像/HTTP/PTY检查源码与产物。
 
 这些是本地开发档案，不是干净发布项目的依赖。没有原始文件时应把对应结论理解为已记录的历史观察，不能声称刚刚重新测量。
 

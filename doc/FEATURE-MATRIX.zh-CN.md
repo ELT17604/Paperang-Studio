@@ -4,15 +4,14 @@
 
 `0.3.x` 兼容基线采用 Relay HTTP API v2、Mac 本机 HTTP API v2，以及各端所支持的数据格式 schema 1。当前源码包含比 [GitHub 已发布的 v0.3.2](https://github.com/ELT17604/Paperang-Studio/releases/tag/v0.3.2) 更新的客户端修订。
 
-## 发行版与验收
+## 发行版
 
-| 发行版 | 当前源码版本 | 验收记录 |
+| 发行版 | 当前版本 | 指南 |
 |---|---|---|
-| MacClient | `0.3.3-macclient`，构建号 3301 | arm64 构建与签名、47 项本机 HTTP 检查、RAW/raster1 字节检查和二维码解码。实体打印记录对应 v0.3.2。[发行说明](RELEASE-v0.3.3-macclient.zh-CN.md) · [v0.3.2 验收](VALIDATION-v0.3.2-macos.md) |
-| WinLite | `0.3.3-winlite`，程序集版本 0.3.3.0 | 本机 x64 构建、73 项回归、12 项隔离 Relay 检查及 P2 USB/BLE 传输检查。安装覆盖升级记录对应 v0.3.2。[当前验收](VALIDATION-v0.3.3-windows.zh-CN.md) · [v0.3.2 验收](VALIDATION-v0.3.2-windows.md) |
-| AndroidClient | `0.3.3-androidclient`，versionCode 9 | 签名 APK、Android 13 模拟器与本地协议和渲染检查。P2 实体打印待实机验收。[发行说明](RELEASE-v0.3.3-androidclient.md) |
-| LinuxRelayServer | `0.3.2-linuxrelayserver` | Ubuntu 部署、保留数据的升级与回滚、HTTPS/API v2、Mac 接收端联调。[Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md) |
-| WinClient / LinuxClient | 规划中 | — |
+| MacClient | `0.3.3-macclient` | [macOS 指南](USER-GUIDE.zh-CN.md) |
+| WinLite | `0.3.3-winlite` | [Windows 指南](WINDOWS.zh-CN.md) |
+| AndroidClient | `0.3.3-androidclient` | [Android 指南](../Android/README.md) |
+| LinuxRelayServer | `0.3.2-linuxrelayserver` | [服务端部署](../Server/README.md) |
 
 ## 当前已实现功能
 

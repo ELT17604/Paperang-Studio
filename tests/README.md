@@ -1,54 +1,46 @@
-# v0.3.2 contract and native validation
+# Local tests
 
-## AndroidClient
+Run commands from the repository root.
 
-Run `./Android/build.sh`, `tests/android/check.sh`, then `tests/android/runtime.sh <emulator-serial>`. The runtime suite covers editable job restoration, raster export, local assets, history and navigation. [Build guide](../Android/README.md)
+## Version and API contracts
 
+```sh
+python3 scripts/check-versions.py
+python3 tests/test_contract_inventory.py
+node --check Clients/paperang-client.js
+node --check Server/web/app.js
+```
 
-Run from repository root on macOS. These tests never access a real printer or production Relay. `probe_relay.swift` is the separate explicit read-only production check.
+## Relay
 
 ```sh
 python3 -m venv work/venv
 work/venv/bin/python -m pip install -r Server/requirements.txt
+PYTHONPATH=Server work/venv/bin/python -B -m unittest discover -s tests/server
+work/venv/bin/python -B tests/test_relay_v2.py
+```
+
+The suite uses temporary SQLite databases and local HTTP listeners.
+
+## macOS
+
+```sh
 PAPERANG_WORK_DIR="$PWD/work/native" zsh scripts/build.sh
-python3 tests/test_contract_inventory.py
-python3 scripts/check-versions.py
 python3 tests/test_local_v2.py --app 'work/native/Release/Paperang Studio.app'
-work/venv/bin/python tests/test_relay_v2.py
 python3 tests/build_native_check.py
 work/venv/bin/python tests/run_native_check.py
-python3 -m compileall -q Clients tests
-node --check Clients/paperang-client.js
 ```
 
-The native check compiles actual AppKit/SwiftUI application sources with the ordinary application entry point disabled, linking the actual release libraries. It uses a temporary database and owner files, synthetic jobs, and a unique Keychain service. It restores the prior saved configuration and deletes only its own Keychain items. It needs normal macOS Keychain access; a filesystem sandbox can deny Keychain writes. Do not interpret a sandbox-only Keychain failure as a passed check. It covers RSA PKCS8/PKCS1 proof/renewal, C paging/quotas/private views, M execution, report-only recovery without reprinting, template save/restore, configuration migration, local job state mapping and update ordering. No native checks rely on copied alternative application implementations.
+The native suite requires macOS Keychain access.
 
-`run_native_check.py` includes one fixture-only route and a wrapper simulating an older v2 server's pagination response. These exist only inside the temporary test process, never in the shipped Relay. The native harness and runner were promoted from the project's historical external validation directory so they are now reproducible in Git.
-
-For an explicit production capability probe (no login or job changes):
+## Android
 
 ```sh
-swiftc -parse-as-library -module-cache-path work/swift-module-cache tests/probe_relay.swift -o work/probe
-work/probe "$PAPERANG_RELAY_URL"
+./Android/build.sh
+tests/android/check.sh
+tests/android/runtime.sh <emulator-serial>
 ```
 
-Physical text/image/density tests require the native GUI and a real P2. Consult [validation evidence](../doc/VALIDATION-v0.3.2-macos.md); never automatically replay an uncertain print. HTTP acceptance/transport tests are distinct from owner paper confirmation.
+## Windows
 
-Windows-native reproduction: [tests/windows/README.md](windows/README.md). Windows has no Mac loopback HTTP service; its runtime surface is Relay v2. Shared HTTP tests and inventory/version guards also run on Windows.
-
-## Ubuntu / reproducible server and sender regressions
-
-Python 3.10+. Install the server requirements in a separate virtual environment.
-
-```sh
-PYTHONPATH=Server python -B -m unittest discover -s tests/server -v
-python -B tests/test_relay_v2.py
-python tests/test_contract_inventory.py
-python scripts/check-versions.py
-bash -n Server/install.sh
-bash Server/install.sh --dry-run --port 28177
-node --check Server/web/app.js
-node --check Clients/paperang-client.js
-```
-
-`test_deploy.py` simulates service control while exercising actual SQLite snapshots, row/schema comparison, code switching and rollback retention. It does not claim a real systemd deployment. `test_adapters.py` uses actual HTTP sender clients and an isolated real Relay, with no printer. Native tests and production physical round trips remain separate gates. The historical one-time factory-reset installer is removed; normal upgrades use [the preserving updater](../doc/UPGRADE-v0.3.2.md).
+[Windows local tests](windows/README.md)

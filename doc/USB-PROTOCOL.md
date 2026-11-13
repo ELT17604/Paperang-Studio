@@ -159,25 +159,7 @@ The profile catalogs every traditional opcode `00–31` including response/event
 
 Emulator-only `39/40/42/7F/81` clues are cataloged separately. They do not establish real-P2 GET semantics; `40` is not established as charging/printing. No unknown opcode sweep was performed. LED control, independent charging, dynamic head width, compression, thermal-fault flags, buffer depth, reconnect after power loss, maximum length and reliable mechanical completion remain open research items.
 
-## 9. Reproduce
-
-From the repository root, Windows Python3, standard library only:
-
-```powershell
-python Windows/scripts/usb_probe.py
-python Windows/scripts/usb_probe.py --all --class-info --output work/usb/new-query.json
-python Windows/scripts/usb_probe.py --query status --watch --duration 10
-python Windows/scripts/usb_probe.py --print-test --rows 56 --watch --duration 4
-python -m unittest discover -s tests/windows -p test_usb_probe.py -v
-```
-
-`--all`, default reads and watch never print. `--print-test` sets density100, checks fresh model/media, verifies density, prints14–140 rows in14-row multiples, then feeds150; it consumes paper and leaves density100. It automatically creates a unique ignored `work/usb/attempt-<uuid>.json` when `--output` is omitted. Existing output paths are refused. Watch duration is bounded to120 seconds; interval is a delay between query cycles, not a guaranteed sampling rate. `--trace` emits parsed redacted frames rather than raw identifiers. There is no general raw-command CLI.
-
-The dedicated20-test suite covers captured golden vectors, split/coalesced input, corrupt-header resync, media tri-state, ACK/data ordering, negative ACK, ACK-only/empty/no-response, MAC exception/redaction and write/query guards. The Python diagnostic remains separate from the packaged .NET backend. Native integration/build and hardware evidence are recorded in the [0.3.3 validation](VALIDATION-v0.3.3-windows.md).
-
 ## 10. Evidence and source provenance
-
-Private ignored evidence: `work/usb/telemetry-all-01.json`, `print-status-01.json`, `class-status-01.json`; physical media captures were recorded in the chat/tool transcript. Public sanitized measurements are in the profile and this document. [Documentation review](USB-DOCUMENTATION-AUDIT.md) lists the baseline documents and update decisions.
 
 - [Java P2 USB](https://github.com/hurui200320/java-paperang-p2-usb/tree/c50594c62d6fd6387d41e86b14f1fdf489d2b560): constants, framing, density width, countdown and no raster ACK. AGPL-3.0 source used as protocol reference; no source files bundled.
 - [P2 library](https://github.com/mdj2812/paperang-p2-lib/tree/656fc8f37ff6f7b0744ef10f8a0ae38d4d594730): GET catalog, USB/SPP model metadata; its generic cmd+1, u16 density and CRC-unchecked parser were not adopted blindly.

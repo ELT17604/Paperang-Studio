@@ -1,176 +1,40 @@
-> **MacClient 0.3.3**：[发行和升级说明](RELEASE-v0.3.3-macclient.zh-CN.md) · [打印工作台](MACCLIENT-WORKSPACE.zh-CN.md)。
-
-> **Windows更新：0.3.3-winlite候选版** — [USB优先连接及升级](RELEASE-v0.3.3-winlite.zh-CN.md)。
-
-> **Paperang Studio v0.3.2**：macOS、Windows、Ubuntu 三端验收通过。[发行说明](RELEASE-v0.3.2.md) · [API v2](API-v2-032.md) · [升级与回滚](UPGRADE-v0.3.2.md) · [Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md)。
-
-<p align="center"><img src="../assets/AppIcon.png" width="112" alt="Paperang Studio 标志"></p>
-
 # Paperang Studio
 
-**从 MacClient 0.3.3 起暂停支持 ChatGPT MCP／GPT Actions、RelaySkill 和 LocalBLESkill。** 当前源码树已移除对应代码和文档。
+[English](../README.md) · [下载](https://github.com/ELT17604/Paperang-Studio/releases) · [文档目录](INDEX.zh-CN.md)
 
-**历史优化记录：opt1。** [代码清理、界面调整与验证](OPTIMIZATION-opt1.zh-CN.md)。
+Paperang Studio 是面向 **Paperang P2 喵喵机**的桌面与移动打印工具。可在客户端本地排版打印，也可部署中转服务，从浏览器向桌面接收端投递纸条和绘图。
 
-<p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Android · Windows · Linux Relay · Web</p>
-<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">0.3.x 兼容基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
+## 功能
 
-Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。MacClient 0.3.3 通过蓝牙连接，WinLite0.3.3默认USB优先并保留蓝牙回退；Linux 中转服务器接受网页投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
+| 平台 | 发行版 | 功能 |
+|---|---|---|
+| macOS | [MacClient](USER-GUIDE.zh-CN.md) | 蓝牙打印、图文编辑、图层排版、二维码、纸带终端和中转接收 |
+| Android | [AndroidClient](../Android/README.md) | 蓝牙打印、触屏排版、全屏手绘、毫米尺标、素材库和可编辑的打印历史 |
+| Windows | [WinLite](WINDOWS.zh-CN.md) | USB 优先及蓝牙回退、托盘接收、模板和中转管理 |
+| Ubuntu | [LinuxRelayServer](../Server/README.md) | 网页投递、打印队列、权限和管理 |
 
-需要完整工作台和纸带终端时，使用 **MacClient**；希望电脑长期安静收纸条时，使用 **WinLite Windows 托盘客户端**。中转网页可独立于桌面客户端使用。
+## 界面预览
 
-[选择平台](#平台与分发) · [Windows 实际界面](#windows-lite-实际界面) · [快速开始](#快速开始) · [文档入口](#文档入口)
+| macOS 工作台 | Windows 模板编辑器 | Android 手绘 |
+|---|---|---|
+| ![MacClient 工作台](assets/macclient-v0.3.1-fix3-workspace.png) | ![WinLite 模板编辑器](../assets/screenshots/winlite-v0.3.0-template-editor.jpg) | <img src="../assets/screenshots/androidclient-v0.3.3-drawing.png" width="180" alt="AndroidClient 手绘"> |
 
-## 平台与分发
-
-| 分发 | 职责 | 入口 | 验证记录 |
-|---|---|---|---|
-| **MacClient 0.3.3 · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | [0.3.3 构建与离线验证](RELEASE-v0.3.3-macclient.zh-CN.md#验证范围) |
-| **AndroidClient 0.3.3 · Android** | P2 BLE 本地打印、图文工作台、图层排版、位图预览与历史 | [构建与使用](../Android/README.md) | [发行说明](RELEASE-v0.3.3-androidclient.md) |
-| **WinLite · Windows** | 原生 WinForms USB/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
-| **LinuxRelayServer · Linux** | HTTP/SQLite 中转、投稿网页、身份与权限、队列及管理 API | [服务器部署](../Server/README.md) | [0.3.2 生产部署与升级验收](VALIDATION-v0.3.2-ubuntu.md) |
-
-完整 **WinClient**、**LinuxClient** 仍在规划中。当前 Windows 接收端是 WinLite；LinuxRelayServer 是服务器，不是 Linux 蓝牙客户端。各端范围与证据见[功能实现矩阵](FEATURE-MATRIX.zh-CN.md)。
-
-## 各端如何协作
-
-```mermaid
-flowchart LR
-    Browser["网页 · 文字与绘图"] -->|HTTPS| Relay["LinuxRelayServer"]
-    Relay <-->|"客户端向外轮询 · 分级凭证"| Receiver["MacClient 或 WinLite"]
-    Receiver -->|"BLE · WinLite也支持USB"| P2["Paperang P2 · 实体纸条"]
-    Android["AndroidClient"] -->|BLE| P2
-```
-
-**同一台打印机只使用一个活动接收端/传输。** 中转负责身份、队列与投递；电脑客户端负责最终模板、打印浓度、送纸和USB/蓝牙输出。MacClient 也可以脱离中转进行本地打印。
-
-## MacClient 升级
-
-[0.3.1-macclient-fix3 升级与验证](MACCLIENT-v0.3.1.zh-CN.md)：所有者私钥接收、分页 C 管理、配置保存与当前中转及 WinLite 合同对齐。
-
-<img src="assets/macclient-v0.3.1-fix3-workspace.png" width="776" alt="Mac 工作台离线示例">
-<img src="assets/macclient-v0.3.1-fix3-management.png" width="776" alt="Mac 管理中心离线示例">
-
-截图为离线示例，不含真实用户数据；本次未连接打印机。
-
-## Windows Lite 实际界面
-
-**像搭积木一样编辑纸条。** 与 Mac 共用 v1 模板 JSON，支持区块排序、文字/点阵混排、字体、留白和实时黑白预览。
-
-<p align="center"><img src="../assets/screenshots/winlite-v0.3.0-template-editor.jpg" width="776" alt="WinLite 原生图形模板编辑器：左侧区块、中间属性、右侧文字和点阵混排预览"></p>
-
-**设置好，留在托盘中。** 在原生窗口中连接中转与 P2、选择模板和打印参数，并从设置进入 C 权限管理面板。
-
-<table>
-<tr><th>服务器与打印机连接</th><th>模板与打印参数</th></tr>
-<tr>
-<td><img src="../assets/screenshots/winlite-v0.3.0-connection.jpg" width="380" alt="WinLite 连接页，含示例服务器地址、M 凭证输入和打印机扫描入口"></td>
-<td><img src="../assets/screenshots/winlite-v0.3.0-print-settings.jpg" width="380" alt="WinLite 打印设置页，含模板选择、浓度和批后送纸参数"></td>
-</tr>
-</table>
-
-<sub>以上为 v0.3.0 WinLite 实际窗口，使用示例配置与公开演示内容。[截图说明](../assets/screenshots/README.md)。MacClient 截图与验证见上方。</sub>
-
-## AndroidClient 实际界面
-
-图文工作台、全屏手绘和关于页。
-
-<img src="../assets/screenshots/androidclient-v0.3.3-workspace.png" width="235" alt="AndroidClient workspace"> <img src="../assets/screenshots/androidclient-v0.3.3-drawing.png" width="235" alt="AndroidClient drawing"> <img src="../assets/screenshots/androidclient-v0.3.3-about.png" width="235" alt="AndroidClient about">
-
-## 主要功能
-
-- **从其他地方投递纸条：**通过网页发送文字/绘图，由已配置的桌面接收端处理。
-- **自定义纸面：**MacClient 与 WinLite 共享区块模板、预设、文字/图片组合及 576 点输出格式；不同系统的字体效果可能不同。
-- **安静驻留 Windows：**启动进入托盘，DPAPI 保存凭证，恢复当前模板，支持登录自启，并以有间隔的批次持续重连。
-- **在原生客户端中管理：**A 投稿密钥只投递；匿名浏览器可查自己任务的进度；B 可查本身份状态；C 管理身份、凭证、会话、公钥和完整历史；M 独立执行打印。C 可按用户筛选并导出含点阵内容的 JSONL。
-- **使用完整 Mac 工作台：**图片变换与抖动、交互式 zsh 纸带终端、协议读数，以及本地 HTTP API 和 Python/JavaScript SDK。
-- **区分发送和纸面结果：**sent 仅表示传输完成，confirmed 需要人工核对；中断或结果不确定的任务不自动重印。
+[更多截图](../assets/screenshots/README.md)
 
 ## 快速开始
 
-### Android · AndroidClient
+1. 从 [Releases](https://github.com/ELT17604/Paperang-Studio/releases) 下载桌面客户端，或[构建 Android APK](../Android/README.md)。
+2. 在客户端连接 Paperang P2。MacClient 和 AndroidClient 使用蓝牙，WinLite 支持 USB 和蓝牙。
+3. 核对预览并设置浓度和送纸后打印。需要浏览器投递时，[安装中转服务](../Server/README.md)并配置桌面接收端。
 
-在 Android 13 或以上安装 AndroidClient。打开「打印机」连接 P2，再回到「工作台」编辑和预览。[构建与安装](../Android/README.md)
+## 文档
 
-### Windows · WinLite
+- [功能矩阵](FEATURE-MATRIX.zh-CN.md)和[版本规则](VERSIONING.zh-CN.md)
+- [中转与本机 HTTP API](API-v2-032.md)、[蓝牙协议](PROTOCOL.zh-CN.md)和 [USB 协议](USB-PROTOCOL.zh-CN.md)
+- [构建与架构](ARCHITECTURE.zh-CN.md)、[参与开发](CONTRIBUTING.zh-CN.md)和[变更记录](CHANGELOG.zh-CN.md)
 
-需要 Windows 10 2004+ / Windows 11 和 BLE 适配器；轻量包运行需要 .NET 10 Desktop Runtime。从源码构建需 .NET 10 SDK：
+## 许可
 
-```powershell
-.\Windows\scripts\build.ps1
-```
+[CC BY-NC-SA 4.0](../LICENSE) · [声明与署名](../NOTICE)
 
-在固定目录运行 PaperangStudio.exe，从托盘打开设置，填写 v0.3.1 中转地址和**已配对的所有者私钥文件**，扫描并选择 P2，点击“保存并连接”。配置后默认自动连接和允许自动打印，均可修改；“设置→管理”提供 C 管理面板。[完整说明](WINDOWS.zh-CN.md)。
-
-### macOS · MacClient
-
-需要 macOS 14+、Swift 6 / Xcode 16+：
-
-```sh
-./scripts/build.sh
-open '../PaperangStudio-Development/Release/Paperang Studio.app'
-```
-
-在打印机页扫描连接，预览内容并开启全局耗纸开关后打印；中转接收使用 M，完整管理使用 C。[使用指南](USER-GUIDE.zh-CN.md) · [原生验证接手要求](HANDOFF-v0.3.0.zh-CN.md)。
-
-### Linux · 中转服务器
-
-在支持的 Ubuntu/systemd 环境中，先阅读安装器和[升级指南](UPGRADE-v0.3.0.zh-CN.md)，再运行：
-
-```sh
-sudo bash Server/install.sh
-```
-
-安装器使用独立 Python venv，依赖 argon2-cffi 和 cryptography。为网页配置 HTTPS，再连接桌面接收端。[部署、凭证和临时运行](../Server/README.md)。
-
-### 模型生成本地位图
-
-使用[位图 Skill](../Skills/paperang-local-raster/SKILL.md)生成 raster1 JSON，再从工作台导入、预览并确认打印。[工作台指南](MACCLIENT-WORKSPACE.zh-CN.md)。
-
-> **从 v0.2.x 升级：**中转 API v2 必须协调升级；旧中转 /v1 和 receipt 正文能力已关闭，**Mac 本地 API 已迁移到 v2**。部署前阅读[升级与回滚](UPGRADE-v0.3.0.zh-CN.md)、[鉴权合同](AUTH-v2.zh-CN.md)和[验证记录](VALIDATION-v0.3.0.md)。源码已提供不代表各平台已经部署或通过原生验证。
-
-## 文档入口
-
-[全部中文文档](INDEX.zh-CN.md) · [English index](README.md)
-
-| 主题 | 资料 |
-|---|---|
-| 平台与版本 | [版本规则](VERSIONING.zh-CN.md) · [功能矩阵](FEATURE-MATRIX.zh-CN.md) · [登记表](../VERSIONS.json) |
-| Windows | [托盘、设置与管理](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) |
-| macOS | [工作台](USER-GUIDE.zh-CN.md) · [模板编辑](LAYOUT-EDITOR.zh-CN.md) · [纸带终端](TERMINAL.zh-CN.md) · [托盘模式](TRAY-MODE.zh-CN.md) |
-| 中转与安全 | [部署](../Server/README.md) · [身份/API v2](AUTH-v2.zh-CN.md) · [数据保留](RELAY-DATA.zh-CN.md) |
-| 集成 | [Mac 本地 API](API.zh-CN.md) / [OpenAPI](openapi.json) · [Swift 模块](SWIFT-API.zh-CN.md) |
-| 升级与维护 | [更新日志](CHANGELOG.zh-CN.md) · [升级步骤](UPGRADE-v0.3.0.zh-CN.md) · [Mac/Linux Agent Prompt](HANDOFF-v0.3.0.zh-CN.md) · [验证记录](VALIDATION-v0.3.0.md) |
-| 打印机研究 | [协议](PROTOCOL.zh-CN.md) · [实物记录](ACQUISITION.zh-CN.md) · [研究](RESEARCH.zh-CN.md) · [相关项目](RELATED-PROJECTS.zh-CN.md) · [来源](SOURCES.zh-CN.md) |
-
-## 仓库结构
-
-| 目录 | 内容 |
-|---|---|
-| Sources/ | 原生 Swift/C MacClient 与可复用模块 |
-| Android/ | 原生安卓工作台、P2 BLE、打印历史与素材库 |
-| Windows/ | 原生 WinLite、模板/管理 UI、构建和测试 |
-| Server/ | 中转 API v2、投稿网页、SQLite 身份/队列与 Linux 部署 |
-| Skills/ | 本地位图生成 Skill |
-| Clients/ | 面向 Mac 本地 API 的 Python/JavaScript SDK |
-| Configurations/ | 可导入打印预设 |
-| assets/ | 原始品牌资源与实际应用截图 |
-| doc/ | 使用指南、接口合同、升级记录和研究 |
-
-Android 将签名 APK 与校验文件输出到 Git 忽略的 Android/build/。桌面构建产物留在源码树外：Mac 默认 PaperangStudio-Development/，Windows 默认 PaperangStudio-Windows-Development/；可分别通过 PAPERANG_WORK_DIR、PAPERANG_WIN_WORK_DIR 调整。凭证、数据库和私人打印内容不进入 Git。
-
-## 许可与联系
-
-© 2026 ELT Group · [vox@calx.cc](mailto:vox@calx.cc)
-
-采用 [CC BY-NC-SA 4.0](../LICENSE)：署名 ELT Group、非商业使用、修改标注及同方式共享。用于个人研究学习，禁止商用。非商业限制意味着本项目不属于 OSI 定义的开源许可。完整声明见 [NOTICE](../NOTICE)。
-
-Paperang Studio is an independent, unofficial project. It is not affiliated with, endorsed by, sponsored by, or a subsidiary product of Paperang, its parent company, or any related companies or affiliates. All third-party names and trademarks belong to their respective owners. Referenced materials retain their own licenses.
-
-Windows v0.3.1-winlite-fix3：[标准安装、手动更新和卸载](WINDOWS-RELEASE-ARTIFACTS.zh-CN.md)。
-
-Linux opt1 新增 [sudo字符图形管理终端](../Server/ADMIN-CONSOLE.md)：上下键/回车管理密钥、用户、配额、审计和完整打印历史；不开放管理端口。全新部署会删除旧任务、用户、日志和备份，仅保留指定Windows连接身份。
-
-## Windows USB 连接
-
-WinLite **0.3.3**加入原生USB优先、记住的BLE回退与手动切换。[发行与升级](RELEASE-v0.3.3-winlite.zh-CN.md) · [USB协议](USB-PROTOCOL.zh-CN.md)。
+© 2026 ELT Group
