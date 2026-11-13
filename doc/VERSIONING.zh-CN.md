@@ -27,7 +27,7 @@ Paperang Studio 使用 `MAJOR.MINOR.PATCH` 三段编号。项目在 1.0 前使�
 
 ## 单端发行与构建
 
-发行标识使用 `vMAJOR.MINOR.PATCH-distribution[-note]`，如 `v0.3.3-androidclient`。运行时可省略前导 `v`。各端可以使用不同的修订和构建号，例如 MacClient 的 bundle build `3301`、AndroidClient 的 `versionCode 8` 和 WinLite 的程序集版本 `0.3.3.0`。这些编号用于相应平台的安装、更新和追踪。组件之间使用明确的 API、schema 和能力字段协商。
+发行标识使用 `vMAJOR.MINOR.PATCH-distribution[-note]`，如 `v0.3.3-androidclient`。运行时可省略前导 `v`。各端可以使用不同的修订和构建号，例如 MacClient 的 bundle build `3301`、AndroidClient 的 `versionCode 9` 和 WinLite 的程序集版本 `0.3.3.0`。这些编号用于相应平台的安装、更新和追踪。组件之间使用明确的 API、schema 和能力字段协商。
 
 `fixN`、`optN` 与 `alphaN`、`betaN`、`rcN` 可标记单端修订或候选构建。保留已发布的标签及构件名称。更新某端时，同步该端的版本源、登记表、变更记录和功能矩阵，运行 `python3 scripts/check-versions.py` 及相应平台的本地测试。平台功能和验收范围见[功能矩阵](FEATURE-MATRIX.zh-CN.md)。
 

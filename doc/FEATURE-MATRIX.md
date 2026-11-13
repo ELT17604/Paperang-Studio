@@ -10,7 +10,7 @@ The `0.3.x` compatibility baseline uses Relay HTTP API v2, Mac Local HTTP API v2
 |---|---|---|
 | MacClient | `0.3.3-macclient`, build 3301 | arm64 build/signing, 47 local HTTP checks, RAW/raster1 byte checks and QR decoding. Physical printing evidence is from v0.3.2. [Release notes](RELEASE-v0.3.3-macclient.md) · [v0.3.2 validation](VALIDATION-v0.3.2-macos.md) |
 | WinLite | `0.3.3-winlite`, assembly 0.3.3.0 | Local x64 build, 73 regressions, 12 isolated Relay checks and P2 USB/BLE transport checks. Installed upgrade evidence is from v0.3.2. [Current validation](VALIDATION-v0.3.3-windows.md) · [v0.3.2 validation](VALIDATION-v0.3.2-windows.md) |
-| AndroidClient | `0.3.3-androidclient`, versionCode 8 | Signed APK, Android 13 emulator and local protocol/rendering checks. Physical P2 printing awaits hardware validation. [Release notes](RELEASE-v0.3.3-androidclient.md) |
+| AndroidClient | `0.3.3-androidclient`, versionCode 9 | Signed APK, Android 13 emulator and local protocol/rendering checks. Physical P2 printing awaits hardware validation. [Release notes](RELEASE-v0.3.3-androidclient.md) |
 | LinuxRelayServer | `0.3.2-linuxrelayserver` | Ubuntu deployment, preserving upgrade/rollback, HTTPS/API v2 and Mac receiver acceptance. [Ubuntu validation](VALIDATION-v0.3.2-ubuntu.md) |
 | WinClient / LinuxClient | Planned | — |
 

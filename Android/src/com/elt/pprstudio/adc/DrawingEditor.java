@@ -70,6 +70,9 @@ final class DrawingEditor {
         private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final PaperRuler ruler;
         private final int gutter;
+        private final int rulerHeight;
+        private final Paint rulerSurface = new Paint();
+        private final int rulerInk;
         private PaperGesture gesture;
         private float zoom = 1, offsetX, offsetY;
         private boolean navigating;
@@ -82,9 +85,12 @@ final class DrawingEditor {
 
         Pad(MainActivity app) {
             super(app);
-            setContentDescription("手绘画布，右侧毫米尺标");
+            setContentDescription("手绘画布，顶部宽度和右侧长度毫米尺标");
             ruler = new PaperRuler(app);
             gutter = app.dp(43);
+            rulerHeight = app.dp(28);
+            rulerSurface.setColor(app.getColor(android.R.color.system_accent2_200));
+            rulerInk = app.getColor(android.R.color.system_accent2_900);
             surface.setColor(Color.WHITE);
             edge.setColor(0xff26303b);
             pen.setColor(Color.BLACK);
@@ -94,16 +100,18 @@ final class DrawingEditor {
 
         private float viewportWidth() { return Math.max(0, getWidth() - gutter); }
 
+        private float viewportHeight() { return Math.max(0, getHeight() - rulerHeight); }
+
         private float scale() {
-            return zoom * Math.min(viewportWidth() / Raster.WIDTH, getHeight() / (float) Raster.MAX_HEIGHT);
+            return zoom * Math.min(viewportWidth() / Raster.WIDTH, viewportHeight() / Raster.MAX_HEIGHT);
         }
 
         private float left() { return (viewportWidth() - Raster.WIDTH * scale()) / 2 + offsetX; }
-        private float top() { return (getHeight() - Raster.MAX_HEIGHT * scale()) / 2 + offsetY; }
+        private float top() { return rulerHeight + (viewportHeight() - Raster.MAX_HEIGHT * scale()) / 2 + offsetY; }
 
         private void constrainViewport() {
             float x = Math.max(0, (Raster.WIDTH * scale() - viewportWidth()) / 2);
-            float y = Math.max(0, (Raster.MAX_HEIGHT * scale() - getHeight()) / 2);
+            float y = Math.max(0, (Raster.MAX_HEIGHT * scale() - viewportHeight()) / 2);
             offsetX = PaperPlacement.clamp(offsetX, -x, x);
             offsetY = PaperPlacement.clamp(offsetY, -y, y);
         }
@@ -121,7 +129,7 @@ final class DrawingEditor {
         @Override protected void onDraw(Canvas canvas) {
             if (scale() <= 0) return;
             canvas.save();
-            canvas.clipRect(0, 0, viewportWidth(), getHeight());
+            canvas.clipRect(0, rulerHeight, viewportWidth(), getHeight());
             canvas.translate(left(), top());
             canvas.drawRect(2, 3, Raster.WIDTH * scale() + 2, Raster.MAX_HEIGHT * scale() + 3, edge);
             canvas.scale(scale(), scale());
@@ -129,9 +137,23 @@ final class DrawingEditor {
             canvas.drawRect(0, 0, Raster.WIDTH, Raster.MAX_HEIGHT, surface);
             drawInk(canvas);
             canvas.restore();
-            canvas.drawRect(viewportWidth(), 0, getWidth(), getHeight(), surface);
-            ruler.draw(canvas, viewportWidth() + gutter * .27f, top(), scale(), Raster.MAX_HEIGHT,
-                    getHeight(), 0);
+            canvas.drawRect(0, 0, getWidth(), rulerHeight, rulerSurface);
+            canvas.drawRect(viewportWidth(), rulerHeight, getWidth(), getHeight(), rulerSurface);
+            canvas.save();
+            canvas.clipRect(0, 0, viewportWidth(), rulerHeight);
+            ruler.drawWidth(canvas, left(), scale(), viewportWidth(), rulerHeight - 1, rulerInk);
+            canvas.restore();
+            canvas.save();
+            canvas.clipRect(viewportWidth(), rulerHeight, getWidth(), getHeight());
+            canvas.translate(0, rulerHeight);
+            ruler.draw(canvas, viewportWidth() + gutter * .27f, top() - rulerHeight, scale(), Raster.MAX_HEIGHT,
+                    getHeight() - rulerHeight, 0, rulerInk);
+            canvas.restore();
+            edge.setColor(rulerInk);
+            edge.setTextSize(rulerHeight * .38f);
+            edge.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText("mm", viewportWidth() + gutter / 2f, rulerHeight * .65f, edge);
+            edge.setColor(0xff26303b);
         }
 
         private void drawInk(Canvas canvas) {
@@ -153,7 +175,7 @@ final class DrawingEditor {
             if (scale() <= 0) return false;
             int action = event.getActionMasked();
             if (action == MotionEvent.ACTION_DOWN) {
-                if (event.getX() >= viewportWidth()) return false;
+                if (event.getX() >= viewportWidth() || event.getY() < rulerHeight) return false;
                 navigating = false;
                 gesture = null;
             } else if (action == MotionEvent.ACTION_POINTER_DOWN) {

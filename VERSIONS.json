@@ -72,7 +72,7 @@
       "verification": "Signed APK and Android 13 emulator coverage; physical P2 printing pending",
       "publicationStatus": "source on main; local builds",
       "documentation": "doc/RELEASE-v0.3.3-androidclient.md",
-      "buildNumber": 8
+      "buildNumber": 9
     }
   },
   "preStablePolicy": "Within a release series, implementations preserve the shared contract. Compatible updates can ship independently. A new series can retain the same contract; an incompatible change requires explicit protocol or schema versioning and a migration plan.",
