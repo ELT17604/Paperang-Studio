@@ -4,7 +4,7 @@
 
 # Paperang Studio
 
-[English](../README.md) · [下载](https://github.com/ELT17604/Paperang-Studio/releases) · [文档目录](INDEX.zh-CN.md)
+[English](../README.md) · [下载](https://github.com/ELT17604/Paperang-Studio/releases) · [在线 Wiki](https://paperang-studio-wiki.dependableladybird1.chatgpt.site/zh-CN/) · [仓库文档](INDEX.zh-CN.md)
 
 Paperang Studio 是面向 **Paperang P2 喵喵机**的桌面与移动打印工具。可在客户端本地排版打印，也可部署中转服务，从浏览器向桌面接收端投递纸条和绘图。
 

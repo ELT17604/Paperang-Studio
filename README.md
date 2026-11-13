@@ -4,7 +4,7 @@
 
 # Paperang Studio
 
-[简体中文](doc/README.zh-CN.md) · [Releases](https://github.com/ELT17604/Paperang-Studio/releases) · [Documentation](doc/README.md)
+[简体中文](doc/README.zh-CN.md) · [Releases](https://github.com/ELT17604/Paperang-Studio/releases) · [Online Wiki](https://paperang-studio-wiki.dependableladybird1.chatgpt.site/en/) · [Repository docs](doc/README.md)
 
 Paperang Studio is a desktop and mobile printing toolkit for the **Paperang P2**. Compose and print locally, or use a self-hosted relay to send notes and drawings from a browser to a desktop receiver.
 
