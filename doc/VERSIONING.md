@@ -27,7 +27,7 @@ Distributions preserve shared contracts within a release series. A later generat
 
 ## Distribution versions and builds
 
-Use `vMAJOR.MINOR.PATCH-distribution[-note]`, for example `v0.3.3-androidclient`. Runtime identifiers may omit the leading `v`. Patch numbers and build metadata are distribution-specific. MacClient uses bundle build `3301`, AndroidClient uses `versionCode 9`, and WinLite uses assembly version `0.3.3.0`. Installers and update checks use their platform metadata. Interoperability uses explicit API versions, schemas and capabilities.
+Use `vMAJOR.MINOR.PATCH-distribution[-note]`, for example `v0.3.3-androidclient`. Runtime identifiers may omit the leading `v`. Patch numbers and build metadata are distribution-specific. MacClient uses bundle build `3302`, AndroidClient uses `versionCode 10`, and WinLite uses assembly version `0.3.3.0`. Installers and update checks use their platform metadata. Interoperability uses explicit API versions, schemas and capabilities.
 
 Optional suffixes include `fixN`, `optN`, `alphaN`, `betaN` and `rcN`. Preserve published tags and artifact names. For a distribution update, revise its version source, registry, changelog and feature matrix, then run `python3 scripts/check-versions.py` and the relevant local platform checks.
 

@@ -1,6 +1,6 @@
 # AndroidClient
 
-**v0.3.3-androidclient** · Android 13 或以上 · Paperang P2 BLE。使用 MacClient 的 576 点工作台、raster1 schema 1 和传统 P2 打印协议。
+**v0.3.3-androidclient-opt1** · Android 13 或以上 · Paperang P2 BLE。使用 MacClient 的 576 点工作台、raster1 schema 1 和传统 P2 打印协议。
 
 <img src="../assets/screenshots/androidclient-v0.3.3-workspace.png" width="240" alt="Android 打印工作台"> <img src="../assets/screenshots/androidclient-v0.3.3-drawing.png" width="240" alt="Android 全屏手绘"> <img src="../assets/screenshots/androidclient-v0.3.3-about.png" width="240" alt="Android 关于页">
 

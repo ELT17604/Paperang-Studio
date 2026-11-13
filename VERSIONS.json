@@ -16,32 +16,32 @@
     "macclient": {
       "name": "MacClient",
       "status": "implemented",
-      "version": "v0.3.3-macclient",
-      "runtimeVersion": "0.3.3-macclient",
+      "version": "v0.3.3-macclient-opt1",
+      "runtimeVersion": "0.3.3-macclient-opt1",
       "versionSource": "VERSION",
       "compatibleBaseline": "0.3.x",
       "documentation": "doc/RELEASE-v0.3.3-macclient.md",
-      "publicationStatus": "source on main; local builds",
-      "buildNumber": 3301
+      "publicationStatus": "local build",
+      "buildNumber": 3302
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
       "status": "implemented",
-      "version": "v0.3.2-linuxrelayserver",
-      "runtimeVersion": "0.3.2-linuxrelayserver",
+      "version": "v0.3.2-linuxrelayserver-opt1",
+      "runtimeVersion": "0.3.2-linuxrelayserver-opt1",
       "versionSource": "Server/relay.py",
       "compatibleBaseline": "0.3.x",
       "documentation": "Server/README.md",
-      "publicationStatus": "published in v0.3.2"
+      "publicationStatus": "local build"
     },
     "winlite": {
       "name": "WinLite",
       "status": "implemented",
-      "version": "v0.3.3-winlite",
-      "runtimeVersion": "0.3.3-winlite",
+      "version": "v0.3.3-winlite-opt1",
+      "runtimeVersion": "0.3.3-winlite-opt1",
       "versionSource": "Windows/VERSION",
       "compatibleBaseline": "0.3.x",
-      "publicationStatus": "source on main; local builds",
+      "publicationStatus": "local build",
       "documentation": "doc/RELEASE-v0.3.3-winlite.md",
       "assemblyVersion": "0.3.3.0"
     },
@@ -62,17 +62,17 @@
     "androidclient": {
       "name": "AndroidClient",
       "status": "implemented",
-      "version": "v0.3.3-androidclient",
-      "runtimeVersion": "0.3.3-androidclient",
+      "version": "v0.3.3-androidclient-opt1",
+      "runtimeVersion": "0.3.3-androidclient-opt1",
       "versionSource": "Android/VERSION",
       "compatibleBaseline": "0.3.x",
-      "publicationStatus": "source on main; local builds",
+      "publicationStatus": "local build",
       "documentation": "doc/RELEASE-v0.3.3-androidclient.md",
-      "buildNumber": 9
+      "buildNumber": 10
     }
   },
   "preStablePolicy": "Within a release series, implementations preserve the shared contract. Compatible updates can ship independently. A new series can retain the same contract; an incompatible change requires explicit protocol or schema versioning and a migration plan.",
-  "releaseStatus": "GitHub product release v0.3.2; current source includes MacClient, WinLite and AndroidClient 0.3.3 on the 0.3.x compatibility baseline",
+  "releaseStatus": "Published v0.3.2 product release; platform opt1 revisions on the 0.3.x compatibility baseline",
   "printerTransports": {
     "windowsLegacyP2Usb": {
       "status": "USB-first with BLE fallback in WinLite 0.3.3",

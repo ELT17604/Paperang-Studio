@@ -8,10 +8,10 @@ The `0.3.x` compatibility baseline uses Relay HTTP API v2, Mac Local HTTP API v2
 
 | Distribution | Current version | Guide |
 |---|---|---|
-| MacClient | `0.3.3-macclient` | [macOS guide](USER-GUIDE.md) |
-| WinLite | `0.3.3-winlite` | [Windows guide](WINDOWS.md) |
-| AndroidClient | `0.3.3-androidclient` | [Android guide](../Android/README.md) |
-| LinuxRelayServer | `0.3.2-linuxrelayserver` | [Server deployment](../Server/README.md) |
+| MacClient | `0.3.3-macclient-opt1` | [macOS guide](USER-GUIDE.md) |
+| WinLite | `0.3.3-winlite-opt1` | [Windows guide](WINDOWS.md) |
+| AndroidClient | `0.3.3-androidclient-opt1` | [Android guide](../Android/README.md) |
+| LinuxRelayServer | `0.3.2-linuxrelayserver-opt1` | [Server deployment](../Server/README.md) |
 
 ## Implemented features
 

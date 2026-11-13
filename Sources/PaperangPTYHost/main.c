@@ -1,15 +1,34 @@
-// Exec-only helper: establishes the controlling terminal after posix_spawn.
-#include <sys/ioctl.h>
-#include <unistd.h>
+// Establish the controlling terminal in the spawned process before executing zsh.
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
-int main(int argc,char **argv) {
- if(getsid(0)!=getpid() && setsid()<0){perror("setsid");return 126;}
- if(ioctl(0,TIOCSCTTY,0)<0){perror("TIOCSCTTY");return 126;}
- signal(SIGTTOU,SIG_IGN);
- if(tcsetpgrp(0,getpgrp())<0){perror("tcsetpgrp");return 126;}
- signal(SIGTTOU,SIG_DFL);
- char *plain[]={"/bin/zsh","-f","-i",NULL};char *profile[]={"/bin/zsh","-i",NULL};
- execv("/bin/zsh",argc>1 && !strcmp(argv[1],"--profile") ? profile:plain);perror("exec zsh");return 127;
+#include <sys/ioctl.h>
+#include <unistd.h>
+
+int main(int argc, char **argv)
+{
+	if (getsid(0) != getpid() && setsid() < 0)
+	{
+		perror("setsid");
+		return 126;
+	}
+	if (ioctl(STDIN_FILENO, TIOCSCTTY, 0) < 0)
+	{
+		perror("TIOCSCTTY");
+		return 126;
+	}
+	signal(SIGTTOU, SIG_IGN);
+	if (tcsetpgrp(STDIN_FILENO, getpgrp()) < 0)
+	{
+		perror("tcsetpgrp");
+		return 126;
+	}
+	signal(SIGTTOU, SIG_DFL);
+
+	char *plain[] = {"/bin/zsh", "-f", "-i", NULL};
+	char *profile[] = {"/bin/zsh", "-i", NULL};
+	int load_profile = argc > 1 && strcmp(argv[1], "--profile") == 0;
+	execv("/bin/zsh", load_profile ? profile : plain);
+	perror("exec zsh");
+	return 127;
 }

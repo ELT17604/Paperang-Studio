@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/AppIcon.png" alt="Paperang Studio icon" width="112" height="112">
+</p>
+
 # Paperang Studio
 
 [简体中文](doc/README.zh-CN.md) · [Releases](https://github.com/ELT17604/Paperang-Studio/releases) · [Documentation](doc/README.md)
@@ -23,9 +27,31 @@ Paperang Studio is a desktop and mobile printing toolkit for the **Paperang P2**
 
 ## Getting started
 
-1. Download a desktop package from [Releases](https://github.com/ELT17604/Paperang-Studio/releases), or [build the Android APK](Android/README.md).
-2. Connect your Paperang P2 in the client. MacClient and AndroidClient use Bluetooth. WinLite supports USB and Bluetooth.
-3. Preview the output, set density and feed, then print. For browser submissions, [install the relay](Server/README.md) and configure a desktop receiver.
+| Platform | Install | Connect |
+|---|---|---|
+| macOS 14+ (Apple Silicon) | Download MacClient from [Releases](https://github.com/ELT17604/Paperang-Studio/releases), then move the app to Applications | Scan for the P2 on the Printer page |
+| Android 13+ | [Build and install the APK](Android/README.md) | Grant Nearby Devices access on the Printer tab, then scan for the P2 |
+| Windows 10 2004+ / 11 | Download the WinLite installer or [build from source](Windows/README.md) | Open Settings from the tray and connect over USB or Bluetooth |
+| Ubuntu | [Install LinuxRelayServer](Server/README.md) | Configure the Relay URL and receiver credentials in MacClient or WinLite |
+
+After connecting, preview the output, set density and feed, then print.
+
+## Remote printing
+
+The browser submits notes and drawings to a self-hosted Relay. MacClient or WinLite claims each job, applies the local template and paper settings, and sends it to the P2.
+
+[Deployment and receiver setup](doc/REMOTE-PRINTING.md) · [Authentication and permissions](doc/AUTH-v2.md)
+
+## Build from source
+
+| Component | Toolchain | Build |
+|---|---|---|
+| MacClient | Swift 6, macOS SDK | `./scripts/build.sh` |
+| AndroidClient | JDK 21, Android SDK 36 | `./Android/build.sh` |
+| WinLite | .NET 10 SDK | `./Windows/scripts/build.ps1` |
+| LinuxRelayServer | Python 3.10+ | [Install and run](Server/README.md) |
+
+[Source layout](doc/ARCHITECTURE.md) · [Local tests](tests/README.md)
 
 ## Documentation
 

@@ -8,10 +8,10 @@
 
 | 发行版 | 当前版本 | 指南 |
 |---|---|---|
-| MacClient | `0.3.3-macclient` | [macOS 指南](USER-GUIDE.zh-CN.md) |
-| WinLite | `0.3.3-winlite` | [Windows 指南](WINDOWS.zh-CN.md) |
-| AndroidClient | `0.3.3-androidclient` | [Android 指南](../Android/README.md) |
-| LinuxRelayServer | `0.3.2-linuxrelayserver` | [服务端部署](../Server/README.md) |
+| MacClient | `0.3.3-macclient-opt1` | [macOS 指南](USER-GUIDE.zh-CN.md) |
+| WinLite | `0.3.3-winlite-opt1` | [Windows 指南](WINDOWS.zh-CN.md) |
+| AndroidClient | `0.3.3-androidclient-opt1` | [Android 指南](../Android/README.md) |
+| LinuxRelayServer | `0.3.2-linuxrelayserver-opt1` | [服务端部署](../Server/README.md) |
 
 ## 当前已实现功能
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## opt1
+
+- **MacClient:** adjustable sidebar, smaller minimum window and Command–1 through Command–3 workspace shortcuts.
+- **AndroidClient:** centered workspace on wide screens and accessible preview status.
+- **WinLite:** smaller scrollable settings window, named inputs, explicit tab order and system text colors.
+- **LinuxRelayServer:** skip link, connection announcements, keyboard focus and larger mobile controls.
+
 ## v0.3.3
 
 - **MacClient:** searchable system fonts, configurable QR codes, freeform layout and RAW/raster1 import.

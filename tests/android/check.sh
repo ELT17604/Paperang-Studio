@@ -7,5 +7,5 @@ scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT
 src=Android/src/com/elt/pprstudio/adc
 javac --release 17 -encoding UTF-8 -cp "$deps" -d "$scratch" \
-    "$src/Wire.java" "$src/P2Transfer.java" "$src/PrintOptions.java" "$src/PaperPlacement.java" "$src/PaperGesture.java" tests/android/WorkspaceCheck.java
+	"$src/Wire.java" "$src/P2Transfer.java" "$src/PrintOptions.java" "$src/PaperPlacement.java" "$src/PaperGesture.java" tests/android/WorkspaceCheck.java
 java -cp "$scratch:$deps" com.elt.pprstudio.adc.WorkspaceCheck

@@ -1,5 +1,12 @@
 # 变更记录
 
+## opt1
+
+- **MacClient**：可调宽度侧栏、更小的窗口下限，以及 Command–1 到 Command–3 工作区快捷键。
+- **AndroidClient**：宽屏工作台居中，预览状态支持辅助朗读。
+- **WinLite**：可缩小的设置窗口、字段辅助名称、显式 Tab 顺序和系统文本色。
+- **LinuxRelayServer**：跳转到编辑器、连接状态朗读、键盘焦点和更大的移动端控件。
+
 ## v0.3.3
 
 - **MacClient**：系统字体搜索、可配置二维码、自由排版、RAW 和 raster1 导入。

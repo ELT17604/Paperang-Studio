@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/AppIcon.png" alt="Paperang Studio icon" width="112" height="112">
+</p>
+
 # Paperang Studio
 
 [English](../README.md) · [下载](https://github.com/ELT17604/Paperang-Studio/releases) · [文档目录](INDEX.zh-CN.md)
@@ -23,9 +27,31 @@ Paperang Studio 是面向 **Paperang P2 喵喵机**的桌面与移动打印工�
 
 ## 快速开始
 
-1. 从 [Releases](https://github.com/ELT17604/Paperang-Studio/releases) 下载桌面客户端，或[构建 Android APK](../Android/README.md)。
-2. 在客户端连接 Paperang P2。MacClient 和 AndroidClient 使用蓝牙，WinLite 支持 USB 和蓝牙。
-3. 核对预览并设置浓度和送纸后打印。需要浏览器投递时，[安装中转服务](../Server/README.md)并配置桌面接收端。
+| 平台 | 安装 | 连接 |
+|---|---|---|
+| macOS 14+（Apple Silicon） | 从 [Releases](https://github.com/ELT17604/Paperang-Studio/releases) 下载 MacClient，解压并移入「应用程序」 | 在「打印机」页扫描并连接 P2 |
+| Android 13+ | [构建并安装 APK](../Android/README.md) | 在「打印机」页授予附近设备权限，扫描并连接 P2 |
+| Windows 10 2004+ / 11 | 下载 WinLite 安装包，或从源码[构建](../Windows/README.md) | 从托盘打开设置。连接 USB 或选择蓝牙设备 |
+| Ubuntu | 按[服务端指南](../Server/README.md)安装 LinuxRelayServer | 在 MacClient 或 WinLite 中填写 Relay 地址和接收凭证 |
+
+连接后，在客户端核对预览、设置浓度和送纸，然后打印。
+
+## 远程打印
+
+浏览器将文字或绘图提交到自建 Relay。MacClient 或 WinLite 领取任务，在本地应用模板、浓度和送纸设置，再发送到 P2。
+
+[部署与接收端配置](REMOTE-PRINTING.zh-CN.md) · [身份与权限](AUTH-v2.zh-CN.md)
+
+## 从源码构建
+
+| 组件 | 工具链 | 构建入口 |
+|---|---|---|
+| MacClient | Swift 6、macOS SDK | `./scripts/build.sh` |
+| AndroidClient | JDK 21、Android SDK 36 | `./Android/build.sh` |
+| WinLite | .NET 10 SDK | `./Windows/scripts/build.ps1` |
+| LinuxRelayServer | Python 3.10+ | [安装与运行](../Server/README.md) |
+
+[源码结构](ARCHITECTURE.zh-CN.md) · [本地测试](../tests/README.md)
 
 ## 文档
 

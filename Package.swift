@@ -1,3 +1,19 @@
 // swift-tools-version: 6.0
 import PackageDescription
-let package = Package(name: "PaperangLab", platforms: [.macOS(.v14)], products: [.library(name:"PaperangProtocol",targets:["ProtocolCore"]), .library(name:"PaperangPrint",targets:["PrintCore"]), .library(name:"PaperangTerminal",targets:["TerminalCore"]), .library(name:"PaperangIntegration",targets:["IntegrationCore"]), .executable(name:"PaperangLab",targets:["PaperangLab"]), .executable(name:"PaperangPTYHost",targets:["PaperangPTYHost"])], targets: [.target(name: "ProtocolCore"), .target(name:"PTYBridge"), .executableTarget(name:"PaperangPTYHost"), .target(name:"TerminalCore",dependencies:["PTYBridge"]), .target(name:"IntegrationCore"), .target(name: "PrintCore"), .executableTarget(name: "PaperangLab", dependencies: ["ProtocolCore", "PrintCore", "TerminalCore", "IntegrationCore"])], swiftLanguageModes: [.v5])
+let package = Package(
+	name: "PaperangLab", platforms: [.macOS(.v14)],
+	products: [
+		.library(name: "PaperangProtocol", targets: ["ProtocolCore"]),
+		.library(name: "PaperangPrint", targets: ["PrintCore"]),
+		.library(name: "PaperangTerminal", targets: ["TerminalCore"]),
+		.library(name: "PaperangIntegration", targets: ["IntegrationCore"]),
+		.executable(name: "PaperangLab", targets: ["PaperangLab"]),
+		.executable(name: "PaperangPTYHost", targets: ["PaperangPTYHost"])
+	],
+	targets: [
+		.target(name: "ProtocolCore"), .target(name: "PTYBridge"), .executableTarget(name: "PaperangPTYHost"),
+		.target(name: "TerminalCore", dependencies: ["PTYBridge"]), .target(name: "IntegrationCore"),
+		.target(name: "PrintCore"),
+		.executableTarget(
+			name: "PaperangLab", dependencies: ["ProtocolCore", "PrintCore", "TerminalCore", "IntegrationCore"])
+	], swiftLanguageModes: [.v5])

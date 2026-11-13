@@ -7,7 +7,7 @@ tools="$sdk/build-tools/${PAPERANG_BUILD_TOOLS:-36.1.0}"
 platform="$sdk/platforms/android-36/android.jar"
 adb="$sdk/platform-tools/adb"
 if [[ -z ${JAVA_HOME:-} && -x /usr/libexec/java_home ]]; then
-    export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
+	export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
 fi
 export PATH="${JAVA_HOME:+$JAVA_HOME/bin:}$PATH"
 scratch=$(mktemp -d)
@@ -26,15 +26,15 @@ deps=Android/build/deps/core-3.5.4.jar
 javac --release 17 -encoding UTF-8 -cp "$platform:$deps" -d "$scratch/target" Android/src/com/elt/pprstudio/adc/*.java
 jar --create --file "$scratch/target.jar" -C "$scratch/target" .
 javac --release 17 -encoding UTF-8 -cp "$platform:$scratch/target.jar:$deps" \
-    -d "$scratch/classes" tests/android/RuntimeCheck.java
+	-d "$scratch/classes" tests/android/RuntimeCheck.java
 jar --create --file "$scratch/check.jar" -C "$scratch/classes" .
 "$tools/d8" --min-api 33 --lib "$platform" --classpath "$scratch/target.jar" --classpath "$deps" \
-    --output "$scratch/dex" "$scratch/check.jar"
+	--output "$scratch/dex" "$scratch/check.jar"
 "$tools/aapt2" link -I "$platform" --manifest "$scratch/AndroidManifest.xml" -o "$scratch/unsigned.apk"
 (cd "$scratch/dex" && zip -q ../unsigned.apk classes.dex)
 "$tools/zipalign" -f 4 "$scratch/unsigned.apk" "$scratch/aligned.apk"
 "$tools/apksigner" sign --ks Android/build/debug.keystore --ks-pass pass:android \
-    --out "$scratch/check.apk" "$scratch/aligned.apk"
+	--out "$scratch/check.apk" "$scratch/aligned.apk"
 "$adb" -s "$serial" install -r "$apk"
 "$adb" -s "$serial" install -r "$scratch/check.apk"
 "$adb" -s "$serial" shell am instrument -w -r com.elt.pprstudio.adc.check/com.elt.pprstudio.adc.RuntimeCheck | tee "$scratch/result"
