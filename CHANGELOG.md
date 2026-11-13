@@ -1,5 +1,10 @@
 ## v0.3.3-macclient
 
+## v0.3.3-androidclient
+
+Android P2 BLE workspace with editable print history, layered layout, full-screen drawing, a local materials library and raster1 export. [Release notes](doc/RELEASE-v0.3.3-androidclient.md)
+
+
 - Add searchable system fonts, configurable QR codes, freeform layout and local raster import.
 - Pause support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill and remove their code, docs and dedicated automation. Keep the new local raster file generation Skill.
 - Preserve shared baseline 0.3.2, Relay API v2 and local API v2. [Release and upgrade](doc/RELEASE-v0.3.3-macclient.md).

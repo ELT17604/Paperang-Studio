@@ -1,3 +1,7 @@
+## AndroidClient 0.3.3
+
+AndroidClient 从 `v0.3.3-androidclient` 开始编号，版本源为 `Android/VERSION`。后续 APK 更新同时递增 Manifest 的 versionCode。候选版沿用共享 raster1 schema 和 P2 BLE 协议。[发行和验证](RELEASE-v0.3.3-androidclient.md)。
+
 # 版本命名与兼容规则
 
 ## 0.3.3 独立客户端版本

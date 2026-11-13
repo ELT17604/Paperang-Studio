@@ -1,5 +1,8 @@
 # User guide
 
+For Android, see the [AndroidClient workspace and printer guide](../Android/README.md).
+
+
 [MacClient 0.3.3 upgrade](RELEASE-v0.3.3-macclient.md) · [QR, freeform layout and local bitmap import](MACCLIENT-WORKSPACE.zh-CN.md)
 
 

@@ -1,5 +1,8 @@
 # Documentation
 
+[AndroidClient · Build and workspace](../Android/README.md) · [Release notes](RELEASE-v0.3.3-androidclient.md)
+
+
 [Project home](../README.md) · [简体中文](INDEX.zh-CN.md)
 
 All default documentation pages are in English. Each guide links to its Chinese counterpart. The application UI includes Chinese labels; application API v2 job states use the stable values documented in the contract.

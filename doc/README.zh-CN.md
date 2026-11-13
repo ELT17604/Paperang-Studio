@@ -12,7 +12,7 @@
 
 **历史优化记录：opt1。** [代码清理、界面调整与验证](OPTIMIZATION-opt1.zh-CN.md)。
 
-<p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Windows · Linux Relay · Web</p>
+<p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Android · Windows · Linux Relay · Web</p>
 <p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.2 目标基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
 
 Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。MacClient 0.3.3 通过蓝牙连接，WinLite0.3.3默认USB优先并保留蓝牙回退；Linux 中转服务器接受网页投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
@@ -26,6 +26,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。M
 | 分发 | 职责 | 入口 | 验证记录 |
 |---|---|---|---|
 | **MacClient 0.3.3 · macOS** | SwiftUI/CoreBluetooth 完整工作台、图片排版、模板、纸带终端、本地 API 与中转接收 | [使用指南](USER-GUIDE.zh-CN.md) · [构建](ARCHITECTURE.zh-CN.md) | [0.3.3 构建与离线验证](RELEASE-v0.3.3-macclient.zh-CN.md#验证范围) |
+| **AndroidClient 0.3.3 · Android** | P2 BLE 本地打印、图文工作台、图层排版、位图预览与历史 | [构建与使用](../Android/README.md) | [发行说明](RELEASE-v0.3.3-androidclient.md) |
 | **WinLite · Windows** | 原生 WinForms USB/BLE 托盘接收、自动打印、模板恢复、自启、C 管理与历史导出 | [Windows 指南](WINDOWS.zh-CN.md) · [构建](../Windows/README.md) | Windows 构建、回归及本机中转集成已验证 |
 | **LinuxRelayServer · Linux** | HTTP/SQLite 中转、投稿网页、身份与权限、队列及管理 API | [服务器部署](../Server/README.md) | [0.3.2 生产部署与升级验收](VALIDATION-v0.3.2-ubuntu.md) |
 
@@ -38,6 +39,7 @@ flowchart LR
     Browser["网页 · 文字与绘图"] -->|HTTPS| Relay["LinuxRelayServer"]
     Relay <-->|"客户端向外轮询 · 分级凭证"| Receiver["MacClient 或 WinLite"]
     Receiver -->|"BLE · WinLite也支持USB"| P2["Paperang P2 · 实体纸条"]
+    Android["AndroidClient"] -->|BLE| P2
 ```
 
 **同一台打印机只使用一个活动接收端/传输。** 中转负责身份、队列与投递；电脑客户端负责最终模板、打印浓度、送纸和USB/蓝牙输出。MacClient 也可以脱离中转进行本地打印。
@@ -69,6 +71,12 @@ flowchart LR
 
 <sub>以上为 v0.3.0 WinLite 实际窗口，使用示例配置与公开演示内容。[截图说明](../assets/screenshots/README.md)。MacClient 截图与验证见上方。</sub>
 
+## AndroidClient 实际界面
+
+图文工作台、全屏手绘和关于页。
+
+<img src="../assets/screenshots/androidclient-v0.3.3-workspace.png" width="235" alt="AndroidClient workspace"> <img src="../assets/screenshots/androidclient-v0.3.3-drawing.png" width="235" alt="AndroidClient drawing"> <img src="../assets/screenshots/androidclient-v0.3.3-about.png" width="235" alt="AndroidClient about">
+
 ## 主要功能
 
 - **从其他地方投递纸条：**通过网页发送文字/绘图，由已配置的桌面接收端处理。
@@ -79,6 +87,10 @@ flowchart LR
 - **区分发送和纸面结果：**sent 仅表示传输完成，confirmed 需要人工核对；中断或结果不确定的任务不自动重印。
 
 ## 快速开始
+
+### Android · AndroidClient
+
+在 Android 13 或以上安装 AndroidClient。打开「打印机」连接 P2，再回到「工作台」编辑和预览。[构建与安装](../Android/README.md)
 
 ### Windows · WinLite
 
@@ -136,6 +148,7 @@ sudo bash Server/install.sh
 | 目录 | 内容 |
 |---|---|
 | Sources/ | 原生 Swift/C MacClient 与可复用模块 |
+| Android/ | 原生安卓工作台、P2 BLE、打印历史与素材库 |
 | Windows/ | 原生 WinLite、模板/管理 UI、构建和测试 |
 | Server/ | 中转 API v2、投稿网页、SQLite 身份/队列与 Linux 部署 |
 | Skills/ | 本地位图生成 Skill |
@@ -144,7 +157,7 @@ sudo bash Server/install.sh
 | assets/ | 原始品牌资源与实际应用截图 |
 | doc/ | 使用指南、接口合同、升级记录和研究 |
 
-构建产物留在源码树外：Mac 默认 PaperangStudio-Development/，Windows 默认 PaperangStudio-Windows-Development/；可分别通过 PAPERANG_WORK_DIR、PAPERANG_WIN_WORK_DIR 调整。凭证、数据库和私人打印内容不进入 Git。
+Android 将签名 APK 与校验文件输出到 Git 忽略的 Android/build/。桌面构建产物留在源码树外：Mac 默认 PaperangStudio-Development/，Windows 默认 PaperangStudio-Windows-Development/；可分别通过 PAPERANG_WORK_DIR、PAPERANG_WIN_WORK_DIR 调整。凭证、数据库和私人打印内容不进入 Git。
 
 ## 许可与联系
 

@@ -1,5 +1,8 @@
 # Contributing
 
+Build AndroidClient with `./Android/build.sh` and run `tests/android/check.sh`. Use `tests/android/runtime.sh <emulator-serial>` for Android runtime coverage. [AndroidClient](Android/README.md)
+
+
 Releases follow the [distribution version policy](doc/VERSIONING.md). Update [VERSIONS.json](VERSIONS.json) and the [feature implementation matrix](doc/FEATURE-MATRIX.md) for every relevant change; run `python scripts/check-versions.py`. Same-baseline compatibility is mandatory for shared contracts; document distribution-specific omissions rather than claiming unverified parity.
 
 [English](CONTRIBUTING.md) · [简体中文](doc/CONTRIBUTING.zh-CN.md)

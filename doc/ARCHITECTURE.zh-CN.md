@@ -1,5 +1,8 @@
 # 架构、构建与发布
 
+[AndroidClient](../Android/README.md) 使用原生 Android Views 排版，经共享的 P2 BLE 协议发送 576 点位图。任务草稿、打印位图和素材保存在应用私有目录。
+
+
 > v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v2 和 BLE/模板记录仍独立有效。
 
 [English](ARCHITECTURE.md) · [中文文档目录](INDEX.zh-CN.md)

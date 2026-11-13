@@ -19,3 +19,7 @@ and trademarks belong to their respective owners. No trademark rights are
 granted. Third-party materials retain their own licenses; see doc/SOURCES.md.
 
 Provided as is, without warranty of any kind, as set out in LICENSE.
+
+AndroidClient uses ZXing Core 3.5.4 for QR encoding.
+Copyright ZXing authors. Licensed under Apache License 2.0.
+https://github.com/zxing/zxing/tree/zxing-3.5.4

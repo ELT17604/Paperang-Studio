@@ -1,5 +1,10 @@
 # v0.3.2 contract and native validation
 
+## AndroidClient
+
+Run `./Android/build.sh`, `tests/android/check.sh`, then `tests/android/runtime.sh <emulator-serial>`. The runtime suite covers editable job restoration, raster export, local assets, history and navigation. [Build guide](../Android/README.md)
+
+
 Run from repository root on macOS. These tests never access a real printer or production Relay. `probe_relay.swift` is the separate explicit read-only production check.
 
 ```sh

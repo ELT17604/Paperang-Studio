@@ -8,10 +8,10 @@ root = Path(__file__).resolve().parents[1]
 registry = json.loads((root / 'VERSIONS.json').read_text(encoding='utf-8'))
 baseline = registry['baseline']
 assert re.fullmatch(r'\d+\.\d+\.\d+', baseline)
-expected = {'macclient', 'linuxrelayserver', 'winlite', 'winclient', 'linuxclient'}
+expected = {'macclient', 'linuxrelayserver', 'winlite', 'winclient', 'linuxclient', 'androidclient'}
 assert set(registry['distributions']) == expected
 exceptions = registry.get('distributionExceptions', {})
-assert set(exceptions) == {'winlite', 'macclient'}
+assert set(exceptions) == {'winlite', 'macclient', 'androidclient'}
 for exception in exceptions.values():
     assert exception['version'] == '0.3.3' and exception['compatibleBaseline'] == baseline == '0.3.2'
     assert (root / exception['documentation']).is_file()

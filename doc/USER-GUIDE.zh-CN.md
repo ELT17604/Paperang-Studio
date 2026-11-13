@@ -1,5 +1,8 @@
 # Paperang Studio 使用说明
 
+安卓端参阅 [AndroidClient 工作台与打印指南](../Android/README.md)。
+
+
 [MacClient 0.3.3 升级](RELEASE-v0.3.3-macclient.zh-CN.md) · [二维码、自由排版和本地位图导入](MACCLIENT-WORKSPACE.zh-CN.md)
 
 

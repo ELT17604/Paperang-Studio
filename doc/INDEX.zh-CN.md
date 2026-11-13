@@ -1,5 +1,8 @@
 # 文档目录
 
+[AndroidClient · 构建与工作台](../Android/README.md) · [发行说明](RELEASE-v0.3.3-androidclient.md)
+
+
 
 [MacClient 0.3.1 fix3 upgrade / 升级与验证](MACCLIENT-v0.3.1.zh-CN.md)
 [English](README.md) · [中文文档目录](INDEX.zh-CN.md)

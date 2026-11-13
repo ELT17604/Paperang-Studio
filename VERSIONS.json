@@ -60,10 +60,22 @@
       "version": null,
       "runtimeVersion": null,
       "versionSource": null
+    },
+    "androidclient": {
+      "name": "AndroidClient",
+      "status": "implemented",
+      "version": "v0.3.3-androidclient",
+      "runtimeVersion": "0.3.3-androidclient",
+      "versionSource": "Android/VERSION",
+      "targetVersion": "0.3.3",
+      "compatibleBaseline": "0.3.2",
+      "verification": "See Android release notes for build and validation scope",
+      "publicationStatus": "local candidate",
+      "validation032": "pending"
     }
   },
   "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
-  "releaseStatus": "MacClient 0.3.3 local release; WinLite 0.3.3 candidate; shared compatibility baseline 0.3.2",
+  "releaseStatus": "MacClient 0.3.3 local release; WinLite 0.3.3 candidate; AndroidClient 0.3.3 candidate; shared compatibility baseline 0.3.2",
   "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged.",
   "distributionExceptions": {
     "winlite": {
@@ -77,6 +89,12 @@
       "compatibleBaseline": "0.3.2",
       "reason": "Mac-only workspace update with unchanged Relay v2 and schema 1",
       "documentation": "doc/RELEASE-v0.3.3-macclient.md"
+    },
+    "androidclient": {
+      "version": "0.3.3",
+      "compatibleBaseline": "0.3.2",
+      "reason": "Android-only local P2 workspace; shared raster1 and printer profile unchanged",
+      "documentation": "doc/RELEASE-v0.3.3-androidclient.md"
     }
   },
   "printerTransports": {

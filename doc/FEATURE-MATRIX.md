@@ -1,3 +1,7 @@
+## AndroidClient 0.3.3
+
+AndroidClient 0.3.3 candidate implements local P2 BLE, text and image editing, layered layout with QR, shared raster preview/export, density, copies, feed and editable print history and a local materials library. Physical-device verification is pending. [Release and validation](RELEASE-v0.3.3-androidclient.md).
+
 ## WinLite 0.3.3 — Windows-only USB
 
 MacClient 0.3.3: [workspace and compatibility](RELEASE-v0.3.3-macclient.md). Support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill is paused starting with this release. Tables below describe earlier versions.

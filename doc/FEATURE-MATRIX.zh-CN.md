@@ -1,3 +1,7 @@
+## AndroidClient 0.3.3
+
+AndroidClient 0.3.3 候选版支持 P2 BLE 本地打印、图文编辑、二维码图层、位图预览与导出、浓度、份数、送纸、可恢复的本地历史和独立素材库。实机验收待执行。[发行和验证](RELEASE-v0.3.3-androidclient.md)。
+
 ## WinLite 0.3.3 — 仅Windows的USB扩充
 
 [MacClient 0.3.3 工作台与兼容性](RELEASE-v0.3.3-macclient.zh-CN.md)。本代起暂停支持 ChatGPT MCP／GPT Actions、RelaySkill 和 LocalBLESkill。下方表格为历史版本记录。

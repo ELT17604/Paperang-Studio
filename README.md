@@ -10,7 +10,7 @@
 
 **v0.3.2:** macOS, Windows and Ubuntu accepted. [Release notes](doc/RELEASE-v0.3.2.md) · [API v2](doc/API-v2-032.md) · [Upgrade and rollback](doc/UPGRADE-v0.3.2.md).
 
-<p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Windows · Linux Relay · Web</p>
+<p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Android · Windows · Linux Relay · Web</p>
 <p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.2 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
 Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. MacClient connects over Bluetooth; WinLite 0.3.3 prefers USB with Bluetooth fallback; the Linux relay accepts notes from a browser and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
@@ -24,6 +24,7 @@ Use **MacClient** for the full print workspace and paper terminal, or **WinLite*
 | Distribution | What it does | Start here | Platform verification (scope in linked reports) |
 |---|---|---|---|
 | **MacClient 0.3.3 · macOS** | SwiftUI/CoreBluetooth app: text/image, QR and freeform workspace, template editor, paper terminal, local API and relay receiver | [Mac guide](doc/USER-GUIDE.md) · [Build](doc/ARCHITECTURE.md) | [0.3.3 build and offline validation](doc/RELEASE-v0.3.3-macclient.md#validation-scope) |
+| **AndroidClient 0.3.3 · Android** | Local P2 BLE printing, text and image workspace, layered layout, raster preview and history | [Build and use](Android/README.md) | [Release notes](doc/RELEASE-v0.3.3-androidclient.md) |
 | **WinLite · Windows** | Native WinForms USB/BLE tray receiver: automatic printing, saved templates, sign-in startup, C management and history export | [Windows guide](doc/WINDOWS.md) · [Build](Windows/README.md) | 0.3.3 USB-first candidate; [current validation](doc/VALIDATION-v0.3.3-windows.md); historical0.3.2 acceptance retained |
 | **LinuxRelayServer · Linux** | HTTP/SQLite relay, submission webpage, identities, permissions, queue and administrative API | [Server setup](Server/README.md) | v0.3.2 production deployment, backup/rollback, API/web and Mac task/preview acceptance passed |
 
@@ -36,6 +37,7 @@ flowchart LR
     Browser["Browser · notes & drawings"] -->|HTTPS| Relay["LinuxRelayServer"]
     Relay <-->|"outbound polling · scoped credentials"| Receiver["MacClient or WinLite"]
     Receiver -->|"BLE · WinLite also USB"| P2["Paperang P2 · real paper"]
+    Android["AndroidClient"] -->|BLE| P2
 ```
 
 Choose **one active receiver/transport per printer**. The relay handles identity and delivery; the receiving client owns the final template, density, feed and physical print operation. MacClient also supports local printing without a relay.
@@ -67,6 +69,12 @@ Screenshots show the previous fix3 workspace with offline example data. The inhe
 
 <sub>Actual v0.3.0 WinLite windows with example settings and sample content. [Screenshot notes](assets/screenshots/README.md). MacClient screenshots and validation appear above.</sub>
 
+## AndroidClient in action
+
+The print workspace, full-screen drawing and app information.
+
+<img src="assets/screenshots/androidclient-v0.3.3-workspace.png" width="235" alt="AndroidClient workspace"> <img src="assets/screenshots/androidclient-v0.3.3-drawing.png" width="235" alt="AndroidClient drawing"> <img src="assets/screenshots/androidclient-v0.3.3-about.png" width="235" alt="AndroidClient about">
+
 ## What you can do
 
 - **Send a note from elsewhere.** Submit text or a raster drawing through the webpage, then let a configured desktop receiver print it.
@@ -77,6 +85,10 @@ Screenshots show the previous fix3 workspace with offline example data. The inhe
 - **Keep delivery states honest.** `sent` means data reached the transport; `confirmed` requires a manual paper check. Interrupted or uncertain output is not automatically reprinted.
 
 ## Get started
+
+### Android · AndroidClient
+
+Install AndroidClient on Android 13 or later. Pair a P2 from the Printer tab, then edit and preview in the workspace. [Build and installation](Android/README.md)
 
 ### Windows · WinLite
 
@@ -134,6 +146,7 @@ Generate a raster1 JSON file with the [local raster Skill](Skills/paperang-local
 | Path | Contents |
 |---|---|
 | `Sources/` | Native Swift/C MacClient and reusable modules |
+| `Android/` | Native Android workspace, P2 BLE, print history and materials |
 | `Windows/` | Native WinLite, template/admin UI, build scripts and tests |
 | `Server/` | Relay API v2, submission webpage, SQLite security/queue and Linux deployment |
 | `Skills/` | Local raster generation Skill |
@@ -142,7 +155,7 @@ Generate a raster1 JSON file with the [local raster Skill](Skills/paperang-local
 | `assets/` | Original branding and real application screenshots |
 | `doc/` | Guides, contracts, release records and research |
 
-Build outputs stay outside the source tree: `PaperangStudio-Development/` for Mac and `PaperangStudio-Windows-Development/` for Windows. Override them with `PAPERANG_WORK_DIR` and `PAPERANG_WIN_WORK_DIR`. Keep credentials, databases and private print artifacts out of Git.
+Android writes the signed APK and checksum to the ignored `Android/build/` directory. Desktop build outputs stay outside the source tree: `PaperangStudio-Development/` for Mac and `PaperangStudio-Windows-Development/` for Windows. Override them with `PAPERANG_WORK_DIR` and `PAPERANG_WIN_WORK_DIR`. Keep credentials, databases and private print artifacts out of Git.
 
 ## License and contact
 

@@ -1,3 +1,7 @@
+## AndroidClient 0.3.3
+
+AndroidClient starts at `v0.3.3-androidclient`, sourced from `Android/VERSION`. Android package updates also increment the manifest version code. The Android candidate uses the shared raster1 schema and P2 BLE profile. [Release and validation](RELEASE-v0.3.3-androidclient.md).
+
 # Version naming and compatibility policy
 
 ## Independent 0.3.3 client releases

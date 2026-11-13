@@ -1,5 +1,14 @@
 # Application screenshots
 
+## AndroidClient 0.3.3
+
+Android 13 simulator captures with sample content.
+
+- [Print workspace](androidclient-v0.3.3-workspace.png)
+- [Full-screen drawing](androidclient-v0.3.3-drawing.png)
+- [About](androidclient-v0.3.3-about.png)
+
+
 Real v0.3.0 WinLite windows captured on Windows on 2026-11-08. The settings and template-editor forms were loaded directly from the current WinLite assembly in an isolated documentation fixture. Server address relay.example.com and all note/sender content are examples; no user credentials/settings were loaded and no printer was connected or used. These are application captures, not mockups or AI-generated images. Original JPEG captures are retained without visual edits.
 
 | File | View |

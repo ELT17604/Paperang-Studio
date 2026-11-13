@@ -1,5 +1,8 @@
 # 参与开发
 
+使用 `./Android/build.sh` 构建 AndroidClient，并运行 `tests/android/check.sh`。用 `tests/android/runtime.sh <模拟器序列号>` 执行安卓运行测试。[AndroidClient](../Android/README.md)
+
+
 发行遵循[版本规则](VERSIONING.zh-CN.md)。相关变更同步更新 [VERSIONS.json](../VERSIONS.json) 和[功能实现矩阵](FEATURE-MATRIX.zh-CN.md)，运行 `python scripts/check-versions.py`。同基线共享契约必须互通；发行版功能裁剪需明确标注，不声称未验证的一致性。
 
 [English](../CONTRIBUTING.md) · [中文文档目录](INDEX.zh-CN.md)
