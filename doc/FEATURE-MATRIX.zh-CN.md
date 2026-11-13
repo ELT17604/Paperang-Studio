@@ -1,73 +1,32 @@
-## AndroidClient 0.3.3
+# 功能矩阵 · 0.3.x
 
-AndroidClient 0.3.3 候选版支持 P2 BLE 本地打印、图文编辑、二维码图层、位图预览与导出、浓度、份数、送纸、可恢复的本地历史和独立素材库。实机验收待执行。[发行和验证](RELEASE-v0.3.3-androidclient.md)。
+[English](FEATURE-MATRIX.md) · [版本规则](VERSIONING.zh-CN.md) · [版本登记](../VERSIONS.json)
 
-## WinLite 0.3.3 — 仅Windows的USB扩充
+`0.3.x` 兼容基线采用 Relay HTTP API v2、Mac 本机 HTTP API v2，以及各端所支持的数据格式 schema 1。当前源码包含比 [GitHub 已发布的 v0.3.2](https://github.com/ELT17604/Paperang-Studio/releases/tag/v0.3.2) 更新的客户端修订。
 
-[MacClient 0.3.3 工作台与兼容性](RELEASE-v0.3.3-macclient.zh-CN.md)。本代起暂停支持 ChatGPT MCP／GPT Actions、RelaySkill 和 LocalBLESkill。下方表格为历史版本记录。
+## 发行版与验收
 
-
-已实现原生USB优先、记住BLE回退、持久手动BLE选择、USB成功禁用扫描及不跨传输重打。其他端保持0.3.2。[发行](RELEASE-v0.3.3-winlite.zh-CN.md) · [当前验证](VALIDATION-v0.3.3-windows.md)。下方旧表保留历史证据。
-
-# Paperang Studio v0.3.2 platform acceptance
-
-
-Historical v0.3.2 validation passed for MacClient, WinLite, LinuxRelayServer and RelaySkill. See [release notes](RELEASE-v0.3.2.md) and [Ubuntu integration evidence](VALIDATION-v0.3.2-ubuntu.md). Full WinClient/LinuxClient remain planned.
-
-## Historical implementation matrix
-
-# 版本功能实现矩阵 — 0.3.1
-
-[完整逐项矩阵与证据](FEATURE-MATRIX.md) · [版本规则](VERSIONING.zh-CN.md) · [登记表](../VERSIONS.json)
-
-状态含义：W=Windows 实测；T=Windows 上真实 HTTP/SQLite 验证，不代表 Linux 部署；S=源代码已同步，目标平台尚未验证；O=该分发范围之外；P=未实现/规划。不得把 S 写成已通过原生构建。
-
-| 分发 | 版本 | 本次状态 |
+| 发行版 | 当前源码版本 | 验收记录 |
 |---|---|---|
-| MacClient | v0.3.1-macclient-fix3 | 原生构建、SwiftUI 界面、本地所有者/C/M 联调通过；本次未重新验证蓝牙出纸 |
-| LinuxRelayServer | v0.3.1-linuxrelayserver | 身份/权限/API v2/网页/迁移代码及本机安全测试完成；Linux systemd/TLS/上线待接手 |
-| WinLite | v0.3.1-winlite | 原生 C 管理界面、RSA 私钥、A/B/C/M 管理、历史筛选/JSONL 导出与原托盘功能；Windows 构建和集成验证 |
-| RelaySkill | v0.3.1-relayskill | A/B 密钥投递、B 状态、A 只受理、文字/图片渲染、防重复投递记录 |
-| WinClient / LinuxClient | 无 | 仍为规划，不以本次登记宣称已经实现 |
+| MacClient | `0.3.3-macclient`，构建号 3301 | arm64 构建与签名、47 项本机 HTTP 检查、RAW/raster1 字节检查和二维码解码。实体打印记录对应 v0.3.2。[发行说明](RELEASE-v0.3.3-macclient.zh-CN.md) · [v0.3.2 验收](VALIDATION-v0.3.2-macos.md) |
+| WinLite | `0.3.3-winlite`，程序集版本 0.3.3.0 | 本机 x64 构建、73 项回归、12 项隔离 Relay 检查及 P2 USB/BLE 传输检查。安装覆盖升级记录对应 v0.3.2。[当前验收](VALIDATION-v0.3.3-windows.zh-CN.md) · [v0.3.2 验收](VALIDATION-v0.3.2-windows.md) |
+| AndroidClient | `0.3.3-androidclient`，versionCode 8 | 签名 APK、Android 13 模拟器与本地协议和渲染检查。P2 实体打印待实机验收。[发行说明](RELEASE-v0.3.3-androidclient.md) |
+| LinuxRelayServer | `0.3.2-linuxrelayserver` | Ubuntu 部署、保留数据的升级与回滚、HTTPS/API v2、Mac 接收端联调。[Ubuntu 验收](VALIDATION-v0.3.2-ubuntu.md) |
+| WinClient / LinuxClient | 规划中 | — |
 
-通用合同：中转 API v2，旧中转 v1=410；模板 v1/raster1/BLE不变。A 不读状态、B 仅本身份状态、C 全历史/管理、M 限定设备执行。私钥基于 RSA-PSS 挑战，不是 SSH 传输。Mac 本机 API 在 0.3.2 中已迁移 v2。
+## 当前已实现功能
 
-WinLite 继续不提供完整工作台、终端或本机 API；这些是 Lite 范围差异。它现在提供完整 C 管理功能。应用级正文加密、CSV 与独立附件目录导出未实现；本版 JSONL 内含正文、metadata、事件和 raster1 base64。
+表中「—」表示该发行版未提供对应功能。
 
-过往纸面证据：2026-11-06 用户确认中文完整出纸，两次 BLE 重连。新版本本机模拟传输/实际 HTTP 验证不等于新纸面确认；未进行 Windows 实际重启、无限期稳定性。所有平台接手要求见 [handoff](HANDOFF-v0.3.0.zh-CN.md)。
+| 功能 | MacClient | WinLite | AndroidClient | LinuxRelayServer |
+|---|---|---|---|---|
+| P2 直连 | BLE | USB 优先，BLE 回退 | BLE | — |
+| 本地图文工作台 | 文字、图片、富文本图层及二维码 | 区块模板渲染 | 文字、图片、富文本图层、二维码及全屏手绘 | — |
+| 位图文件与预览 | RAW/raster1 导入，PNG/RAW 导出 | 接收 Relay raster1，模板预览 | RAW/raster1 导入，PNG/RAW/raster1 导出 | raster1 输入与网页预览 |
+| 打印与送纸 | 浓度、份数、送纸 | 浓度、送纸、模板输出 | 浓度、份数、送纸及自动截断尾部空白 | — |
+| 历史与复用 | 本地任务与 Relay 历史 | Relay 历史及导出 | 本地点阵历史、恢复可编辑任务及素材库 | 持久化任务历史及管理导出 |
+| Relay HTTP API v2 | 接收端与所有者管理 | 接收端与所有者管理 | — | 网页投递、队列、权限与管理 |
+| 本机 HTTP API v2 | 环回地址 API | — | — | — |
+| 后台工作流 | 托盘接收与纸带终端 | 托盘接收与 Windows 登录自启 | — | systemd 服务 |
 
-Linux补充：Ubuntu 24.04/Python 3.12 的22项安全/HTTP/SQLite测试、隔离及公网Chromium HTTPS登录刷新、最大raster和重启验证通过。生产源771c14c17326已迁移并完成非root systemd冷重启、公网HTTPS、旧v1退役与部署哈希验证。原生v2接收端、真实出纸与长期无人值守仍待验收。首次安装公网探测失败的原始记录保留，后续复核通过。见[Linux验证记录](LINUX-v0.3.0-VALIDATION.md)。
-
-## v0.3.1 correction
-
-Anonymous browser sessions track their own fixed progress only; ordinary A tokens stay submit-only. WinLite defaults to a paired owner private file, with renewable proof sessions for C management and device-scoped execution. IP/UA are restored to active rendering metadata. Server regression: 25 tests; Windows regression: 51 checks plus native owner integration. Historical Linux v0.3.0 deployment evidence remains separate from the new owner cutover.
-
-
-See [v0.3.1 live validation and browser metadata follow-up](VALIDATION-v0.3.1.zh-CN.md) for verified deployment scope and remaining platform checks.
-
-
-WinLite `v0.3.1-winlite-fix1`: native management layout, automatic credential/identity IDs, hide-revoked and 25/50/100-row paging. Legacy relay compatibility is retained; server summary/filter pagination is additive. See [Windows guide](WINDOWS.md).
-
-### 2026-11-09 / v0.3.1 revisions
-
-| Feature | LinuxRelayServer fix1 | WinLite fix3 | MacClient fix1 |
-| --- | --- | --- | --- |
-| Unrestricted custom passphrases | Enforced; 39 tests | Native input updated | Source updated; native validation pending |
-| Class and per-identity quotas | SQLite policy + atomic counters | Native management dialog | Source editor; native validation pending |
-| Standard installer and uninstall | systemd deployment | Per-user setup, optional data purge | Existing distribution |
-| Manual WinLite release check | N/A | Stable GitHub WinLite tags | N/A |
-
-Server source ready; live deployment pending. Compatible API v2 baseline remains 0.3.1.
-
-## MacClient fix3 验证补充
-
-当前 Mac 原生构建、管理分页/配额/私钥续期及恢复已验证；上方 fix1 的待验标签为历史记录。服务器 39 项测试通过，未新增实机出纸或生产部署验证。[详细范围](MACCLIENT-v0.3.1.zh-CN.md)。
-
-
-## opt1
-
-[当前源码清理、各端验证与测试归档](OPTIMIZATION-opt1.zh-CN.md)。四个已实现分发统一 opt1；不新增 Windows 原生、硬件或部署验证声明。
-
-Linux opt1补充：sudo字符管理终端支持密钥分发/吊销、身份/配额与完整历史/导出；固定包全新重置保留一个指定Windows所有者。39项回归、4项管理后端、隔离重置/回滚及字符界面导航通过，主机全新部署及原Windows重连已验证。
-
-字符终端补充：支持服务配置草稿、校验、原子保存、重启健康检查和失败恢复；新增密钥可归属已有身份，凭据可直接进入身份额度配置。6项配置保存/失败/并发/活动打印测试通过，新增配置页已安装，root原子写入及工作进程检查通过，原Windows身份重连已验证。
+中转角色、任务归属与回报恢复遵循 [API v2 契约](API-v2-032.md)。[本地位图生成 Skill](../Skills/paperang-local-raster/SKILL.md) 生成供手动导入的文件。当前源码暂停 ChatGPT MCP/GPT Actions、RelaySkill 和 LocalBLESkill。[v0.3.2 发行记录](RELEASE-v0.3.2.md)收录历史 RelaySkill 发行版。

@@ -7,7 +7,7 @@ Android P2 BLE workspace with editable print history, layered layout, full-scree
 
 - Add searchable system fonts, configurable QR codes, freeform layout and local raster import.
 - Pause support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill and remove their code, docs and dedicated automation. Keep the new local raster file generation Skill.
-- Preserve shared baseline 0.3.2, Relay API v2 and local API v2. [Release and upgrade](doc/RELEASE-v0.3.3-macclient.md).
+- Preserve the 0.3.x compatibility baseline, Relay API v2 and local API v2. [Release and upgrade](doc/RELEASE-v0.3.3-macclient.md).
 
 # v0.3.3-winlite — Windows candidate
 

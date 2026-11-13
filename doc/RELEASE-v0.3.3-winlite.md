@@ -2,7 +2,7 @@
 
 [简体中文](RELEASE-v0.3.3-winlite.zh-CN.md) · [Windows guide](WINDOWS.md) · [Version policy](VERSIONING.md) · [Validation](VALIDATION-v0.3.3-windows.md)
 
-Windows-only release candidate, based on v0.3.2. Runtime/tag `0.3.3-winlite` / `v0.3.3-winlite`; assembly/file version0.3.3.0. MacClient, LinuxRelayServer and RelaySkill remain0.3.2. The owner explicitly requested this distribution-only patch-number exception; shared compatibility baseline remains0.3.2, Relay/local API v2, content/template/config schema1. It does not require a server upgrade, new owner key or other platform rebuild.
+WinLite 0.3.3 uses runtime `0.3.3-winlite` and assembly/file version `0.3.3.0`. It implements the `0.3.x` compatibility baseline with Relay HTTP API v2 and schema 1. A WinLite-only upgrade can retain LinuxRelayServer 0.3.2 and existing owner credentials.
 
 ## Connection behavior
 
@@ -23,7 +23,6 @@ Native transport uses present-interface SetupAPI enumeration, asynchronous USBPR
 
 Publish under the unique Windows-only `v0.3.3-winlite` tag with matching installer/ZIPs and SHA-256 sidecars. Historical `v0.3.2` is immutable; do not attach0.3.3 packages to it or claim a shared0.3.3 product release. Manual update discovery already understands WinLite suffix tags and compares0.3.3 above0.3.2; it opens an actual published GitHub release only. It does not fabricate a downloadable release from source state.
 
-[Windows CI](../.github/workflows/windows-winlite.yml) checks this candidate independently; it uploads build artifacts and does not publish. The historical shared0.3.2 publisher is disabled; main synchronization only runs validation and must not create a Release. No tag, push, production deployment or GitHub publication is part of local validation.
 
 ## Scope
 

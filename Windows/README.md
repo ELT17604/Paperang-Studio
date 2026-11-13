@@ -1,4 +1,4 @@
-> **v0.3.3-winlite** (Windows-only candidate): USB first, compatible with the0.3.2 Relay v2/schema1 baseline. [Upgrade](../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../doc/VALIDATION-v0.3.3-windows.md). Earlier acceptance numbers below are historical.
+> **v0.3.3-winlite** (Windows-only candidate): USB first, compatible with the 0.3.x compatibility baseline (Relay v2 and schema 1). [Upgrade](../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../doc/VALIDATION-v0.3.3-windows.md). Earlier acceptance numbers below are historical.
 
 > v0.3.1: [Owner-file authentication](../doc/OWNER-CUTOVER-v0.3.1.zh-CN.md). WinLite defaults to a paired owner private key.
 

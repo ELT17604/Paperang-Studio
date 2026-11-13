@@ -24,7 +24,7 @@ final class DrawingEditor {
         page.addView(heading);
         var pad = new Pad(app);
         if (previous != null) pad.base = Raster.bitmap(previous, Color.TRANSPARENT);
-        var hint = app.label("用手指或触控笔绘制", 13);
+        var hint = app.label("单指或触控笔绘制 · 双指平移或缩放 · 尺标 mm", 13);
         page.addView(hint);
         var stage = new android.widget.FrameLayout(app);
         stage.setBackground(app.shape(0xff485361, 24));
@@ -43,7 +43,7 @@ final class DrawingEditor {
         }), app.button("笔宽", () -> new StudioDialog(app).setTitle("笔宽")
                 .setItems(new String[]{"细笔 · 2 点", "中笔 · 5 点", "粗笔 · 12 点"},
                         (d, which) -> pad.width = new int[]{2, 5, 12}[which]).show())));
-        page.addView(app.actionRow(app.button("关闭", dialog::cancel), app.button("完成", () -> {
+        page.addView(app.actionRow(app.button("关闭", dialog::cancel), app.button("适合纸张", pad::resetViewport), app.button("完成", () -> {
             byte[] bytes;
             try {
                 bytes = pad.raster();
@@ -68,6 +68,11 @@ final class DrawingEditor {
         private final Paint pen = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint surface = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final PaperRuler ruler;
+        private final int gutter;
+        private PaperGesture gesture;
+        private float zoom = 1, offsetX, offsetY;
+        private boolean navigating;
         private Path active;
         private Bitmap base;
         private float width = 5;
@@ -77,7 +82,9 @@ final class DrawingEditor {
 
         Pad(MainActivity app) {
             super(app);
-            setContentDescription("手绘画布");
+            setContentDescription("手绘画布，右侧毫米尺标");
+            ruler = new PaperRuler(app);
+            gutter = app.dp(43);
             surface.setColor(Color.WHITE);
             edge.setColor(0xff26303b);
             pen.setColor(Color.BLACK);
@@ -85,24 +92,46 @@ final class DrawingEditor {
             pen.setStrokeJoin(Paint.Join.ROUND);
         }
 
+        private float viewportWidth() { return Math.max(0, getWidth() - gutter); }
+
         private float scale() {
-            return Math.min(getWidth() / (float) Raster.WIDTH, getHeight() / (float) Raster.MAX_HEIGHT);
+            return zoom * Math.min(viewportWidth() / Raster.WIDTH, getHeight() / (float) Raster.MAX_HEIGHT);
         }
 
-        private float left() {
-            return (getWidth() - Raster.WIDTH * scale()) / 2;
+        private float left() { return (viewportWidth() - Raster.WIDTH * scale()) / 2 + offsetX; }
+        private float top() { return (getHeight() - Raster.MAX_HEIGHT * scale()) / 2 + offsetY; }
+
+        private void constrainViewport() {
+            float x = Math.max(0, (Raster.WIDTH * scale() - viewportWidth()) / 2);
+            float y = Math.max(0, (Raster.MAX_HEIGHT * scale() - getHeight()) / 2);
+            offsetX = PaperPlacement.clamp(offsetX, -x, x);
+            offsetY = PaperPlacement.clamp(offsetY, -y, y);
+        }
+
+        void resetViewport() {
+            zoom = 1;
+            offsetX = offsetY = 0;
+            invalidate();
+        }
+
+        @Override protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            constrainViewport();
         }
 
         @Override protected void onDraw(Canvas canvas) {
             if (scale() <= 0) return;
             canvas.save();
-            canvas.translate(left(), 0);
+            canvas.clipRect(0, 0, viewportWidth(), getHeight());
+            canvas.translate(left(), top());
             canvas.drawRect(2, 3, Raster.WIDTH * scale() + 2, Raster.MAX_HEIGHT * scale() + 3, edge);
             canvas.scale(scale(), scale());
             canvas.clipRect(0, 0, Raster.WIDTH, Raster.MAX_HEIGHT);
             canvas.drawRect(0, 0, Raster.WIDTH, Raster.MAX_HEIGHT, surface);
             drawInk(canvas);
             canvas.restore();
+            canvas.drawRect(viewportWidth(), 0, getWidth(), getHeight(), surface);
+            ruler.draw(canvas, viewportWidth() + gutter * .27f, top(), scale(), Raster.MAX_HEIGHT,
+                    getHeight(), 0);
         }
 
         private void drawInk(Canvas canvas) {
@@ -122,13 +151,43 @@ final class DrawingEditor {
 
         @Override public boolean onTouchEvent(MotionEvent event) {
             if (scale() <= 0) return false;
+            int action = event.getActionMasked();
+            if (action == MotionEvent.ACTION_DOWN) {
+                if (event.getX() >= viewportWidth()) return false;
+                navigating = false;
+                gesture = null;
+            } else if (action == MotionEvent.ACTION_POINTER_DOWN) {
+                active = null;
+                navigating = true;
+                gesture = event.getPointerCount() == 2 ? gesture(event) : null;
+                invalidate();
+                return true;
+            } else if (action == MotionEvent.ACTION_POINTER_UP) {
+                gesture = null;
+                return true;
+            } else if (navigating) {
+                if (action == MotionEvent.ACTION_MOVE && event.getPointerCount() == 2) {
+                    PaperGesture current = gesture(event);
+                    if (gesture != null) {
+                        float x = (gesture.x() - left()) / scale();
+                        float y = (gesture.y() - top()) / scale();
+                        zoom = current.zoomFrom(gesture, zoom, gutter * .28f);
+                        offsetX += current.x() - left() - x * scale();
+                        offsetY += current.y() - top() - y * scale();
+                        constrainViewport();
+                        invalidate();
+                    }
+                    gesture = current;
+                }
+                return true;
+            }
             float rawX = (event.getX() - left()) / scale();
-            float rawY = event.getY() / scale();
+            float rawY = (event.getY() - top()) / scale();
             float x = PaperPlacement.clamp(rawX, 0, Raster.WIDTH - 1);
             float y = PaperPlacement.clamp(rawY, 0, Raster.MAX_HEIGHT - 1);
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN -> {
-                    if (rawX < 0 || rawX >= Raster.WIDTH || rawY < 0 || rawY >= Raster.MAX_HEIGHT) return false;
+                    if (rawX < 0 || rawX >= Raster.WIDTH || rawY < 0 || rawY >= Raster.MAX_HEIGHT) return true;
                     active = new Path();
                     active.moveTo(x, y);
                     startX = x;
@@ -140,7 +199,7 @@ final class DrawingEditor {
                     if (active == null || event.getPointerCount() != 1) return true;
                     for (int i = 0; i < event.getHistorySize(); i++) {
                         active.lineTo(PaperPlacement.clamp((event.getHistoricalX(i) - left()) / scale(), 0, Raster.WIDTH - 1),
-                                PaperPlacement.clamp(event.getHistoricalY(i) / scale(), 0, Raster.MAX_HEIGHT - 1));
+                                PaperPlacement.clamp((event.getHistoricalY(i) - top()) / scale(), 0, Raster.MAX_HEIGHT - 1));
                     }
                     active.lineTo(x, y);
                     moved = true;
@@ -153,11 +212,15 @@ final class DrawingEditor {
                     active = null;
                     performClick();
                 }
-                case MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> active = null;
+                case MotionEvent.ACTION_CANCEL -> active = null;
                 default -> { }
             }
             invalidate();
             return true;
+        }
+
+        private PaperGesture gesture(MotionEvent event) {
+            return PaperGesture.between(event.getX(0), event.getY(0), event.getX(1), event.getY(1));
         }
 
         @Override public boolean performClick() {

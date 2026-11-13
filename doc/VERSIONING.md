@@ -1,52 +1,34 @@
-## AndroidClient 0.3.3
+# Versioning and compatibility
 
-AndroidClient starts at `v0.3.3-androidclient`, sourced from `Android/VERSION`. Android package updates also increment the manifest version code. The Android candidate uses the shared raster1 schema and P2 BLE profile. [Release and validation](RELEASE-v0.3.3-androidclient.md).
+[简体中文](VERSIONING.zh-CN.md) · [Feature matrix](FEATURE-MATRIX.md) · [Version registry](../VERSIONS.json)
 
-# Version naming and compatibility policy
+## Product release series
 
-## Independent 0.3.3 client releases
+Paperang Studio uses three numeric fields, `MAJOR.MINOR.PATCH`. Before 1.0, the second field identifies a product generation. For `0.3.2`:
 
-MacClient and WinLite have scoped 0.3.3 versions. LinuxRelayServer and the shared compatibility baseline remain 0.3.2 with Relay v2 and schema 1. The independent release tags are v0.3.3-macclient and v0.3.3-winlite. See the [MacClient release notes](RELEASE-v0.3.3-macclient.md) for paused support.
+| Field | Value | Project meaning |
+|---|---:|---|
+| MAJOR | 0 | Pre-1.0 development. Installable packages can be published during this phase. |
+| MINOR | 3 | Third product generation, with compatibility baseline `0.3.x`. |
+| PATCH | 2 | A revision in the third generation. Distributions may increment it independently. |
 
-## v0.3.2 scoped exception (owner-directed)
+Distributions preserve shared contracts within a release series. A later generation can retain the same protocol. Incompatible changes require explicit versioning of the affected API or schema and a migration path.
 
-The 0.3.2 baseline retains the documented distribution suffixes: `v0.3.2-macclient`, `v0.3.2-winlite`, `v0.3.2-linuxrelayserver`, and `v0.3.2-relayskill`. Runtime strings omit the leading v. No old opt/fix suffix is carried into the new baseline. Shared `targetVersion` is the numeric baseline; all implemented components now share 0.3.2. Product tag/Release `v0.3.2` contains platform-named assets; update discovery maps it to the installed platform only when its package exists. Distribution runtime parsing and historical fix/opt comparison remain distinct.
+## Current version domains
 
-The owner explicitly requires retiring Mac local HTTP API v1 in this patch baseline. This compatibility exception returns 410, requires local callers to migrate to v2 and stable English job states, and does not change Relay v2, template/content schema 1 or physical protocol. Historical tags remain immutable. The final product tag is `v0.3.2`; platform suffixes remain in runtime and package names.
+| Domain | Current value | Scope |
+|---|---|---|
+| Product compatibility baseline | `0.3.x` | Distributions implementing their applicable shared contracts |
+| Published GitHub product release | `v0.3.2` | Published packages and their acceptance record |
+| Relay HTTP API | `v2` | LinuxRelayServer, MacClient and WinLite relay integration |
+| Mac Local HTTP API | `v2` | MacClient loopback HTTP interface |
+| Content, templates and saved configuration | schema 1 | Independently versioned formats, where implemented |
+| Printer transport | Legacy P2 576-dot BLE, plus P2 USB on WinLite | Device transport, independent of HTTP APIs |
 
+## Distribution versions and builds
 
-> **0.x policy approved for v0.3.0:** a coordinated MINOR baseline may break the relay contract before 1.0.0. All participants must upgrade together. MAJOR breaking rules apply from 1.0.0; fix notes never break contracts. Historical baseline was 0.3.1/API v2; the current baseline is 0.3.2; the 0.2.3 section below is historical.
+Use `vMAJOR.MINOR.PATCH-distribution[-note]`, for example `v0.3.3-androidclient`. Runtime identifiers may omit the leading `v`. Patch numbers and build metadata are distribution-specific. MacClient uses bundle build `3301`, AndroidClient uses `versionCode 8`, and WinLite uses assembly version `0.3.3.0`. Installers and update checks use their platform metadata. Interoperability uses explicit API versions, schemas and capabilities.
 
-[简体中文](VERSIONING.zh-CN.md) · [Feature implementation matrix](FEATURE-MATRIX.md) · [Release registry](../VERSIONS.json)
+Optional suffixes include `fixN`, `optN`, `alphaN`, `betaN` and `rcN`. Preserve published tags and artifact names. For a distribution update, revise its version source, registry, changelog and feature matrix, then run `python3 scripts/check-versions.py` and the relevant local platform checks.
 
-Use **`vMAJOR.MINOR.PATCH-distribution[-note]`**, for example **`v0.2.3-winlite-fix1`**. Tags, release titles and documentation use the leading `v`; runtime strings and VERSION files may omit it. Distribution IDs are stable lowercase ASCII: `macclient`, `linuxrelayserver`, `winlite`, `relayskill`, `winclient`, `linuxclient`. Do not introduce `win_lite` or mixed-case spellings in new releases.
-
-The numeric baseline identifies one product generation and its compatibility contract. Matching baselines mean the declared shared relay API, content and template schemas interoperate, with equivalent semantics for implemented common features. It does not mean a relay server has a printer UI or a tray-only client has every full-client tool. Scope differences must be explicit in the matrix; an unimplemented mandatory feature blocks a full-client parity claim.
-
-## Baseline and distribution revisions
-
-- **MAJOR** changes for a breaking shared contract or incompatible product generation.
-- **MINOR** changes for a coordinated new feature baseline. Implementations move to it only when their required features and interoperability checks pass.
-- **PATCH** changes for a shared baseline correction requiring coordination across distributions, even if backward compatible.
-- **`fixN`** identifies a distribution-only compatible correction or local improvement. Counters are local to each baseline/distribution and restart when the baseline changes. Never change API/schema semantics incompatibly under a fix note.
-- `alphaN`, `betaN`, `rcN` are optional single prerelease notes. No note means the initial stable distribution release. Compare baselines, distributions and numeric counters separately, not lexicographically.
-
-New tags are immutable. Existing names such as `0.2.3-fix1` and `0.2.3-win_lite` remain historical aliases; do not rewrite history or tags. [VERSIONS.json](../VERSIONS.json) records canonical names and actual runtime/source aliases. MacClient and LinuxRelayServer retain their deployed legacy runtime strings, mapped to canonical names in the registry; a Windows release does not silently rebuild or redeploy them. Planned distributions have no released version.
-
-## Baseline 0.2.3 contract
-
-Relay HTTP `v1`; Bearer roles; `text,raster1` negotiation; raster1 schema 1 and SHA-256; template JSON version 1; 576-dot/72-byte legacy P2 bitmaps; queued → claimed → printing → sent/unknown/rejected and separate manual `confirmed`. An ACK or `sent` never proves paper completion. Unknown/interrupted sends must not automatically replay. Runtime version labels are not protocol capability negotiation: use explicit API/schema/capability fields.
-
-Windows font substitution, startup facilities and reconnect scheduling may vary within this contract. Fonts need not be pixel-identical. Credential defaults, automatic paper consent and persistence differences must be documented as distribution behavior rather than assumed parity.
-
-## Release checklist
-
-1. Update that distribution's VERSION/runtime metadata, `VERSIONS.json`, changelog and bilingual guide. Retain the baseline for a compatible distribution fix.
-2. Update every changed feature's matrix status, exception reason, source and verification. Distinguish source review, simulation, hardware and user confirmation.
-3. Test client/server compatibility, template round trips, state transitions and no-replay behavior. Full clients must meet their required matrix rows; WinLite exclusions stay explicit.
-4. Run `python scripts/check-versions.py` and implementation tests. Verify packaging; exclude credentials, raw identifiers and build output; retain notices.
-5. Use a unique tag/artifact, e.g. `v0.2.3-winlite-fix1` and `PaperangStudio-v0.2.3-winlite-fix1-win-x64-lite.zip`. Never overwrite another distribution's release or imply a planned client exists.
-
-## optN revisions
-
-`optN` identifies a compatible optimization revision. For stable update checks at the same baseline, initial/fix revisions precede opt revisions; opt counters compare numerically. After opt1, use opt2 or a newer numeric baseline. Historical tags are unchanged. See [opt1 review](OPTIMIZATION-opt1.md).
+[v0.3.2 release record](RELEASE-v0.3.2.md) · [API v2 contract](API-v2-032.md)

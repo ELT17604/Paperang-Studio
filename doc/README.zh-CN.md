@@ -13,7 +13,7 @@
 **历史优化记录：opt1。** [代码清理、界面调整与验证](OPTIMIZATION-opt1.zh-CN.md)。
 
 <p align="center"><strong>原生客户端、共享中转，让信息落在真实的纸上。</strong><br>macOS · Android · Windows · Linux Relay · Web</p>
-<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">v0.3.2 目标基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
+<p align="center"><a href="../README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="../VERSIONS.json">0.3.x 兼容基线</a> · <a href="FEATURE-MATRIX.zh-CN.md">功能矩阵</a></p>
 
 Paperang Studio 是面向 **Paperang P2 喵喵机** 的多平台打印项目。MacClient 0.3.3 通过蓝牙连接，WinLite0.3.3默认USB优先并保留蓝牙回退；Linux 中转服务器接受网页投递，再由接收端完成排版与打印。各端共享内容格式、模板规范和权限合同。
 

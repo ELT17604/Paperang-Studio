@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseline": "0.3.2",
+  "baseline": "0.3.x",
   "compatibility": {
     "relayApi": "v2",
     "contentTypes": [
@@ -20,9 +20,10 @@
       "runtimeVersion": "0.3.3-macclient",
       "versionSource": "VERSION",
       "verification": "See the MacClient 0.3.3 release notes for current build and validation scope",
-      "targetVersion": "0.3.3",
-      "validation032": "passed",
-      "compatibleBaseline": "0.3.2"
+      "compatibleBaseline": "0.3.x",
+      "documentation": "doc/RELEASE-v0.3.3-macclient.md",
+      "publicationStatus": "source on main; local builds",
+      "buildNumber": 3301
     },
     "linuxrelayserver": {
       "name": "LinuxRelayServer",
@@ -31,8 +32,9 @@
       "runtimeVersion": "0.3.2-linuxrelayserver",
       "versionSource": "Server/relay.py",
       "verification": "Ubuntu native regressions, real preserving production upgrade, backup/rollback, unchanged row/schema rehearsal, HTTPS/API v2/v1 rejection/web/source hashes and owner-approved Mac connection/task/preview integration passed",
-      "targetVersion": "0.3.2",
-      "validation032": "passed"
+      "compatibleBaseline": "0.3.x",
+      "documentation": "doc/VALIDATION-v0.3.2-ubuntu.md",
+      "publicationStatus": "published in v0.3.2"
     },
     "winlite": {
       "name": "WinLite",
@@ -40,12 +42,11 @@
       "version": "v0.3.3-winlite",
       "runtimeVersion": "0.3.3-winlite",
       "versionSource": "Windows/VERSION",
-      "verification": "0.3.3 local x64 native build, 73 regressions, 12 isolated Relay checks, USB/BLE/USB hardware cycle, actual SettingsForm, owner-confirmed native USB pattern, portable/lite/installer SHA256 builds passed; installed upgrade/remote CI/publication not claimed",
-      "targetVersion": "0.3.3",
-      "validation032": "passed",
-      "compatibleBaseline": "0.3.2",
-      "validation033": "passed",
-      "publicationStatus": "local candidate; not published"
+      "verification": "Local x64 build, 73 regressions, 12 isolated Relay checks, USB/BLE hardware checks and package verification",
+      "compatibleBaseline": "0.3.x",
+      "publicationStatus": "source on main; local builds",
+      "documentation": "doc/RELEASE-v0.3.3-winlite.md",
+      "assemblyVersion": "0.3.3.0"
     },
     "winclient": {
       "name": "WinClient",
@@ -67,36 +68,15 @@
       "version": "v0.3.3-androidclient",
       "runtimeVersion": "0.3.3-androidclient",
       "versionSource": "Android/VERSION",
-      "targetVersion": "0.3.3",
-      "compatibleBaseline": "0.3.2",
-      "verification": "See Android release notes for build and validation scope",
-      "publicationStatus": "local candidate",
-      "validation032": "pending"
+      "compatibleBaseline": "0.3.x",
+      "verification": "Signed APK and Android 13 emulator coverage; physical P2 printing pending",
+      "publicationStatus": "source on main; local builds",
+      "documentation": "doc/RELEASE-v0.3.3-androidclient.md",
+      "buildNumber": 8
     }
   },
-  "preStablePolicy": "Before 1.0.0, an explicitly coordinated MINOR release may break the shared relay contract. All distributions must upgrade together.",
-  "releaseStatus": "MacClient 0.3.3 local release; WinLite 0.3.3 candidate; AndroidClient 0.3.3 candidate; shared compatibility baseline 0.3.2",
-  "compatibilityException": "0.3.2 removes Mac local HTTP API v1 with HTTP 410; explicitly scoped patch-release exception to the existing preStablePolicy. Relay v2 and data schemas unchanged.",
-  "distributionExceptions": {
-    "winlite": {
-      "version": "0.3.3",
-      "compatibleBaseline": "0.3.2",
-      "reason": "Owner-directed Windows-only patch for USB-first connection; Relay v2 and schema1 unchanged",
-      "documentation": "doc/RELEASE-v0.3.3-winlite.md"
-    },
-    "macclient": {
-      "version": "0.3.3",
-      "compatibleBaseline": "0.3.2",
-      "reason": "Mac-only workspace update with unchanged Relay v2 and schema 1",
-      "documentation": "doc/RELEASE-v0.3.3-macclient.md"
-    },
-    "androidclient": {
-      "version": "0.3.3",
-      "compatibleBaseline": "0.3.2",
-      "reason": "Android-only local P2 workspace; shared raster1 and printer profile unchanged",
-      "documentation": "doc/RELEASE-v0.3.3-androidclient.md"
-    }
-  },
+  "preStablePolicy": "Within a release series, implementations preserve the shared contract. Compatible updates can ship independently. A new series can retain the same contract; an incompatible change requires explicit protocol or schema versioning and a migration plan.",
+  "releaseStatus": "GitHub product release v0.3.2; current source includes MacClient, WinLite and AndroidClient 0.3.3 on the 0.3.x compatibility baseline",
   "printerTransports": {
     "windowsLegacyP2Usb": {
       "status": "implemented in WinLite0.3.3; local validation passed",
@@ -115,5 +95,9 @@
       "RelaySkill",
       "LocalBLESkill"
     ]
+  },
+  "publishedProductRelease": "v0.3.2",
+  "historicalCompatibilityChanges": {
+    "v0.3.2": "Mac Local API v1 retirement with HTTP 410. Relay v2, shared data schemas and P2 transport were unchanged."
   }
 }

@@ -1,4 +1,4 @@
-> **v0.3.3-winlite**：仅Windows升级，兼容0.3.2 Relay v2/schema1。当前[发行与升级](RELEASE-v0.3.3-winlite.zh-CN.md)与[验证记录](VALIDATION-v0.3.3-windows.md)；下文旧版验收为历史。
+> **v0.3.3-winlite**：仅Windows升级，兼容0.3.x（Relay v2 / schema 1）。当前[发行与升级](RELEASE-v0.3.3-winlite.zh-CN.md)与[验证记录](VALIDATION-v0.3.3-windows.md)；下文旧版验收为历史。
 
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 

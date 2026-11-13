@@ -7,26 +7,22 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 registry = json.loads((root / 'VERSIONS.json').read_text(encoding='utf-8'))
 baseline = registry['baseline']
-assert re.fullmatch(r'\d+\.\d+\.\d+', baseline)
+series = re.fullmatch(r'(\d+)\.(\d+)\.x', baseline)
+assert series, baseline
+prefix = '.'.join(series.groups()) + '.'
+assert re.fullmatch(r'v' + re.escape(prefix) + r'\d+', registry['publishedProductRelease'])
 expected = {'macclient', 'linuxrelayserver', 'winlite', 'winclient', 'linuxclient', 'androidclient'}
 assert set(registry['distributions']) == expected
-exceptions = registry.get('distributionExceptions', {})
-assert set(exceptions) == {'winlite', 'macclient', 'androidclient'}
-for exception in exceptions.values():
-    assert exception['version'] == '0.3.3' and exception['compatibleBaseline'] == baseline == '0.3.2'
-    assert (root / exception['documentation']).is_file()
 for name, item in registry['distributions'].items():
     if item['status'] == 'planned':
         assert item['version'] is None and item['runtimeVersion'] is None
         continue
-    target = exceptions.get(name, {}).get('version', baseline)
-    assert item.get('targetVersion') == target
-    if name in exceptions: assert item['compatibleBaseline'] == baseline
-    assert item['validation032'] in ('pending', 'passed', 'blocked')
+    assert item['compatibleBaseline'] == baseline
+    assert (root / item['documentation']).is_file()
     assert re.fullmatch(r'v\d+\.\d+\.\d+-' + name + r'(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?', item['version'])
     source = (root / item['versionSource']).read_text(encoding='utf-8').strip()
     runtime = item['runtimeVersion']
-    assert runtime.split('-', 1)[0] == target
+    assert runtime.split('-', 1)[0].startswith(prefix)
     assert item['version'] == 'v' + runtime
     if name == 'linuxrelayserver':
         assert re.search(r"APP_VERSION\s*=\s*['\"]" + re.escape(runtime) + r"['\"]", source)
@@ -52,3 +48,11 @@ installer = (root / 'Windows/installer/WinLite.iss').read_text(encoding='utf-8')
 assert f'#define AppVersion "{win}"' in installer
 assert f'VersionInfoVersion={win_number}.0' in installer
 print('PASS Windows assembly/file/installer numeric versions and distribution suffix')
+
+android = registry['distributions']['androidclient']
+manifest = (root / 'Android/AndroidManifest.xml').read_text(encoding='utf-8')
+assert f'android:versionCode="{android["buildNumber"]}"' in manifest
+mac = registry['distributions']['macclient']
+assert f'APP_BUILD_VERSION="{mac["buildNumber"]}"' in (root / 'scripts/build.sh').read_text(encoding='utf-8')
+assert registry['distributions']['winlite']['assemblyVersion'] == f'{win_number}.0'
+print('PASS independent Android, macOS and Windows build metadata')

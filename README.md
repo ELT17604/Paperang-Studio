@@ -11,7 +11,7 @@
 **v0.3.2:** macOS, Windows and Ubuntu accepted. [Release notes](doc/RELEASE-v0.3.2.md) · [API v2](doc/API-v2-032.md) · [Upgrade and rollback](doc/UPGRADE-v0.3.2.md).
 
 <p align="center"><strong>Native clients, a shared relay, and real paper.</strong><br>macOS · Android · Windows · Linux Relay · Web</p>
-<p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">v0.3.2 baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="doc/README.zh-CN.md">简体中文</a> · <a href="VERSIONS.json">0.3.x compatibility baseline</a> · <a href="doc/FEATURE-MATRIX.md">Feature matrix</a></p>
 
 Paperang Studio is a multi-platform printing ecosystem for the **Paperang P2**. MacClient connects over Bluetooth; WinLite 0.3.3 prefers USB with Bluetooth fallback; the Linux relay accepts notes from a browser and delivers them to the receiving client. Shared templates, content formats and permissions keep these parts working together.
 

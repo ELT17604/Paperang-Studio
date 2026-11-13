@@ -1,6 +1,6 @@
 # Windows v0.3.3 native acceptance
 
-[Current USB-first release/rollback](../../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../../doc/VALIDATION-v0.3.3-windows.md). Older PS032 labels below remain historical BLE test paths. The shared Relay baseline stays0.3.2/v2/schema1.
+[Current USB-first release/rollback](../../doc/RELEASE-v0.3.3-winlite.md) · [Validation](../../doc/VALIDATION-v0.3.3-windows.md). Older PS032 labels below remain historical BLE test paths. The 0.3.x compatibility baseline uses Relay v2 and schema 1.
 
 Run from the repository root on Windows 10 2004+ / Windows 11 with .NET 10 SDK, Python 3.10+ and Inno Setup 6. Output, owner files, temporary databases and installer logs stay outside tracked source. These tests link the actual WinLite and Core projects; they do not ship an alternative client implementation.
 

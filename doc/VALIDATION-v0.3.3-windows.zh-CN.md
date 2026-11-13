@@ -25,6 +25,6 @@
 
 发布物位于仓库旁 `PaperangStudio-Windows-Development/Release/`，名称为 `PaperangStudio-0.3.3-winlite-win-x64-setup.exe`、`V0.3.3-winlite-win-x64-portable.zip`、`V0.3.3-winlite-win-x64-lite.zip`及SHA256；程序、图标、README、LICENSE、NOTICE齐全，不含用户配置/私钥/原始设备标识/捕获。
 
-本轮未对用户正式安装执行覆盖/卸载、未重启/真实登录、未测ARM64/干净虚拟机、未做生产投稿到纸面的新闭环；0.3.2历史安装验收不改标为0.3.3。新增CI源码尚不等于远程CI或GitHub发布。包沿用未签名状态。
+本轮未对用户正式安装执行覆盖/卸载、未重启/真实登录、未测ARM64/干净虚拟机、未做生产投稿到纸面的新闭环；0.3.2历史安装验收不改标为0.3.3。包沿用未签名状态。
 
 设备打印中、机械完成、充电仍未知。四包纸面已确认，但固件最大长度/缓存、长图吞吐、打印中拔线和其他Windows/打印机仍未实测；不确定写入不跨传输重打。[USB完整证据](USB-PROTOCOL.zh-CN.md) · [升级与回滚](RELEASE-v0.3.3-winlite.zh-CN.md)。

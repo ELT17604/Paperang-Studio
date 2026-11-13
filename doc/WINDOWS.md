@@ -1,4 +1,4 @@
-> **v0.3.3-winlite** (Windows-only candidate): USB first, compatible with the0.3.2 Relay v2/schema1 baseline. [Upgrade](RELEASE-v0.3.3-winlite.md) · [Validation](VALIDATION-v0.3.3-windows.md). Earlier acceptance numbers below are historical.
+> **v0.3.3-winlite** (Windows-only candidate): USB first, compatible with the 0.3.x compatibility baseline (Relay v2 and schema 1). [Upgrade](RELEASE-v0.3.3-winlite.md) · [Validation](VALIDATION-v0.3.3-windows.md). Earlier acceptance numbers below are historical.
 
 > v0.3.1: [所有者私钥与匿名进度修正](OWNER-CUTOVER-v0.3.1.zh-CN.md)。WinLite 默认使用已配对私钥，不再把 M 密钥作为管理凭证。
 

@@ -1,6 +1,6 @@
 # AndroidClient v0.3.3-androidclient
 
-AndroidClient 是 Paperang Studio 的 Android 本地 P2 打印分发，使用现有 576 点 raster1 schema 1 与 P2 BLE 设备协议。Android 端从 0.3.3 独立编号，项目共享兼容基线为 0.3.2。
+AndroidClient 是 Paperang Studio 的 Android 本地 P2 打印分发，使用现有 576 点 raster1 schema 1 与 P2 BLE 设备协议。Android 端从 0.3.3 独立编号，项目兼容基线为 0.3.x。
 
 ## 工作台与安装
 
@@ -16,7 +16,7 @@ AndroidClient 是 Paperang Studio 的 Android 本地 P2 打印分发，使用现
 
 ## 编辑器纸长尺标
 
-文字、图片和高级排版均提供毫米尺标，以 300 DPI 换算实际渲染行数。排版尺标跟随画布平移与缩放，标记最终位图的末行。双指同向拖动平移纸面，改变指距围绕两指中心缩放。
+文字、图片、高级排版和全屏手绘均提供毫米尺标，以 300 DPI 换算实际渲染行数。排版尺标跟随画布平移与缩放，标记最终位图的末行。双指同向拖动平移纸面，改变指距围绕两指中心缩放。
 
 ## 验证范围
 

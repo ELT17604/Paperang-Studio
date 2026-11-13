@@ -2,7 +2,7 @@
 
 [English](RELEASE-v0.3.3-winlite.md) · [Windows指南](WINDOWS.zh-CN.md) · [版本规则](VERSIONING.zh-CN.md) · [验证记录](VALIDATION-v0.3.3-windows.md)
 
-仅Windows的新候选版本，基于0.3.2。运行时 `0.3.3-winlite`，标签 `v0.3.3-winlite`，程序集/文件版本0.3.3.0。按所有者明确要求记录单平台PATCH编号例外；MacClient、LinuxRelayServer、RelaySkill保持0.3.2，共同兼容基线仍是0.3.2。Relay/本地API v2、内容/模板/配置schema1不变，无需升级服务器、重新配对私钥或重建其他平台。
+WinLite 0.3.3 的运行时为 `0.3.3-winlite`，程序集和文件版本为 `0.3.3.0`。该版本沿用 `0.3.x` 兼容基线、Relay HTTP API v2 和 schema 1。单独升级 WinLite 可继续使用 LinuxRelayServer 0.3.2 及已有所有者凭证。
 
 ## 连接方式
 
@@ -23,7 +23,6 @@
 
 发布应使用独立 `v0.3.3-winlite` 标签及同版本安装包/ZIP/SHA256，保留历史 `v0.3.2`，不把0.3.3包挂到旧版本、不声称全平台已升级0.3.3。现有手动更新检查支持WinLite标签，0.3.3高于0.3.2，仅打开实际发布的GitHub页面；源码有新版不等于已有下载。
 
-[Windows CI](../.github/workflows/windows-winlite.yml)独立验证并上传候选构建，不自动发布。历史0.3.2发布任务已禁用；同步main只运行验证，不创建Release。本轮本地验证不执行push、tag、生产部署或GitHub发布。
 
 ## 范围
 

@@ -7,7 +7,7 @@ Android P2 蓝牙工作台支持可编辑的打印历史、图层排版、全屏
 
 - 新增系统字体搜索、自定义二维码、自由排版和本地位图导入。
 - 从本代暂停 ChatGPT MCP／GPT Actions、RelaySkill 和 LocalBLESkill 支持，移除相关实现、文档及自动化。保留本地位图生成 Skill。
-- 共享兼容基线维持 0.3.2。[发行和升级](RELEASE-v0.3.3-macclient.zh-CN.md)。
+- 沿用 0.3.x 兼容基线。[发行和升级](RELEASE-v0.3.3-macclient.zh-CN.md)。
 
 # v0.3.3-winlite — Windows候选版
 

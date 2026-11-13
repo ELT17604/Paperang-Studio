@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.elt.pprstudio.adc" android:versionCode="7">
+    package="com.elt.pprstudio.adc" android:versionCode="8">
     <uses-sdk android:minSdkVersion="33" android:targetSdkVersion="36" />
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />

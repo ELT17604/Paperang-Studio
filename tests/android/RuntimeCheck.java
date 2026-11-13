@@ -195,10 +195,19 @@ public final class RuntimeCheck extends Instrumentation {
                 var pad = new DrawingEditor.Pad((MainActivity) activity);
                 pad.layout(0, 0, 576, 1400);
                 long now = SystemClock.uptimeMillis();
-                sendStroke(pad, now, android.view.MotionEvent.ACTION_DOWN, 40, 60);
-                sendStroke(pad, now, android.view.MotionEvent.ACTION_MOVE, 140, 160);
-                sendStroke(pad, now, android.view.MotionEvent.ACTION_UP, 200, 220);
+                sendStroke(pad, now, android.view.MotionEvent.ACTION_DOWN, 80, 320);
+                sendStroke(pad, now, android.view.MotionEvent.ACTION_MOVE, 160, 400);
+                sendStroke(pad, now, android.view.MotionEvent.ACTION_UP, 210, 450);
                 captured[0] = pad.raster();
+                sendStroke(pad, now, android.view.MotionEvent.ACTION_DOWN, 120, 300);
+                sendPair(pad, now, android.view.MotionEvent.ACTION_POINTER_DOWN | 256, 120, 300, 260, 300);
+                sendPair(pad, now, android.view.MotionEvent.ACTION_MOVE, 70, 280, 310, 280);
+                sendPair(pad, now, android.view.MotionEvent.ACTION_MOVE, 70, 200, 310, 200);
+                sendPair(pad, now, android.view.MotionEvent.ACTION_POINTER_UP | 256, 70, 200, 310, 200);
+                sendStroke(pad, now, android.view.MotionEvent.ACTION_UP, 70, 200);
+                require(Arrays.equals(captured[0], pad.raster()), "pinch and pan preserve printed pixels");
+                pad.resetViewport();
+                require(Arrays.equals(captured[0], pad.raster()), "fit paper preserves printed pixels");
                 pad.undo();
                 try {
                     pad.raster();
@@ -207,7 +216,7 @@ public final class RuntimeCheck extends Instrumentation {
                     // Empty paper is not printable.
                 }
             });
-            require(hasInk(captured[0]) && captured[0].length < 230 * Raster.STRIDE, "touch drawing and trim");
+            require(hasInk(captured[0]) && captured[0].length < 600 * Raster.STRIDE, "touch drawing and trim");
             var index = getTargetContext().getSharedPreferences("runtime-materials", 0);
             var files = new LocalRasters(getTargetContext().getFilesDir(), "runtime-materials");
             var library = new MaterialLibrary(index, files);
@@ -221,6 +230,23 @@ public final class RuntimeCheck extends Instrumentation {
         } finally {
             runOnMainSync(activity::finish);
         }
+    }
+
+    private static void sendPair(View pad, long now, int action, float x1, float y1, float x2, float y2) {
+        var properties = new android.view.MotionEvent.PointerProperties[2];
+        var coordinates = new android.view.MotionEvent.PointerCoords[2];
+        for (int i = 0; i < 2; i++) {
+            properties[i] = new android.view.MotionEvent.PointerProperties();
+            properties[i].id = i;
+            properties[i].toolType = android.view.MotionEvent.TOOL_TYPE_FINGER;
+            coordinates[i] = new android.view.MotionEvent.PointerCoords();
+            coordinates[i].x = i == 0 ? x1 : x2;
+            coordinates[i].y = i == 0 ? y1 : y2;
+        }
+        var event = android.view.MotionEvent.obtain(now, now, action, 2, properties, coordinates,
+                0, 0, 1, 1, 0, 0, android.view.InputDevice.SOURCE_TOUCHSCREEN, 0);
+        pad.dispatchTouchEvent(event);
+        event.recycle();
     }
 
     private static void sendStroke(View pad, long now, int action, float x, float y) {
