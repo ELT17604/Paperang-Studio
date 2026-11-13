@@ -1,0 +1,14 @@
+{
+  "name": "paperang-studio-wiki",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node check.mjs"
+  },
+  "dependencies": {
+    "cheerio": "1.2.0",
+    "github-slugger": "2.0.0",
+    "markdown-it": "14.1.1"
+  }
+}
