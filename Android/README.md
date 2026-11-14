@@ -59,4 +59,6 @@ adb install -r Android/build/PaperangStudio-Android-debug.apk
 
 应用内对话框使用统一的圆角浮层、动态色和过渡。支持窗口模糊的设备会模糊背后页面，其他设备使用加深的背景遮罩。手绘使用深色托盘和白色纸面。
 
+按键触感反馈默认开启，可在「打印机 → 应用设置」关闭。反馈遵循系统触感设置。
+
 © 2026 ELT Group

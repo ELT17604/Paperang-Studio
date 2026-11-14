@@ -7,10 +7,13 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inspector.WindowInspector;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,9 +35,10 @@ public final class RuntimeCheck extends Instrumentation
 			checkRaster();
 			checkHistory();
 			checkWorkspace();
+			checkButtonHaptics();
 			checkDrawingAndLibrary();
 			result.putString("stream", "\nPASS Android runtime: text, images, layers, crop, QR, RAW/PNG/raster1, " +
-			                           "presets, drawings, materials and history\n");
+			                           "presets, drawings, materials, history and button haptics\n");
 			finish(Activity.RESULT_OK, result);
 		}
 		catch (Throwable failure)
@@ -183,6 +187,18 @@ public final class RuntimeCheck extends Instrumentation
 				require(editor != null, "text editor");
 				editor.setText("Runtime preview");
 			});
+			for (String mode : new String[]{"图片", "排版", "位图", "手绘"})
+			{
+				runOnMainSync(() -> find(root, Button.class, mode).performClick());
+				waitForIdleSync();
+				runOnMainSync(() -> {
+					find(root, Button.class, "文字").performClick();
+					EditText editor = (EditText)find(root, EditText.class, null);
+					require(editor != null && editor.isShown(), "text editor after switching from " + mode);
+					require("Runtime preview".contentEquals(editor.getText()), "text survives switching from " + mode);
+				});
+				waitForIdleSync();
+			}
 			boolean ready = false;
 			for (int attempt = 0; attempt < 30 && !ready; attempt++)
 			{
@@ -222,6 +238,71 @@ public final class RuntimeCheck extends Instrumentation
 		{
 			runOnMainSync(activity::finish);
 		}
+	}
+
+	private void checkButtonHaptics()
+	{
+		var preferences = getTargetContext().getSharedPreferences("app-settings", 0);
+		String key = "button-haptics";
+		boolean hadPreference = preferences.contains(key);
+		boolean previous = preferences.getBoolean(key, true);
+		preferences.edit().remove(key).apply();
+		var intent = new Intent(getTargetContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		var activity = (MainActivity)startActivitySync(intent);
+		try
+		{
+			runOnMainSync(() -> {
+				View root = activity.getWindow().getDecorView();
+				find(root, Button.class, "打印机").performClick();
+				View settings = find(root, Button.class, "应用设置");
+				settings.performClick();
+				var feedback = (Switch)findWindowView(Switch.class, "按键触感反馈");
+				require(feedback.isChecked(), "button haptics are on by default");
+				int[] counts = new int[2];
+				var probe = new View(activity) {
+					@Override public boolean performHapticFeedback(int effect)
+					{
+						require(effect == HapticFeedbackConstants.VIRTUAL_KEY, "native button effect");
+						counts[0]++;
+						return true;
+					}
+				};
+				activity.setButtonAction(probe, () -> counts[1]++);
+				probe.performClick();
+				feedback.performClick();
+				probe.performClick();
+				require(counts[0] == 1 && counts[1] == 2, "disabling haptics preserves button actions");
+				findWindowView(Button.class, "完成").performClick();
+				settings.performClick();
+				feedback = (Switch)findWindowView(Switch.class, "按键触感反馈");
+				require(!feedback.isChecked(), "button haptics preference persists");
+				feedback.performClick();
+				probe.performClick();
+				require(counts[0] == 2 && counts[1] == 3, "button haptics can be re-enabled");
+				findWindowView(Button.class, "完成").performClick();
+			});
+		}
+		finally
+		{
+			var edit = preferences.edit();
+			if (hadPreference)
+				edit.putBoolean(key, previous);
+			else
+				edit.remove(key);
+			edit.apply();
+			runOnMainSync(activity::finish);
+		}
+	}
+
+	private static View findWindowView(Class<?> type, String text)
+	{
+		for (View window : WindowInspector.getGlobalWindowViews())
+		{
+			View match = find(window, type, text);
+			if (match != null && match.isShown())
+				return match;
+		}
+		throw new AssertionError("visible control: " + text);
 	}
 
 	private void checkDrawingAndLibrary() throws Exception

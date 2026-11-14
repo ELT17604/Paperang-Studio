@@ -10,6 +10,7 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -17,11 +18,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
 import android.provider.OpenableColumns;
+import android.view.HapticFeedbackConstants;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 import java.util.HashSet;
 import java.util.Locale;
@@ -31,6 +35,7 @@ import java.util.concurrent.Executors;
 
 @SuppressLint("MissingPermission") public final class MainActivity extends Activity
 {
+	private static final String BUTTON_HAPTICS = "button-haptics";
 	private final Handler main = new Handler(Looper.getMainLooper());
 	private final ExecutorService imports = Executors.newSingleThreadExecutor();
 	private final Set<String> found = new HashSet<>();
@@ -65,10 +70,12 @@ import java.util.concurrent.Executors;
 	private boolean preparingPrint;
 	private Runnable showPreview;
 	private WorkspacePreset exportingPreset;
+	private SharedPreferences appSettings;
 
 	@Override public void onCreate(Bundle state)
 	{
 		super.onCreate(state);
+		appSettings = getSharedPreferences("app-settings", MODE_PRIVATE);
 		history = new PrintHistory(getSharedPreferences("print-history", MODE_PRIVATE),
 		                           new LocalRasters(getFilesDir(), "print-history"),
 		                           new LocalRasters(getFilesDir(), "print-drafts", ".json"));
@@ -143,7 +150,8 @@ import java.util.concurrent.Executors;
 		printerPanel.addView(actionRow(refreshPrinter, disconnect));
 		feed = button("自定义送纸", this::feedPaper);
 		printerPanel.addView(actionRow(button("打印设置", this::printSettings), feed));
-		printerPanel.addView(button("关于与版本", this::showVersion));
+		printerPanel.addView(actionRow(button("应用设置", this::showAppSettings),
+		                              button("关于与版本", this::showVersion)));
 
 		LinearLayout work = card(page, "打印工作台");
 		workspace = new Workspace(this, work);
@@ -154,7 +162,7 @@ import java.util.concurrent.Executors;
 		preview = new ImageView(this);
 		preview.setAdjustViewBounds(true);
 		preview.setContentDescription("打印预览");
-		preview.setOnClickListener(view -> inspectPreview());
+		setButtonAction(preview, this::inspectPreview);
 		preview.setMaxHeight(dp(400));
 		LinearLayout tray = column();
 		paperTray = tray;
@@ -227,9 +235,9 @@ import java.util.concurrent.Executors;
 		for (int i = 0; i < tabs.length; i++)
 		{
 			int index = i;
-			tabs[i].setOnClickListener(view -> openPage.accept(index));
+			setButtonAction(tabs[i], () -> openPage.accept(index));
 		}
-		connectFromWorkspace.setOnClickListener(view -> openPage.accept(1));
+		setButtonAction(connectFromWorkspace, () -> openPage.accept(1));
 		screen.addView(navigation);
 		openPage.accept(0);
 		refreshButtons();
@@ -277,8 +285,18 @@ import java.util.concurrent.Executors;
 		LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(-1, -2);
 		spacing.setMargins(0, dp(4), 0, dp(4));
 		button.setLayoutParams(spacing);
-		button.setOnClickListener(view -> action.run());
+		setButtonAction(button, action);
 		return button;
+	}
+
+	void setButtonAction(View control, Runnable action)
+	{
+		control.setOnClickListener(view ->
+		{
+			if (view.isEnabled() && buttonHapticsEnabled())
+				view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+			action.run();
+		});
 	}
 
 	LinearLayout actionRow(Button... buttons)
@@ -307,6 +325,26 @@ import java.util.concurrent.Executors;
 	{
 		if (showPreview != null)
 			showPreview.run();
+	}
+
+	private boolean buttonHapticsEnabled()
+	{
+		return appSettings.getBoolean(BUTTON_HAPTICS, true);
+	}
+
+	private void showAppSettings()
+	{
+		var settings = column();
+		var feedback = new Switch(this);
+		feedback.setText("按键触感反馈");
+		feedback.setTextSize(16);
+		feedback.setMinHeight(dp(48));
+		feedback.setHapticFeedbackEnabled(false);
+		feedback.setChecked(buttonHapticsEnabled());
+		feedback.setOnCheckedChangeListener((view, enabled) -> appSettings.edit().putBoolean(BUTTON_HAPTICS, enabled).apply());
+		settings.addView(feedback);
+		settings.addView(label("点按应用内按键时轻振，遵循系统触感设置。", 13));
+		new StudioDialog(this).setTitle("应用设置").setView(settings).setPositiveButton("完成", null).show();
 	}
 
 	private void showVersion()

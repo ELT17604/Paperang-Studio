@@ -13,6 +13,7 @@ import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -194,6 +195,11 @@ final class Workspace
 
 	private LinearLayout withRuler(View editor)
 	{
+		// Removing the ruler row leaves its editor attached to it.
+		if (editor.getParent() instanceof ViewGroup previousRow)
+		{
+			previousRow.removeView(editor);
+		}
 		var row = new LinearLayout(app);
 		row.addView(editor, new LinearLayout.LayoutParams(0, -2, 1));
 		lengthGauge = new View(app) {

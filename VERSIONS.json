@@ -68,7 +68,7 @@
       "compatibleBaseline": "0.3.x",
       "publicationStatus": "local build",
       "documentation": "doc/RELEASE-v0.3.3-androidclient.md",
-      "buildNumber": 10
+      "buildNumber": 11
     }
   },
   "preStablePolicy": "Within a release series, implementations preserve the shared contract. Compatible updates can ship independently. A new series can retain the same contract; an incompatible change requires explicit protocol or schema versioning and a migration plan.",
