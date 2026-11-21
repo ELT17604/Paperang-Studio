@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { load } from 'cheerio';
-import { groups } from './catalog.mjs';
+import { groups, notices } from './catalog.mjs';
 
 const dist = fileURLToPath(new URL('./dist/', import.meta.url));
 const files = new Set(readdirSync(dist, { recursive: true })
@@ -16,6 +16,9 @@ const errors = new Set();
 for (const [file, $] of pages) {
 	const url = new URL('/' + file, origin);
 	assert.equal($('main h1').length, 1, file);
+	const lang = $('html').attr('lang');
+	assert.equal($('.nav-primary a[href="/' + lang + '/paused-branches/"]').length, 1, file);
+	assert.equal($('.sidebar [aria-current="page"]').length, 1, file);
 	$('a[href], img[src], link[href], script[src]').each((_, node) => {
 		const target = new URL($(node).attr('href') ?? $(node).attr('src'), url);
 		if (target.origin !== origin)
@@ -40,6 +43,14 @@ for (const lang of ['en', 'zh-CN']) {
 		const article = pages.get(`${lang}/${slug}/index.html`);
 		const other = lang === 'en' ? 'zh-CN' : 'en';
 		assert.equal(article('html').attr('lang'), lang);
+		const status = Object.values(notices).find(item => item.topics.includes(slug));
+		if (status) {
+			assert.equal(article('main h1').next().attr('class'), 'doc-notice', slug);
+			assert.equal(article('.doc-notice a[href="/' + lang + '/' + status.target + '/"]').length, 1, slug);
+		}
+		const selectedGroup = article('.topic-group:has(a[aria-current="page"])');
+		if (selectedGroup.length)
+			assert.ok(selectedGroup.is('[open]'), slug);
 		assert.equal(article('a[hreflang]').attr('href'), `/${other}/${slug}/`);
 		assert.ok(index.some(entry => entry.url === `/${lang}/${slug}/` && entry.text.length > 60));
 	}
