@@ -6,9 +6,9 @@
 
 | 平台 | 安装 | 连接打印机 |
 | --- | --- | --- |
-| macOS 14 及以上（Apple 芯片） | 从 [GitHub Releases](https://github.com/ELT17604/Paperang-Studio/releases) 下载 MacClient | 在「打印机」页通过蓝牙扫描 P2 |
-| Android 13 及以上 | [构建并安装 AndroidClient](/zh-CN/android/) | 在「打印机」页授权附近设备权限，再扫描 P2 |
-| Windows 10 2004 及以上或 Windows 11 | [安装或构建 WinClient](/zh-CN/windows-build/) | 打开打印机页面，通过 USB 或蓝牙连接 |
+| macOS 14 及以上（Apple 芯片） | 从 [GitHub Releases](https://github.com/ELT17604/Paperang-Studio/releases/tag/v0.3.3) 下载 MacClient | 在「打印机」页通过蓝牙扫描 P2 |
+| Android 13 及以上 | [安装 AndroidClient](/zh-CN/android/) | 在「打印机」页授权附近设备权限，再扫描 P2 |
+| Windows 10 2004 及以上或 Windows 11 | [安装 WinClient](/zh-CN/windows/) | 打开打印机页面，通过 USB 或蓝牙连接 |
 
 ## 2. 编辑并预览
 

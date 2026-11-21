@@ -2,6 +2,8 @@
 
 AndroidClient prints directly to the Paperang P2 over BLE on Android 13 or later. The package ID is `com.elt.pprstudio.adc`.
 
+Download the Android APK from the [unified v0.3.3 release](/en/release-v0.3.3/). The build instructions below are for building from source.
+
 ## Build and install
 
 Use JDK 21, Android SDK Platform 36 and Build Tools 36.1.0. The build script uses `ANDROID_HOME` or `ANDROID_SDK_ROOT`, and falls back to `~/Library/Android/sdk` on macOS.

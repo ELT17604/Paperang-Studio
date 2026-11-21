@@ -6,9 +6,9 @@ Connect your Paperang P2 to a client, compose a short note, and check the previe
 
 | Platform | Install | Connect the printer |
 | --- | --- | --- |
-| macOS 14+ on Apple Silicon | Download MacClient from [GitHub Releases](https://github.com/ELT17604/Paperang-Studio/releases) | Open Printer and scan for the P2 over Bluetooth |
-| Android 13+ | [Build and install AndroidClient](/en/android/) | Open Printer, allow Nearby Devices access, and scan for the P2 |
-| Windows 10 2004+ or Windows 11 | [Install or build WinClient](/en/windows-build/) | Open Settings from the tray and connect over USB or Bluetooth |
+| macOS 14+ on Apple Silicon | Download MacClient from [GitHub Releases](https://github.com/ELT17604/Paperang-Studio/releases/tag/v0.3.3) | Open Printer and scan for the P2 over Bluetooth |
+| Android 13+ | [Install AndroidClient](/en/android/) | Open Printer, allow Nearby Devices access, and scan for the P2 |
+| Windows 10 2004+ or Windows 11 | [Install WinClient](/en/windows/) | Open Printer in the workspace and connect over USB or Bluetooth |
 
 ## 2. Compose and preview
 

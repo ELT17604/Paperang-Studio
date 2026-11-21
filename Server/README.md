@@ -6,6 +6,8 @@ Python 3.10+, SQLite, argon2-cffi and cryptography. Relay API v2 is incompatible
 
 ## Ubuntu installation
 
+Download the Relay source package from the [unified v0.3.3 release](../doc/RELEASE-v0.3.3.md). Its server runtime is `0.3.2-linuxrelayserver-opt1`. Extract the archive and run installation commands from its root.
+
 Install python3, python3-venv and systemd prerequisites, then run `sudo bash Server/install.sh`. The installer creates `/opt/paperang-relay/venv`, installs requirements.txt and uses this interpreter in systemd. Source is installed in a dedicated directory; database/config are separate.
 
 ```sh

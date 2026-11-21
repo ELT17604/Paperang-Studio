@@ -4,7 +4,9 @@
 
 <img src="../assets/screenshots/androidclient-v0.3.3-workspace.png" width="240" alt="Android 打印工作台"> <img src="../assets/screenshots/androidclient-v0.3.3-drawing.png" width="240" alt="Android 全屏手绘"> <img src="../assets/screenshots/androidclient-v0.3.3-about.png" width="240" alt="Android 关于页">
 
-## 构建与安装
+## 下载与安装
+
+从 [v0.3.3 统一发布](../doc/RELEASE-v0.3.3.md)下载 Android APK。以下为源码构建步骤。
 
 应用 ID 为 `com.elt.pprstudio.adc`。旧测试包 `studio.paperang.android` 与新版可同时安装，各自保有私有打印历史。
 
