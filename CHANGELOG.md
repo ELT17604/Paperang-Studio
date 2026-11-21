@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.3 · Unified product release
+
+- Publish MacClient opt2, AndroidClient opt2, the supplied WinClient dev5 x64 installer and the current Relay source snapshot under one product tag.
+- Standardize asset names and SHA-256 checksums; document actual component versions and platform validation in [release notes](doc/RELEASE-v0.3.3.md). Relay retains runtime 0.3.2-linuxrelayserver-opt1.
+
 ## 2026-11-21 · WinClient and repository consolidation
 
 - Make WinClient the active Windows desktop target; pause WinLite feature development and retain its historical source/guide.

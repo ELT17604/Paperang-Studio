@@ -8,6 +8,8 @@
 
 Paperang Studio is a desktop and mobile printing toolkit for the **Paperang P2**. Compose and print locally, or use a self-hosted relay to send notes and drawings from a browser to a desktop receiver.
 
+Latest unified release: [v0.3.3](doc/RELEASE-v0.3.3.md) — MacClient, AndroidClient, WinClient and Relay. Component runtime versions and validation limits are listed in the release notes.
+
 ## Features
 
 | Platform | Distribution | Features |

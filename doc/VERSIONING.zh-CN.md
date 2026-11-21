@@ -19,7 +19,7 @@ Paperang Studio 使用 `MAJOR.MINOR.PATCH` 三段编号。项目在 1.0 前使�
 | 版本域 | 当前值 | 适用范围 |
 |---|---|---|
 | 产品兼容基线 | `0.3.x` | 实现各自所用共享契约的发行版 |
-| 已发布的 GitHub 产品版本 | `v0.3.2` | 发布包和发行说明 |
+| 已发布的 GitHub 产品版本 | `v0.3.3` | 发布包和发行说明 |
 | Relay HTTP API | `v2` | LinuxRelayServer、MacClient 与 Windows 的中转接口 |
 | Local HTTP API | `v2` | MacClient 与 WinClient 的本机 HTTP 接口，平台差异单独记录 |
 | 内容、模板、保存配置 | schema 1 | 各格式独立版本，按平台实际支持情况使用 |

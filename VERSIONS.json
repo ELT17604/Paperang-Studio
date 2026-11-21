@@ -21,7 +21,7 @@
       "versionSource": "VERSION",
       "compatibleBaseline": "0.3.x",
       "documentation": "doc/RELEASE-v0.3.3-macclient.md",
-      "publicationStatus": "source revision; platform build pending",
+      "publicationStatus": "Included in unified v0.3.3 release; see doc/RELEASE-v0.3.3.md for validation and runtime version",
       "buildNumber": 3303
     },
     "linuxrelayserver": {
@@ -32,7 +32,7 @@
       "versionSource": "Server/relay.py",
       "compatibleBaseline": "0.3.x",
       "documentation": "Server/README.md",
-      "publicationStatus": "local build"
+      "publicationStatus": "Included in unified v0.3.3 release; see doc/RELEASE-v0.3.3.md for validation and runtime version"
     },
     "winlite": {
       "name": "WinLite",
@@ -52,7 +52,7 @@
       "runtimeVersion": "0.3.3-winclient-dev5",
       "versionSource": "Windows/src/Paperang.WinClient/Paperang.WinClient.csproj",
       "compatibleBaseline": "0.3.x",
-      "publicationStatus": "local Windows x64 build and installer; GitHub Release not published",
+      "publicationStatus": "Included in unified v0.3.3 release; see doc/RELEASE-v0.3.3.md for validation and runtime version",
       "documentation": "doc/WINCLIENT.md"
     },
     "linuxclient": {
@@ -69,13 +69,13 @@
       "runtimeVersion": "0.3.3-androidclient-opt2",
       "versionSource": "Android/VERSION",
       "compatibleBaseline": "0.3.x",
-      "publicationStatus": "source revision; platform build pending",
+      "publicationStatus": "Included in unified v0.3.3 release; see doc/RELEASE-v0.3.3.md for validation and runtime version",
       "documentation": "doc/RELEASE-v0.3.3-androidclient.md",
       "buildNumber": 12
     }
   },
   "preStablePolicy": "Within a release series, implementations preserve the shared contract. Compatible updates can ship independently. A new series can retain the same contract; an incompatible change requires explicit protocol or schema versioning and a migration plan.",
-  "releaseStatus": "Published v0.3.2 product release; Mac/Android opt2 source revisions and WinClient dev5 on the 0.3.x baseline",
+  "releaseStatus": "Unified v0.3.3 product release: Mac/Android opt2, WinClient dev5 and current Relay source",
   "printerTransports": {
     "windowsLegacyP2Usb": {
       "status": "USB-first with BLE fallback in WinClient and paused WinLite",
@@ -94,7 +94,7 @@
       "LocalBLESkill"
     ]
   },
-  "publishedProductRelease": "v0.3.2",
+  "publishedProductRelease": "v0.3.3",
   "historicalCompatibilityChanges": {
     "v0.3.2": "Mac Local API v1 retirement with HTTP 410. Relay v2, shared data schemas and P2 transport were unchanged."
   }
