@@ -5,7 +5,7 @@ using Windows.Devices.Bluetooth.Advertisement;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Storage.Streams;
 
-namespace Paperang.WinLite;
+namespace Paperang.Windows;
 
 public sealed record PrinterChoice(ulong Address, string Name, short Rssi)
 {
@@ -16,41 +16,57 @@ public sealed class BlePrinter : IPrinter
 {
 	private readonly Action<string>? trace;
 	private string lastStatus = "蓝牙：未连接";
+	private string deviceLabel = "P2";
 	public BlePrinter(Action<string>? trace = null) => this.trace = trace;
 	private WindowsBleLink? link;
 	private P2Session? session;
+	private Action<ProtocolTrace>? protocolTrace;
+	public void ObserveTrace(Action<ProtocolTrace> observer) { protocolTrace = observer; if (session != null) session.Trace = observer; }
 	public bool Ready => link?.Connected == true && session?.Ready == true;
-	public string Status => Ready ? session!.Status : lastStatus;
+	public string Status => Ready ? $"蓝牙 · {deviceLabel} · {session!.Status}" : lastStatus;
 	public double Progress => session?.Progress ?? 0;
 	public string PartitionDetail => session?.PartitionDetail ?? "";
-	public static async Task<PrinterChoice[]> ScanAsync(bool showAll, CancellationToken ct)
+	public static bool IsCandidate(string name) => new[] { "paperang", "miaomiaoji", "喵喵机" }
+		.Any(value => name.Contains(value, StringComparison.OrdinalIgnoreCase));
+	public static Task<PrinterChoice[]> ScanAsync(bool showAll, CancellationToken ct, IProgress<PrinterChoice>? discovered = null) =>
+		Task.Run(() => ScanCoreAsync(showAll, ct, discovered), ct);
+	private static async Task<PrinterChoice[]> ScanCoreAsync(bool showAll, CancellationToken ct, IProgress<PrinterChoice>? discovered)
 	{
 		var devices = new Dictionary<ulong, PrinterChoice>();
 		var watcher = new BluetoothLEAdvertisementWatcher { ScanningMode = BluetoothLEScanningMode.Active };
-		BluetoothError? stopped = null;
-		watcher.Stopped += (_, args) => stopped = args.Error;
+		var stopped = new TaskCompletionSource<BluetoothError>(TaskCreationOptions.RunContinuationsAsynchronously);
+		watcher.Stopped += (_, args) => stopped.TrySetResult(args.Error);
 		watcher.Received += (_, args) =>
 		{
 			string name = args.Advertisement.LocalName;
 			if (string.IsNullOrWhiteSpace(name))
 				return;
-			bool candidate = new[] { "paperang", "miaomiaoji", "喵喵机" }.Any(
-			    x => name.Contains(x, StringComparison.OrdinalIgnoreCase));
-			if (showAll || candidate)
-				lock (devices) devices[args.BluetoothAddress] =
-				    new(args.BluetoothAddress, name, args.RawSignalStrengthInDBm);
+			bool candidate = IsCandidate(name);
+			if (!(showAll || candidate)) return;
+			var choice = new PrinterChoice(args.BluetoothAddress, name, args.RawSignalStrengthInDBm);
+			bool publish;
+			lock (devices)
+			{
+				if (devices.Count >= 256 && !devices.ContainsKey(choice.Address)) return;
+				publish = !devices.TryGetValue(choice.Address, out var previous) || previous.Name != choice.Name || Math.Abs(previous.Rssi - choice.Rssi) >= 4;
+				if (publish) devices[choice.Address] = choice;
+			}
+			if (publish && !ct.IsCancellationRequested) discovered?.Report(choice);
 		};
 		watcher.Start();
 		try
 		{
-			await Task.Delay(TimeSpan.FromSeconds(12), ct);
+			var duration = Task.Delay(TimeSpan.FromSeconds(12), ct);
+			var completed = await Task.WhenAny(duration, stopped.Task).ConfigureAwait(false);
+			await completed.ConfigureAwait(false);
+			ct.ThrowIfCancellationRequested();
+			if (stopped.Task.IsCompletedSuccessfully && stopped.Task.Result != BluetoothError.Success)
+				throw new InvalidOperationException("蓝牙扫描已中断，请检查蓝牙开关、适配器和 Windows 蓝牙权限。");
 		}
 		finally
 		{
 			watcher.Stop();
 		}
-		if (stopped is not null and not BluetoothError.Success)
-			throw new InvalidOperationException("蓝牙扫描不可用，请检查适配器与 Windows 蓝牙权限");
 		lock (devices) return devices.Values.OrderByDescending(x => x.Rssi).ToArray();
 	}
 	public async Task ConnectAsync(AppSettings settings, CancellationToken ct)
@@ -60,10 +76,11 @@ public sealed class BlePrinter : IPrinter
 		timeout.CancelAfter(TimeSpan.FromSeconds(25));
 		try
 		{
-			lastStatus = "正在连接 P2";
+			deviceLabel = $"{(string.IsNullOrWhiteSpace(settings.PrinterName) ? "P2" : settings.PrinterName)} ({settings.PrinterAddress})";
+			lastStatus = "正在连接 " + deviceLabel;
 			link = await WindowsBleLink.OpenAsync(Convert.ToUInt64(settings.PrinterAddress, 16), timeout.Token, trace);
 			// Subscribe session before CCCD enables the initial FF03 credits.
-			session = new P2Session(link);
+			session = new P2Session(link, settings.TransferSettings) { Trace = protocolTrace };
 			await link.SubscribeAsync(timeout.Token);
 			await session.HandshakeAsync(timeout.Token);
 		}
@@ -79,6 +96,19 @@ public sealed class BlePrinter : IPrinter
 	                       CancellationToken ct) => session?.PrintAsync(raster, settings, ct) ??
 	                                                throw new InvalidOperationException("打印机未连接");
 	public Task RefreshAsync(CancellationToken ct) => session?.RefreshAsync(ct) ?? Task.CompletedTask;
+	public Task<byte[]> QueryAsync(byte command, CancellationToken ct) => session?.QueryAsync(command, ct) ??
+		throw new InvalidOperationException("打印机未连接。");
+	public Task ApplyDensityAsync(int density, CancellationToken ct) => session?.ApplyDensityAsync(density, ct) ??
+		throw new InvalidOperationException("打印机未连接。");
+	public void ConfigureTransfer(WorkspaceSettings settings)
+	{
+		if (session == null) throw new InvalidOperationException("打印机未连接。");
+		session.ConfigureTransfer(settings);
+	}
+	public Task SendEngineeringAsync(byte command, byte[] payload, CancellationToken token) =>
+		session?.SendEngineeringAsync(command, payload, token) ?? throw new InvalidOperationException("打印机未连接。");
+	public Task FeedAsync(int lines, CancellationToken ct) => session?.FeedAsync(lines, ct) ??
+	                                                          throw new InvalidOperationException("打印机未连接");
 	public void Disconnect()
 	{
 		session?.Dispose();
@@ -101,7 +131,7 @@ internal sealed class WindowsBleLink : IBleLink
 	public event Action<byte[]>? Flow;
 	private bool disposed;
 	public bool Connected => !disposed && device?.ConnectionStatus == BluetoothConnectionStatus.Connected;
-	public int MaxWrite => Math.Max(1, Math.Min(180, (gattSession?.MaxPduSize ?? 23) - 3));
+	public int MaxWrite => Math.Max(1, Math.Min(P2Defaults.MaxBleWrite, (gattSession?.MaxPduSize ?? 23) - 3));
 	private static Guid Uuid(ushort id) => Guid.Parse($"0000{id:x4}-0000-1000-8000-00805f9b34fb");
 	public static async Task<WindowsBleLink> OpenAsync(ulong address, CancellationToken ct,
 	                                                   Action<string>? trace = null)

@@ -87,8 +87,8 @@ static class UsbCases
 			check(link.Images.Select(x => x.Index).SequenceEqual(new byte[] { 3, 2, 1, 0 }) &&
 			          link.Images.Sum(x => x.Payload.Length) == 4032,
 			      "USB whole-row raster countdown and exact payload");
-			check(link.Feed.SequenceEqual(new byte[] { 150, 0 }) && !link.Commands.Contains(24),
-			      "USB feed150 and no CRC-key/FF03 handshake");
+			check(link.Feed.SequenceEqual(new byte[] { (byte)settings.Feed, (byte)(settings.Feed >> 8) }) &&
+			      !link.Commands.Contains(24), "USB honors selected feed and skips CRC-key/FF03 handshake");
 			foreach (ushort media in new ushort[] { 1, 16, 17 })
 			{
 				link.Media = media;

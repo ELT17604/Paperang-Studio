@@ -21,10 +21,15 @@ public sealed record AppSettings
 	public bool ? StartAtLogin { get; init; }
 	public string Style { get; init; } = "便签";
 	public int Density { get; init; } = 100;
-	public int Feed { get; init; } = 150;
+	public int Feed { get; init; } = P2Defaults.FinalFeed;
+	public WorkspaceSettings? TransferSettings { get; init; }
 	public bool IncludeSender { get; init; } = true;
 	public bool IncludeTime { get; init; } = true;
 	public bool IncludeId { get; init; }
+	public bool IncludeText { get; init; } = true;
+	public bool IncludeIp { get; init; }
+	public bool IncludeUa { get; init; }
+	public bool IncludeDevice { get; init; }
 	public List<RelayTemplate> Templates { get; init; } = RelayTemplate.Defaults();
 	public string TemplateId { get; init; } = "";
 	public AppSettings WithPrintingFrom(AppSettings source) => this with { Style = source.Style,
@@ -35,6 +40,11 @@ public sealed record AppSettings
 	                                                                       IncludeSender = source.IncludeSender,
 	                                                                       IncludeTime = source.IncludeTime,
 	                                                                       IncludeId = source.IncludeId,
+	                                                                       IncludeText = source.IncludeText,
+	                                                                       IncludeIp = source.IncludeIp,
+	                                                                       IncludeUa = source.IncludeUa,
+	                                                                       IncludeDevice = source.IncludeDevice,
+	                                                                       TransferSettings = source.TransferSettings,
 	                                                                       AutoAllowPrint = source.AutoAllowPrint };
 	public Uri Validate()
 	{
@@ -105,6 +115,13 @@ public sealed record Raster(int Height, byte[] Bytes)
 		}
 		return output;
 	}
+	public Raster TrimTrailingBlankRows()
+	{
+		Validate();
+		int last = Bytes.AsSpan().LastIndexOfAnyExcept((byte)0);
+		int height = last < 0 ? 1 : last / 72 + 1;
+		return height == Height ? this : new Raster(height, Bytes[..(height * 72)]);
+	}
 	public static Raster Stack(IEnumerable<(Raster Image, int Gap)> parts)
 	{
 		using var stream = new MemoryStream();
@@ -125,9 +142,12 @@ public sealed record Raster(int Height, byte[] Bytes)
 
 public sealed record RelayJob
 {
+	[JsonRequired]
 	public string Id { get; init; } = "";
 	public string ShortID { get; init; } = "";
+	[JsonRequired]
 	public string Text { get; init; } = "";
+	[JsonRequired]
 	public Dictionary<string, JsonElement> Metadata { get; init; } = [];
 	public double Created { get; init; }
 	public string State { get; init; } = "queued";
@@ -139,7 +159,7 @@ public sealed record RelayJob
 		                                                                                   : "Anonymous";
 	public RelayJob Validate()
 	{
-		if (!Regex.IsMatch(Id, "^(?:[a-f0-9]{40}|[a-f0-9-]{36})$") || Text.Length > 10000 || Metadata is null ||
+		if (Id is null || Text is null || !Regex.IsMatch(Id, "^(?:[a-f0-9]{40}|[a-f0-9-]{36})$") || Text.Length > 10000 || Metadata is null ||
 		    !double.IsFinite(Created))
 			throw new InvalidDataException("服务器任务格式无效");
 		return this;
@@ -183,6 +203,12 @@ public interface IPrinter : IDisposable
 	string PartitionDetail => "";
 	Task ConnectAsync(AppSettings settings, CancellationToken ct);
 	Task PrintAsync(Raster raster, AppSettings settings, CancellationToken ct);
+	Task FeedAsync(int lines, CancellationToken ct) => throw new NotSupportedException("此传输不支持手动送纸");
 	Task RefreshAsync(CancellationToken ct);
+	Task<byte[]> QueryAsync(byte command, CancellationToken ct) => throw new NotSupportedException("当前传输未实现协议查询。");
+	Task ApplyDensityAsync(int density, CancellationToken ct) => throw new NotSupportedException("当前传输未实现浓度设置。");
+	void ConfigureTransfer(WorkspaceSettings settings) => settings.Validate();
+	void ObserveTrace(Action<ProtocolTrace> observer) { }
+	Task SendEngineeringAsync(byte command, byte[] payload, CancellationToken token) => throw new NotSupportedException("此传输未实现工程写入。");
 	void Disconnect();
 }

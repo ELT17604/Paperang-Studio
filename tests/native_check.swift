@@ -18,6 +18,11 @@ import IntegrationCore
 	{
 		_ = NSApplication.shared
 		NSApp.finishLaunching()
+		for settings in [PrintSettings(), .preset("照片"), .preset("标签"), .preset("线稿")]
+		{
+			try settings.validate()
+			ensure(settings.marginX == 0 && settings.marginY == 0 && settings.contentWidth == 576 && settings.feedAfter == 160)
+		}
 		for old in ["0.3.2-macclient", "0.3.1-macclient", "v0.3.1-macclient-opt99", "0.3.1-macclient-fix99"]
 		{
 			ensure(ProductVersion.parse(old)!.lexicographicallyPrecedes(ProductVersion.parse("0.3.3-macclient")!))

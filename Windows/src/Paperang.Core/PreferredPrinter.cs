@@ -69,6 +69,20 @@ public sealed class PreferredPrinter(IPrinter usb, IPrinter bluetooth) : IPrinte
 	                       CancellationToken ct) => active?.PrintAsync(raster, settings, ct) ??
 	                                                throw new InvalidOperationException("打印机未连接");
 	public Task RefreshAsync(CancellationToken ct) => active?.RefreshAsync(ct) ?? Task.CompletedTask;
+	public Task<byte[]> QueryAsync(byte command, CancellationToken ct) => active?.QueryAsync(command, ct) ??
+		throw new InvalidOperationException("打印机未连接。");
+	public Task ApplyDensityAsync(int density, CancellationToken ct) => active?.ApplyDensityAsync(density, ct) ??
+		throw new InvalidOperationException("打印机未连接。");
+	public void ConfigureTransfer(WorkspaceSettings settings)
+	{
+		if (active == null) throw new InvalidOperationException("打印机未连接。");
+		active.ConfigureTransfer(settings);
+	}
+	public Task SendEngineeringAsync(byte command, byte[] payload, CancellationToken token) =>
+		active?.SendEngineeringAsync(command, payload, token) ?? throw new InvalidOperationException("打印机未连接。");
+	public void ObserveTrace(Action<ProtocolTrace> observer) { usb.ObserveTrace(observer); bluetooth.ObserveTrace(observer); }
+	public Task FeedAsync(int lines, CancellationToken ct) => active?.FeedAsync(lines, ct) ??
+	                                                         throw new InvalidOperationException("打印机未连接");
 	public void Disconnect()
 	{
 		active = null;

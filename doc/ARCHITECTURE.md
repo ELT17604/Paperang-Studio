@@ -42,4 +42,6 @@ Maintain API.md, OpenAPI, clients, and route behavior together. New protocol com
 
 ## Windows USB transport
 
-WinLite0.3.3 adds Core/PreferredPrinter.cs for connection-boundary transport choice, Core/UsbP2Session.cs for serialized USB protocol, and WinLite/UsbPrinter.cs for present SetupAPI discovery/cancellable USBPRINT streams. The existing IPrinter/RelayEngine journal contract and BLE session remain. Python diagnostics remain independent. [Release](RELEASE-v0.3.3-winlite.md) · [Protocol](USB-PROTOCOL.md).
+WinClient uses `Windows/src/Paperang.Core` for settings, layouts, BLE/USB protocols, loopback HTTP and durable Relay ownership; `Paperang.Windows` owns platform transports, rendering, DPAPI and ConPTY; `Paperang.WinClient` owns the WinUI desktop. WinLite remains a paused compatibility frontend to the shared libraries. `PreferredPrinter` chooses transport at connection boundaries; uncertain sends never fall back/replay on another transport. [Current Windows guide](WINDOWS.md) · [USB protocol](USB-PROTOCOL.md).
+
+Desktop fixtures live under `tests/windows/WinClientChecks` and are compiled only with `PaperangDesktopChecks=true`. Production publishing excludes them and performs an offline WinUI startup smoke test. Build output, SDK/package caches, installers and test data belong in the sibling development directory, not the source tree.

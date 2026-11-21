@@ -20,15 +20,15 @@ Distributions preserve shared contracts within a release series. A later generat
 |---|---|---|
 | Product compatibility baseline | `0.3.x` | Distributions implementing their applicable shared contracts |
 | Published GitHub product release | `v0.3.2` | Published packages and release notes |
-| Relay HTTP API | `v2` | LinuxRelayServer, MacClient and WinLite relay integration |
-| Mac Local HTTP API | `v2` | MacClient loopback HTTP interface |
+| Relay HTTP API | `v2` | LinuxRelayServer, MacClient and Windows relay integration |
+| Local HTTP API | `v2` | MacClient and WinClient loopback interfaces; platform differences are documented |
 | Content, templates and saved configuration | schema 1 | Independently versioned formats, where implemented |
-| Printer transport | Legacy P2 576-dot BLE, plus P2 USB on WinLite | Device transport, independent of HTTP APIs |
+| Printer transport | Legacy P2 576-dot BLE, plus P2 USB on Windows | Device transport, independent of HTTP APIs |
 
 ## Distribution versions and builds
 
-Use `vMAJOR.MINOR.PATCH-distribution[-note]`, for example `v0.3.3-androidclient`. Runtime identifiers may omit the leading `v`. Patch numbers and build metadata are distribution-specific. MacClient uses bundle build `3302`, AndroidClient uses `versionCode 11`, and WinLite uses assembly version `0.3.3.0`. Installers and update checks use their platform metadata. Interoperability uses explicit API versions, schemas and capabilities.
+Use `vMAJOR.MINOR.PATCH-distribution[-note]`, for example `v0.3.3-androidclient`. Runtime identifiers may omit the leading `v`. Patch numbers and build metadata are distribution-specific. MacClient uses bundle build `3303`, AndroidClient uses `versionCode 12`, and Windows applications use assembly version `0.3.3.0`. Installers and update checks use their platform metadata. Interoperability uses explicit API versions, schemas and capabilities.
 
-Optional suffixes include `fixN`, `optN`, `alphaN`, `betaN` and `rcN`. Preserve published tags and artifact names. For a distribution update, revise its version source, registry, changelog and feature matrix, then run `python3 scripts/check-versions.py` and the relevant local platform checks.
+Optional suffixes include `devN` (development builds), `fixN`, `optN`, `alphaN`, `betaN` and `rcN`. Preserve published tags and artifact names. For a distribution update, revise its version source, registry, changelog and feature matrix, then run `python3 scripts/check-versions.py` and the relevant local platform checks.
 
 [v0.3.2 release record](RELEASE-v0.3.2.md) · [API v2 contract](API-v2-032.md)

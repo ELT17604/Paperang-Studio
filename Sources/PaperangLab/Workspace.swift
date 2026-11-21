@@ -355,7 +355,10 @@ extension Lab
 							ack: false)
 						self.progress = Double(copy * packets + index + 1) / Double(s.copies * packets)
 						self.jobStatus = "第\(copy+1)/\(s.copies)份 · 分包\(index+1)/\(packets)"
-						try await Task.sleep(for: .milliseconds(s.framePauseMS))
+						if s.framePauseMS > 0
+						{
+							try await Task.sleep(for: .milliseconds(s.framePauseMS))
+						}
 					}
 					try await Task.sleep(for: .seconds(s.finishWaitSeconds))
 					if s.feedAfter > 0 && (s.feedBetweenCopies || copy == s.copies - 1)

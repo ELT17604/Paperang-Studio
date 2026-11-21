@@ -16,7 +16,7 @@ public sealed record RelayBlock
 	public double Size { get; init; } = 24;
 	public bool Bold { get; init; }
 	public string Alignment { get; init; } = "居左";
-	public int Margin { get; init; } = 12;
+	public int Margin { get; init; } = 0;
 	public int Gap { get; init; } = 8;
 	public override string ToString() => (Enabled ? "☑ " : "☐ ") + Kind + "  ·  " + Size;
 	public string Value(RelayJob job)

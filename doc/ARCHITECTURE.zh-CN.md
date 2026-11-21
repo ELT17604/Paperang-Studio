@@ -43,4 +43,6 @@ OpenAPI 定义与应用路由同步维护。发布包包含应用、许可证和
 
 ## Windows USB 传输架构
 
-WinLite0.3.3新增Core/PreferredPrinter.cs连接边界选择、Core/UsbP2Session.cs串行USB会话、WinLite/UsbPrinter.cs在场枚举与可取消USBPRINT流。复用IPrinter/RelayEngine持久结果机制，保留BLE会话，Python诊断仍独立。[发行](RELEASE-v0.3.3-winlite.zh-CN.md) · [协议](USB-PROTOCOL.zh-CN.md)。
+WinClient 使用 `Windows/src/Paperang.Core` 保存协议、参数、排版、本机 HTTP 与中转持久认领；`Paperang.Windows` 提供 Windows 传输、渲染、DPAPI 和 ConPTY；`Paperang.WinClient` 提供 WinUI 桌面。WinLite 保留为暂停研发的兼容前端。`PreferredPrinter` 只在连接边界选择传输，不确定任务不通过另一传输重打。[Windows 指南](WINDOWS.zh-CN.md) · [USB 协议](USB-PROTOCOL.zh-CN.md)。
+
+桌面夹具位于 `tests/windows/WinClientChecks`，只有 `PaperangDesktopChecks=true` 的验收包才编译；生产包排除夹具并执行离线启动检查。构建物、SDK/依赖缓存、安装包、测试数据位于仓库旁的开发目录，不进入源码。

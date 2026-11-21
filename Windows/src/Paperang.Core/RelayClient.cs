@@ -15,7 +15,7 @@ public sealed class RelayClient : IDisposable
 	public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
 	private readonly HttpClient http;
 	private readonly OwnerAuthentication? owner;
-	public RelayClient(AppSettings settings, HttpMessageHandler? handler = null)
+	public RelayClient(AppSettings settings, HttpMessageHandler? handler = null, string? productVersion = null)
 	{
 		http = new HttpClient(handler ?? new HttpClientHandler { AllowAutoRedirect = false }) {
 			BaseAddress = settings.Validate(),
@@ -25,7 +25,7 @@ public sealed class RelayClient : IDisposable
 			owner = new(settings.OwnerKeyFile, settings.Validate());
 		else
 			http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.DeviceKey);
-		http.DefaultRequestHeaders.UserAgent.ParseAdd("PaperangStudio/" + AppVersion.Current);
+		http.DefaultRequestHeaders.UserAgent.ParseAdd("PaperangStudio/" + (productVersion ?? AppVersion.Current));
 		http.DefaultRequestHeaders.Add("X-Paperang-Content-Types", "text,raster1");
 		http.DefaultRequestHeaders.CacheControl = new() { NoCache = true, NoStore = true };
 	}

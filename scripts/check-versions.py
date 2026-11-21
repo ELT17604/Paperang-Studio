@@ -21,7 +21,7 @@ for name, item in registry["distributions"].items():
 	assert item["compatibleBaseline"] == baseline
 	assert (root / item["documentation"]).is_file()
 	assert re.fullmatch(
-		r"v\d+\.\d+\.\d+-" + name + r"(?:-(?:fix|opt|alpha|beta|rc)[1-9]\d*)?", item["version"]
+		r"v\d+\.\d+\.\d+-" + name + r"(?:-(?:dev|fix|opt|alpha|beta|rc)[1-9]\d*)?", item["version"]
 	)
 	source = (root / item["versionSource"]).read_text(encoding="utf-8").strip()
 	runtime = item["runtimeVersion"]
@@ -29,6 +29,9 @@ for name, item in registry["distributions"].items():
 	assert item["version"] == "v" + runtime
 	if name == "linuxrelayserver":
 		assert re.search(r"APP_VERSION\s*=\s*['\"]" + re.escape(runtime) + r"['\"]", source)
+	elif name == "winclient":
+		assert f"<InformationalVersion>{runtime}</InformationalVersion>" in source
+		assert f'Version = "{runtime}"' in (root / "Windows/src/Paperang.WinClient/Program.cs").read_text(encoding="utf-8")
 	else:
 		assert source == runtime
 win = registry["distributions"]["winlite"]["runtimeVersion"]
@@ -43,16 +46,21 @@ assert registry["compatibility"]["localApi"] == registry["compatibility"]["relay
 assert (root / "VERSION").read_text().strip() == registry["distributions"]["macclient"]["runtimeVersion"]
 print("PASS product/component versions, API baseline and policy/matrix")
 
-for project in ("Paperang.Core", "Paperang.WinLite"):
+for project in ("Paperang.Core", "Paperang.Windows", "Paperang.WinLite", "Paperang.WinClient"):
 	metadata = (root / f"Windows/src/{project}/{project}.csproj").read_text(encoding="utf-8")
 	assert f"<Version>{win_number}</Version>" in metadata
 	assert f"<AssemblyVersion>{win_number}.0</AssemblyVersion>" in metadata
 	assert f"<FileVersion>{win_number}.0</FileVersion>" in metadata
-	assert f"<InformationalVersion>{win}</InformationalVersion>" in metadata
+	information = win if project == "Paperang.WinLite" else registry["distributions"]["winclient"]["runtimeVersion"] if project == "Paperang.WinClient" else win_number
+	assert f"<InformationalVersion>{information}</InformationalVersion>" in metadata
 installer = (root / "Windows/installer/WinLite.iss").read_text(encoding="utf-8")
 assert f'#define AppVersion "{win}"' in installer
 assert f"VersionInfoVersion={win_number}.0" in installer
 print("PASS Windows assembly/file/installer numeric versions and distribution suffix")
+client_installer = (root / "Windows/installer/WinClient.iss").read_text(encoding="utf-8")
+assert f'#define AppVersion "{registry["distributions"]["winclient"]["runtimeVersion"]}"' in client_installer
+assert f"VersionInfoVersion={win_number}.0" in client_installer
+assert registry["distributions"]["winlite"]["status"] == "paused"
 
 android = registry["distributions"]["androidclient"]
 manifest = (root / "Android/AndroidManifest.xml").read_text(encoding="utf-8")

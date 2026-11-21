@@ -105,7 +105,7 @@ An open cover does not establish whether the roll is present, even if bit0 is se
 
 ## 6. Printing, feed and completion
 
-Raster is576 dots/72 bytes per row, MSB-first,1=black, top-to-bottom. Use whole rows, at most1008 bytes/14 rows per frame. Send once per frame, then feed150 lines once after the batch. Host rendering remains responsible for fonts, scale, grayscale and dithering.
+Raster is 576 dots/72 bytes per row, MSB-first, 1=black, top-to-bottom. Use whole rows, at most 1008 bytes/14 rows per frame. Send each frame once; the current normal-batch default is 160 lines of final feed. The 150-line captures below are historical evidence. Host rendering owns fonts, scale, grayscale and dithering.
 
 `19` sets density as **one byte**0–100, and `1C→1D` reads it. USB density60 gave a faint initial pattern; density100 was written and read back. The Java README's short-width description conflicts with its single-byte Commands.kt implementation; physical readback settles this unit's payload width. `1A` uses a u16LE line count.
 

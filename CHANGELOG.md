@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-21 · WinClient and repository consolidation
+
+- Make WinClient the active Windows desktop target; pause WinLite feature development and retain its historical source/guide.
+- Add the editing-first WinUI workspace, live selectable Bluetooth discovery, explicit connection states, Mac/Android JSON import, native templates/management, local API, ConPTY and independent installer.
+- Share Windows transports/rendering/storage through `Paperang.Windows`; exclude desktop fixtures from production publishing and verify both the isolated test app and production startup.
+- Align default timing with Android, zero page margins/full 576-dot width and 160-line normal final feed. Preserve saved explicit preferences and terminal zero-feed batches.
+- Refresh bilingual guides, architecture, version/feature registries, documentation links, wiki catalog, screenshots and validation boundaries. No GitHub binary release is created by this source update.
+
 ## opt1
 
 - **MacClient:** adjustable sidebar, smaller minimum window and Command–1 through Command–3 workspace shortcuts.

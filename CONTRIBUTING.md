@@ -8,9 +8,11 @@ Releases follow the [distribution version policy](doc/VERSIONING.md). Update [VE
 
 Read the [protocol](doc/PROTOCOL.md), [architecture](doc/ARCHITECTURE.md), and [acquisition record](doc/ACQUISITION.md) first. Protocol changes should include pinned source links or redacted captures, model/firmware, CRC and ACK/data distinctions, and physical observations. Do not present emulator constants as device measurements. Preserve576-column whole-row packing and the shared device lock.
 
-Connect every paper-using feature to the sidebar's single global switch. Default to no automatic connection/printing and no automatic replay of failed jobs. Keep API routes, [API documentation](doc/API.md), [OpenAPI](doc/openapi.json), and clients synchronized. Keep actual Chinese wire enum values unchanged when translating documentation.
+Connect every paper-using feature to the sidebar's single global switch, which starts off. Automatic receiver reconnection follows saved platform preferences; it must not authorize paper consumption or replay. Keep API routes, [API documentation](doc/API.md), [OpenAPI](doc/openapi.json), and clients synchronized. Keep actual Chinese wire enum values unchanged when translating documentation.
 
 Validate UI changes in the app and record hardware validation scope. Keep build/test output, credentials, raw device identifiers, sessions, and third-party checkouts outside the published source. English pages use default filenames; Chinese translations live under `doc/*.zh-CN.md`, with reciprocal language links.
+
+Windows development targets WinClient. Keep desktop fixtures under `tests/windows/WinClientChecks`, compile them only for verification, and exclude them from production payloads. Run `scripts/check-source.py`, `scripts/check-docs.py`, `scripts/check-versions.py`, `tests/test_contract_inventory.py` and applicable platform checks before pushing. The wiki build uses committed source; build/check it after committing documentation changes and before pushing.
 
 Contributions/adaptations follow CC BY-NC-SA 4.0: retain ELT Group attribution, [LICENSE](LICENSE), and [NOTICE](NOTICE). Distribution to other Macs may require Developer ID signing and notarization.
 

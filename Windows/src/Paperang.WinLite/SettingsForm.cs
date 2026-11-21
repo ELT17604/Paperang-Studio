@@ -237,7 +237,7 @@ internal sealed class SettingsForm : Form
 			template.Enabled = style.Text == "自定义";
 		};
 		Add(printing.Body, "",
-		    Hint("与 macOS 相同：576 点宽、浓度 100、批后送纸 150 行。\n支持文字与 raster1 " +
+		    Hint($"与 macOS 相同：576 点宽、浓度 100、默认批后送纸 {P2Defaults.FinalFeed} 行。\n支持文字与 raster1 " +
 		         "黑白绘图；打印前检查纸仓并回读浓度。\n暂停只影响新任务，已进入打印机缓存的数据可能继续输出。\n“数据" +
 		         "已发送”需要你核对实际纸面；不确定任务不会自动重打。"));
 		Add(general.Body, "", autoConnect);

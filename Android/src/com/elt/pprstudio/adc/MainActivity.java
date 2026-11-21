@@ -1014,9 +1014,7 @@ import java.util.concurrent.Executors;
 			              var layout = switch (item)
 			              {
 				              case 2 ->
-					              new PaperRenderer.LayoutOptions(12, 8, 552, 1, 42, 4, "sans-serif", true, 0, 0, 400);
-				              case 3 ->
-					              new PaperRenderer.LayoutOptions(0, 12, 576, 1, 30, 4, "sans-serif", false, 0, 0, 400);
+					              new PaperRenderer.LayoutOptions(0, 0, Raster.WIDTH, 1, 42, 4, "sans-serif", true, 0, 0, 400);
 				              default -> PaperRenderer.LayoutOptions.DEFAULT;
 			              };
 			              var tone = switch (item)

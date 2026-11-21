@@ -486,7 +486,7 @@ struct Content: View
 				integer("打印前送纸 行", value: $lab.settings.feedBefore, range: 0...2000)
 				integer("打印后送纸 行", value: $lab.settings.feedAfter, range: 0...2000)
 				Toggle("每份后都送纸", isOn: $lab.settings.feedBetweenCopies)
-				Text("关闭时仅在整批末尾送纸。推荐浓度100、批后送纸150行。").font(.caption).foregroundStyle(.secondary)
+				Text("关闭时仅在整批末尾送纸。推荐浓度100、批后送纸160行。").font(.caption).foregroundStyle(.secondary)
 				Button("仅应用浓度并回读", action: lab.applyDensity).disabled(!lab.ready)
 			}
 		} label:

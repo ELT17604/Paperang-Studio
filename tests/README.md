@@ -6,6 +6,8 @@ Run commands from the repository root.
 
 ```sh
 python3 scripts/check-versions.py
+python3 scripts/check-docs.py
+python3 scripts/check-source.py
 python3 tests/test_contract_inventory.py
 node --check Clients/paperang-client.js
 node --check Server/web/app.js
@@ -44,3 +46,7 @@ tests/android/runtime.sh <emulator-serial>
 ## Windows
 
 [Windows local tests](windows/README.md)
+
+WinClient desktop fixtures are under `windows/WinClientChecks`, compiled only by the verification build. `Windows/scripts/build-client.ps1` runs that separate application, then publishes a fixture-free production application and checks its offline startup. The suite never authorizes physical printing or uses saved Relay credentials.
+
+The deployment/console server tests require a POSIX Python runtime (`fcntl` and curses); use Linux/WSL rather than weakening those tests on Windows. Native macOS and full Android build/runtime checks require their own SDKs.

@@ -35,7 +35,8 @@ Enable **Global paper use** (`全局允许耗纸`) once in the sidebar. It contr
 
 - Density: 0–100, default 100; written and read back before each print.
 - Copies: 1–20. Feed before/after: 0–2000 device lines.
-- Default final feed: 150 lines, physically confirmed as convenient on the tested unit.
+- Default final feed: 160 lines for new settings. Existing saved feed values are kept.
+- New layouts default to 0 px on every edge and can use the full 576-dot print width. Final feed is separate.
 - With feed after every copy disabled, the final feed occurs once after the whole batch.
 - **Feed only** uses the current feed-after value.
 

@@ -1,3 +1,4 @@
+global using Paperang.Windows;
 using Paperang.Core;
 using Paperang.WinLite;
 using System.Net;
@@ -76,6 +77,16 @@ static class Tests
 			Check(Convert.ToHexString(Wire.Encode(24, [0x21, 0x95, 0x76, 0x35], 0x35769521)) ==
 			          "0218000400219576351CDF442103",
 			      "handshake golden frame from independent Python zlib");
+			Check(P2Command.All.Where(command => command.Kind == "查询").Select(command => command.Code).Order()
+				.SequenceEqual(P2Queries.Responses.Keys.Order()), "engineering catalog query entries exactly match the supported GET whitelist");
+			foreach (var (command, payload) in new (byte, byte[])[] { (25, [100]), (26, [0xd0, 7]), (30, [8, 7]), (39, [0, 0]), (20, [0]), (44, [1]), (27, [0]), (34, [0]) })
+				P2Engineering.Validate(command, payload);
+			foreach (var (command, payload) in new (byte, byte[])[] { (2, [0]), (3, [0]), (1, [0]), (25, [101]), (26, [0xd1, 7]), (27, [1]), (34, [0, 0]), (30, [0]) })
+			{
+				try { P2Engineering.Validate(command, payload); throw new Exception("Unsafe engineering write accepted"); }
+				catch (ArgumentException) { }
+			}
+			Check(true, "engineering whitelist accepts Mac command payloads and rejects firmware, compressed data and invalid values");
 			var good = Wire.Encode(13, [8, 0]);
 			var decoder = new FrameDecoder();
 			Check(!decoder.Push(good[..6]).Any() &&
@@ -100,14 +111,31 @@ static class Tests
 			}
 			using (var link = new FakeBle()) using (var session = new P2Session(link))
 			{
+				var traces = new List<ProtocolTrace>();
+				session.Trace = traces.Add;
 				link.Prime();
 				await session.HandshakeAsync(default);
 				Check(session.Ready, "P2 model and BLE handshake");
+				Check((await session.QueryAsync(8, default)).SequenceEqual(new byte[] { 1, 2, 3 }),
+				      "GET 0x08 accepts the documented shared 0x0B response, not command plus one");
+				int beforeQuery = link.WriteCount;
+				try { await session.QueryAsync(25, default); throw new Exception("write command accepted as query"); }
+				catch (ArgumentException) { }
+				Check(link.WriteCount == beforeQuery, "read-only query API rejects a density write before transmission");
 				await session.PrintAsync(new Raster(30, new byte[2160]), Settings, default);
 				Check(link.Bitmaps.Select(x => x.Index).SequenceEqual(new byte[] { 0, 1, 2 }) &&
 				          link.Bitmaps.SelectMany(x => x.Payload).Count() == 2160,
 				      "1008 byte image payloads, increasing index and exact bytes");
-				Check(link.Feed.SequenceEqual(new byte[] { 150, 0 }), "150 line little-endian feed");
+				Check(link.Feed.SequenceEqual(new byte[] { 160, 0 }), "160 line little-endian feed");
+				Check(traces.Any(trace => trace.Direction == "RX" && trace.Command == 7) &&
+				      traces.Count(trace => trace.Direction == "TX" && trace.Command == 0 && trace.PayloadHex == "[图像内容省略]") == 3,
+				      "protocol trace records real TX/RX frames and omits image content");
+				int engineeringWrites = link.WriteCount;
+				try { await session.SendEngineeringAsync(2, [0], default); throw new Exception("firmware write accepted"); }
+				catch (ArgumentException) { }
+				Check(link.WriteCount == engineeringWrites, "engineering firmware rejection happens before transmission");
+				await session.SendEngineeringAsync(25, [93], default);
+				Check((await session.QueryAsync(28, default)).SequenceEqual(new byte[] { 93 }), "engineering density writes require successful density readback");
 				link.Media = 0x10;
 				int before = link.Bitmaps.Count;
 				try
@@ -141,6 +169,24 @@ static class Tests
 				}
 				Check(link.Bitmaps.Count == before, "density read-back mismatch blocks image writes");
 			}
+			using (var link = new FakeBle()) using (var session = new P2Session(link))
+			{
+				link.Prime();
+				await session.HandshakeAsync(default);
+				var custom = new WorkspaceSettings { PacketBytes = 72, BleChunk = 40, WritePauseMS = 5, FinishWaitSeconds = 1 };
+				await session.PrintAsync(new Raster(3, new byte[216]), Settings with { TransferSettings = custom, Feed = 0 }, default);
+				Check(link.Bitmaps.Count == 3 && link.Bitmaps.All(frame => frame.Payload.Length == 72) &&
+				      link.Bitmaps.Select(frame => frame.Index).SequenceEqual(new byte[] { 0, 1, 2 }),
+				      "custom transfer preset controls actual BLE payload sizes and frame indices");
+				int writes = link.WriteCount;
+				try
+				{
+					await session.PrintAsync(new Raster(257, new byte[257 * 72]), Settings with { TransferSettings = custom }, default);
+					throw new Exception("Frame index overflow accepted");
+				}
+				catch (InvalidDataException) { }
+				Check(link.WriteCount == writes, "oversized custom partition rejected before any printer writes");
+			}
 			using (var link = new FakeBle { Model = "Paperang_P1" }) using (var session = new P2Session(link))
 			{
 				link.Prime();
@@ -168,6 +214,52 @@ static class Tests
 				Check(link.WriteCount == 0, "no BLE writes without FF03 credits; cancellation remains responsive");
 			}
 			Raster image = new(1, new byte[72]);
+			var grayRow = Enumerable.Repeat(128.0, 576).ToArray();
+			var ordered = (new WorkspaceSettings { Conversion = "有序抖动" }).ConvertGray(grayRow, 1);
+			Check(ordered.Bytes.All(value => value == 0x55), "ordered dithering matches the Mac Bayer row golden vector");
+			Check((new WorkspaceSettings { Invert = true }).ConvertGray(Enumerable.Repeat(255.0, 576).ToArray(), 1).Bytes.All(value => value == 255),
+			      "tone inversion applies before one-bit packing");
+			var patchedSettings = JsonSerializer.Deserialize<WorkspaceSettings>("{\"version\":1,\"marginX\":0,\"marginY\":0,\"contentWidth\":576,\"gamma\":1.3,\"feedAfter\":160}", RelayClient.Json)!.Validate();
+			Check(JsonSerializer.Deserialize<WorkspaceSettings>(JsonSerializer.Serialize(patchedSettings, RelayClient.Json), RelayClient.Json) == patchedSettings,
+			      "Mac schema 1 parameter names preserve tone and print options through JSON");
+			foreach (var invalid in new[] { new WorkspaceSettings { Gamma = 0 }, new WorkspaceSettings { MarginX = 12 },
+				new WorkspaceSettings { Contrast = double.NaN }, new WorkspaceSettings { Rotation = 45 } })
+			{
+				try { invalid.Validate(); throw new Exception("invalid workspace settings accepted"); }
+				catch (InvalidDataException) { }
+			}
+			Check(true, "invalid tone, overflowing margins and non-quadrant rotation are rejected");
+			var blackRow = new Raster(1, Enumerable.Repeat((byte)255, 72).ToArray());
+			var layout = PaperLayout.Render(3, [new(blackRow, 7, 1, 3, 1), new(image, 8, 1, 1, 1)]);
+			Check(layout.Bytes[72] == 1 && layout.Bytes[73] == 64 && layout.Bytes.Count(value => value != 0) == 2,
+			      "free layout positions across byte boundaries and applies top-layer white occlusion");
+			try
+			{
+				_ = PaperLayout.Render(1, [new(image, 575, 0, 2, 1)]);
+				throw new Exception("accepted off-paper layer");
+			}
+			catch (InvalidDataException) { }
+			Check(RelayTemplate.Defaults().SelectMany(template => template.Blocks).All(block => block.Margin == 0),
+			      "new Windows relay templates use full paper width");
+			var tight = NoteRenderer.RenderText("Ågj", "Arial", 30, false, "居左", 0, 0, 10);
+			var inset = NoteRenderer.RenderText("Ågj", "Arial", 30, false, "居左", 0, 6, 0);
+			Check(inset.Height == tight.Height + 12 && inset.Bytes.AsSpan(6 * 72, tight.Bytes.Length).SequenceEqual(tight.Bytes),
+			      "explicit vertical margins add only requested rows; line spacing is not added after a single line");
+			var padded = new Raster(3, new byte[216]);
+			padded.Bytes[143] = 1;
+			Check(padded.TrimTrailingBlankRows().Height == 2 && padded.TrimTrailingBlankRows().Bytes[143] == 1 &&
+			          new Raster(3, new byte[216]).TrimTrailingBlankRows().Height == 1,
+			      "trimming preserves leading blank rows and the last black dot");
+			using (var printer = new FakePrinter())
+			{
+				await new LocalPrintOptions(73, 3, 9).SendAsync(printer, image, new(), default);
+				Check(printer.LocalOperations.SequenceEqual(new[] { "feed:9", "print:73:0", "print:73:0", "print:73:160" }),
+				      "local batches feed once before the first copy and 160 lines after the last by default");
+				printer.LocalOperations.Clear();
+				await new LocalPrintOptions(42, 2, After: 20, BetweenCopies: true).SendAsync(printer, image, new(), default);
+				Check(printer.LocalOperations.SequenceEqual(new[] { "print:42:20", "print:42:20" }),
+				      "local batches honor explicit feed after every copy");
+			}
 			var content = JsonSerializer.SerializeToElement(
 			    new { type = "raster1", schemaVersion = 1, width = 576, height = 1, bitOrder = "msb-first",
 				      blackIsOne = true, encoding = "base64", data = Convert.ToBase64String(image.Bytes),
@@ -435,10 +527,14 @@ static class Tests
 		await engine.StartAsync(Settings with { AutoAllowPrint = false });
 		await Until(() => engine.Online);
 		Check(handler.Claims == 0, "paused relay polls without claiming");
-		engine.SetAllowed(true);
+		engine.RequestPrint(Job.Id);
 		await Until(() => journal.Value == null && handler.Sent == 1);
 		Check(printer.Prints == 1 && handler.Claims == 1 && handler.HeadersValid,
-		      "authenticated capability header and exactly-once claim/print/result");
+		      "selected manual Relay task uses authenticated durable claim/print/result without enabling automatic printing");
+		Check(!engine.Allowed, "manual Relay printing preserves automatic printing preference");
+		engine.RequestPrint(Job.Id);
+		await Until(() => engine.PrintMessage.Contains("已不在待处理队列"));
+		Check(handler.Claims == 1 && printer.Prints == 1, "manual request never reclaims a task already sent");
 		await engine.StopAsync();
 
 		journal = new MemoryJournal { Value = new(Settings.Validate().AbsoluteUri,
@@ -471,6 +567,9 @@ static class Tests
 		await Until(() => handler.PrintingReports >= 2);
 		Check(engine.Busy && handler.PrintingReports >= 2,
 		      "pause preserves active send; printing claim heartbeats continue");
+		engine.CancelForPaperPermission();
+		await Until(() => !engine.Running);
+		Check(!engine.Busy && journal.Value?.State == "unknown", "global paper cancellation stops an active Relay send and preserves uncertainty");
 		await engine.StopAsync();
 		Check(journal.Value?.State == "unknown" && !engine.Allowed, "shutdown mid-send leaves unknown and pauses");
 
@@ -576,6 +675,7 @@ static class Tests
 		public double Progress => 0;
 		public int Prints;
 		public bool Wait;
+		public List<string> LocalOperations { get; } = [];
 		public Task ConnectAsync(AppSettings s, CancellationToken ct)
 		{
 			Ready = true;
@@ -584,10 +684,17 @@ static class Tests
 		public async Task PrintAsync(Raster r, AppSettings s, CancellationToken ct)
 		{
 			Prints++;
+			LocalOperations.Add($"print:{s.Density}:{s.Feed}");
 			if (Wait)
 				await Task.Delay(Timeout.Infinite, ct);
 		}
 		public Task RefreshAsync(CancellationToken ct) => Task.CompletedTask;
+		public Task ApplyDensityAsync(int density, CancellationToken ct) => Task.CompletedTask;
+		public Task FeedAsync(int lines, CancellationToken ct)
+		{
+			LocalOperations.Add($"feed:{lines}");
+			return Task.CompletedTask;
+		}
 		public void Disconnect() => Ready = false;
 		public void Dispose()
 		{
@@ -684,6 +791,7 @@ static class Tests
 			if (command == 26)
 				Feed = payload;
 			byte[]? reply = command switch {
+				8 or 10 => [1, 2, 3],
 				6 => Encoding.UTF8.GetBytes(Model),
 				16 => [80],
 				12 => [(byte)Media, (byte)(Media >> 8)],
@@ -692,7 +800,7 @@ static class Tests
 			};
 			byte[] frames = Wire.Encode(command, [0]);
 			if (reply != null)
-				frames = frames.Concat(Wire.Encode((byte)(command + 1), reply)).ToArray();
+				frames = frames.Concat(Wire.Encode(P2Queries.Expected(command), reply)).ToArray();
 			Data?.Invoke(frames[..7]);
 			Data?.Invoke(frames[7..]);
 			return Task.CompletedTask;

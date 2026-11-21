@@ -1,5 +1,7 @@
 # 本机 HTTP API v2
 
+本页详细描述 MacClient 契约。WinClient 在 `127.0.0.1:8766` 提供主要 v2 操作，手动启停并校验令牌/Origin；API 与 Shell 随工作台窗口关闭。下文 Mac 命令行参数不适用于 Windows；字段、返回状态和完整 OpenAPI 请求 schema 的严格对齐仍有差异。见 [Windows 指南](WINDOWS.zh-CN.md)及[验证范围](WINCLIENT.zh-CN.md)。
+
 [English](API.md) · [中文文档目录](INDEX.zh-CN.md)
 
 API由App内置Network.framework服务提供。基础地址 `http://127.0.0.1:8176`，默认关闭、仅回环监听。应用工作台、TTY、API共用连接与打印互斥锁；API不会另外抢占打印机。

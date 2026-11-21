@@ -23,3 +23,8 @@ Server/config.json
 **/obj/
 .vs/
 *.user
+**/.venv/
+**/.nuget/
+*.log
+*.pfx
+*.p12

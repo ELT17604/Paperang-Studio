@@ -18,7 +18,7 @@ struct MacConfiguration: Codable
 	var defaultAutoPrint = false
 	var style = "便签"
 	var density = 100
-	var feed = 150
+	var feed = PrintSettings.defaultFeedAfter
 	var includeText = true
 	var includeSender = true
 	var includeTime = true

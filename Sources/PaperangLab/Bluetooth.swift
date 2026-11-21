@@ -137,7 +137,7 @@ final class Lab: NSObject, ObservableObject, @preconcurrency CBCentralManagerDel
 	var relayPreviewTask: Task<Void, Never>?
 	var relayPreviewSession = UUID()
 	@Published var relayDensity = 100
-	@Published var relayFeed = 150
+	@Published var relayFeed = PrintSettings.defaultFeedAfter
 	@Published var relayPreview: NSImage?
 	@Published var relayMutating = false
 	@Published var relayKeepReconnecting =
@@ -560,7 +560,7 @@ final class Lab: NSObject, ObservableObject, @preconcurrency CBCentralManagerDel
 			{
 				credits += Int(b[1])
 			}
-			if b.count >= 3 && b[0] == 2
+			if b.count >= 3 && b[0] == 2 && (b[1] != 0 || b[2] != 0)
 			{
 				packetLimit = min(packetLimit, Int(b[1]) | Int(b[2]) << 8)
 			}
@@ -611,11 +611,13 @@ final class Lab: NSObject, ObservableObject, @preconcurrency CBCentralManagerDel
 		credits -= 1
 		let d = queue.removeFirst()
 		log("TX BLE", Wire.hex(d))
+		let clock = ContinuousClock()
+		let nextWrite = clock.now.advanced(by: .milliseconds((activeSettings ?? settings).writePauseMS))
 		p.writeValue(d, for: w, type: .withoutResponse)
 		Task
 		{
 			let g = generation
-			try? await Task.sleep(for: .milliseconds((activeSettings ?? settings).writePauseMS))
+			try? await clock.sleep(until: nextWrite)
 			guard g == generation else
 			{
 				return

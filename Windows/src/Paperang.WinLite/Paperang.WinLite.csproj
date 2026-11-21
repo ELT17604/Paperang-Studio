@@ -12,5 +12,9 @@
     <Copyright>© 2026 ELT Group</Copyright>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../Paperang.Core/Paperang.Core.csproj" /></ItemGroup>
+  <ItemGroup>
+    <Compile Remove="BlePrinter.cs;UsbPrinter.cs;NoteRenderer.cs;LocalStore.cs" />
+    <ProjectReference Include="../Paperang.Windows/Paperang.Windows.csproj" />
+  </ItemGroup>
   <ItemGroup><EmbeddedResource Include="../../../assets/AppIcon.ico" LogicalName="Paperang.AppIcon.ico" /></ItemGroup>
 </Project>

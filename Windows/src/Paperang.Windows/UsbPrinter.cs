@@ -2,16 +2,18 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using Paperang.Core;
 
-namespace Paperang.WinLite;
+namespace Paperang.Windows;
 
 public sealed class UsbPrinter : IPrinter
 {
 	private WindowsUsbLink? link;
 	private UsbP2Session? session;
+	private Action<ProtocolTrace>? protocolTrace;
+	public void ObserveTrace(Action<ProtocolTrace> observer) { protocolTrace = observer; if (session != null) session.Trace = observer; }
 	private string lastStatus = "USB：未连接";
 	public string ActiveTransport => "usb";
 	public bool Ready => link?.Connected == true && session?.Ready == true;
-	public string Status => Ready ? session!.Status : lastStatus;
+	public string Status => Ready ? "USB · " + session!.Status : lastStatus;
 	public double Progress => session?.Progress ?? 0;
 	public string PartitionDetail => session?.PartitionDetail ?? "";
 	public async Task ConnectAsync(AppSettings settings, CancellationToken ct)
@@ -24,7 +26,7 @@ public sealed class UsbPrinter : IPrinter
 			lastStatus = "正在连接 USB P2";
 			timeout.Token.ThrowIfCancellationRequested();
 			link = WindowsUsbLink.Open();
-			session = new(link);
+			session = new(link, settings.TransferSettings) { Trace = protocolTrace };
 			await session.ConnectAsync(timeout.Token).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException) when (!ct.IsCancellationRequested)
@@ -44,6 +46,19 @@ public sealed class UsbPrinter : IPrinter
 	                       CancellationToken ct) => session?.PrintAsync(raster, settings, ct) ??
 	                                                throw new InvalidOperationException("USB 打印机未连接");
 	public Task RefreshAsync(CancellationToken ct) => session?.RefreshAsync(ct) ?? Task.CompletedTask;
+	public Task<byte[]> QueryAsync(byte command, CancellationToken ct) => session?.QueryAsync(command, ct) ??
+		throw new InvalidOperationException("打印机未连接。");
+	public Task ApplyDensityAsync(int density, CancellationToken ct) => session?.ApplyDensityAsync(density, ct) ??
+		throw new InvalidOperationException("打印机未连接。");
+	public void ConfigureTransfer(WorkspaceSettings settings)
+	{
+		if (session == null) throw new InvalidOperationException("打印机未连接。");
+		session.ConfigureTransfer(settings);
+	}
+	public Task SendEngineeringAsync(byte command, byte[] payload, CancellationToken token) =>
+		session?.SendEngineeringAsync(command, payload, token) ?? throw new InvalidOperationException("打印机未连接。");
+	public Task FeedAsync(int lines, CancellationToken ct) => session?.FeedAsync(lines, ct) ??
+	                                                          throw new InvalidOperationException("打印机未连接");
 	public void Disconnect()
 	{
 		session?.Dispose();

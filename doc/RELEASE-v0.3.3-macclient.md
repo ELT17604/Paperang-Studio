@@ -1,5 +1,7 @@
 # Paperang Studio v0.3.3-macclient
 
+Current source revision: **0.3.3-macclient-opt2**, bundle build **3303**. Defaults now use zero margins, full 576-dot width, Android-aligned transfer timing and 160-line final feed. Native macOS build/runtime verification for this revision is pending; no new GitHub binary release is implied. [简体中文](RELEASE-v0.3.3-macclient.zh-CN.md)
+
 MacClient 0.3.3 adds a searchable system font picker, configurable QR codes and freeform paper composition. Text boxes support formatting individual characters or selections. The workbench also imports packed .raw and validated raster1 JSON files. The [local raster Skill](../Skills/paperang-local-raster/SKILL.md) helps models generate files for manual preview and printing.
 
 Starting with this release, support for ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill is paused. Their implementations, guides and dedicated automation have been removed from the current tree. The desktop Relay receiver and the local raster generation Skill remain available.

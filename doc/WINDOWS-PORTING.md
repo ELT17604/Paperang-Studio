@@ -1,5 +1,7 @@
 # Windows porting notes
 
+> Historical WinLite porting record. Paths below describe that implementation before the shared Windows backend was extracted. Current development follows [WinClient](WINCLIENT.md) and [architecture](ARCHITECTURE.md); WinLite development is paused.
+
 [简体中文](WINDOWS-PORTING.zh-CN.md) · [Windows guide](WINDOWS.md)
 
 The Windows adaptation is based on macOS revision `b1788b07aacb8c0cff7f86a884e58fb4ad8afb32`. It adds `Windows/` without replacing the Swift/C targets, original server, API clients or icon assets.
@@ -17,7 +19,7 @@ Windows-specific additions are current-user DPAPI, atomic pending-result persist
 
 The Windows scope does not run the macOS workspace, PTY, engineering writes, local HTTP API or administrator-key manager. Automatic print consent is configurable and follows the requested Windows tray behavior; no macOS consent default was changed.
 
-See [WinLite build instructions](WINDOWS.md#build) and [P2 protocol research](RESEARCH.md). Windows UUID-filtered service discovery returned Success with no FF00 entry on the tested stack; full discovery returned it. That observed difference is why the backend selects FF00 after full enumeration.
+See [historical WinLite build instructions](../Windows/LEGACY.md) and [P2 protocol research](RESEARCH.md). Windows UUID-filtered service discovery returned Success with no FF00 entry on the tested stack; full discovery returned it. That observed difference is why the backend selects FF00 after full enumeration.
 
 ## Native USB addition
 

@@ -1,15 +1,16 @@
 import Foundation
 public struct PrintSettings: Codable, Equatable
 {
+	public static let defaultFeedAfter = 160
 	public var version = 1
 	public var fontName = "PingFang SC"
 	public var fontSize = 30.0
 	public var bold = false
 	public var lineSpacing = 4.0
 	public var alignment = "居中"
-	public var marginX = 12
-	public var marginY = 12
-	public var contentWidth = 552
+	public var marginX = 0
+	public var marginY = 0
+	public var contentWidth = 576
 	public var imageFit = "适配宽度"
 	public var cropHeight = 400
 	public var rotation = 0
@@ -22,7 +23,7 @@ public struct PrintSettings: Codable, Equatable
 	public var density = 100
 	public var copies = 1
 	public var feedBefore = 0
-	public var feedAfter = 150
+	public var feedAfter = Self.defaultFeedAfter
 	public var feedBetweenCopies = false
 	public var packetBytes = 1008
 	public var bleChunk = 180
@@ -74,13 +75,10 @@ public struct PrintSettings: Codable, Equatable
 		case "标签":
 			s.fontSize = 42
 			s.bold = true
-			s.marginY = 8
 			s.alignment = "居中"
 		case "线稿":
 			s.conversion = "阈值"
 			s.threshold = 160
-			s.marginX = 0
-			s.contentWidth = 576
 		default: break
 		}
 		return s

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>../../../assets/AppIcon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.3.3</Version>
+    <AssemblyVersion>0.3.3.0</AssemblyVersion>
+    <FileVersion>0.3.3.0</FileVersion>
+    <InformationalVersion>0.3.3-winclient-dev5</InformationalVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PaperangDesktopChecks)' == 'true'">
+    <DefineConstants>$(DefineConstants);PAPERANG_DESKTOP_CHECKS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(PaperangDesktopChecks)' == 'true'">
+    <Compile Include="../../../tests/windows/WinClientChecks/*.cs" Link="Checks/%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.7.0" />
+    <PackageReference Include="QRCoder" Version="1.9.0" />
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+    <ProjectReference Include="../Paperang.Windows/Paperang.Windows.csproj" />
+    <EmbeddedResource Include="../../../assets/AppIcon.ico" LogicalName="Paperang.AppIcon.ico" />
+  </ItemGroup>
+  <Target Name="PublishWinUIResources" AfterTargets="Publish">
+    <ItemGroup>
+      <WinUIResource Include="$(TargetDir)$(AssemblyName).pri;$(TargetDir)App.xbf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WinUIResource)" DestinationFolder="$(PublishDir)" />
+  </Target>
+</Project>

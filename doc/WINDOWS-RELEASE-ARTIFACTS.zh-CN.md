@@ -1,4 +1,8 @@
-# Windows 发布物与本地程序
+# Windows 发布物与历史 WinLite 记录
+
+当前 Windows 目标为 WinClient，安装包为 `PaperangStudio-0.3.3-winclient-dev5-win-x64-setup.exe` 与 `.sha256`，便携目录为 `v0.3.3-winclient-dev5-win-x64`。执行 `Windows/scripts/build-client-installer.ps1` 生成；安装目录为 `%LOCALAPPDATA%/Programs/Paperang Studio`。生产包排除桌面测试夹具和旧 WinLite 应用，源码推送不自动发布 GitHub Release。见 [当前指南](WINDOWS.zh-CN.md)。
+
+## 以下为历史 WinLite 发行记录
 
 版本：v0.3.3-winlite（本地验证构建，尚未发布）。构建输出在仓库旁 `PaperangStudio-Windows-Development/Release/`，不包含用户配置或私钥。
 

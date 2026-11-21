@@ -1,4 +1,4 @@
-Paperang Studio 0.3.1-macclient-opt1
+Paperang Studio
 Copyright © 2026 ELT Group
 Contact: vox@calx.cc
 
@@ -23,3 +23,8 @@ Provided as is, without warranty of any kind, as set out in LICENSE.
 AndroidClient uses ZXing Core 3.5.4 for QR encoding.
 Copyright ZXing authors. Licensed under Apache License 2.0.
 https://github.com/zxing/zxing/tree/zxing-3.5.4
+
+WinClient uses QRCoder 1.9.0 (MIT), Microsoft Windows App SDK 2.7.0,
+and the Microsoft .NET runtime. Their licenses remain separate from this
+project's license. See Windows/licenses and the licenses directory in the
+Windows distribution for the bundled component notices.

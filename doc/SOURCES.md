@@ -18,8 +18,12 @@ Public projects informed interoperability research and model comparisons. Downlo
 | [lxydiy/ESP32-Paperang-Emulator](https://github.com/lxydiy/ESP32-Paperang-Emulator) |Device emulation,40/42/7F/81 clues, SPP/CoD |
 | [Paperang FAQ](https://www.paperang.com/en/pc/custom-service) |Nominal300DPI, monochrome thermal printing, general LEDs |
 
-The distributed implementation is independent Swift/C code with original icon assets. It does not bundle official applications/firmware or third-party repository snapshots. Reading a model's implementation does not establish hardware support on this P2. See [research](RESEARCH.md), [related projects](RELATED-PROJECTS.md), and [emulator analysis](ESP32-EMULATOR.md).
+The project contains independently implemented Swift/C, C#, Java and server/client code with original icon assets, alongside declared dependencies under their own licenses. It does not bundle official printer applications/firmware or third-party repository snapshots. Reading a model's implementation does not establish hardware support on this P2. See [research](RESEARCH.md), [related projects](RELATED-PROJECTS.md), and [emulator analysis](ESP32-EMULATOR.md).
 
 ## Windows USB sources and device evidence
 
 See [USB provenance](USB-PROTOCOL.md#10-evidence-and-source-provenance) for pinned Java/P2/P1 references, Microsoft USBPRINT/SetupAPI/IOCTL documentation and redacted physical measurements. No third-party source files or drivers were bundled.
+
+## Distributed Windows dependencies
+
+WinClient uses QRCoder 1.9.0 (MIT), Microsoft Windows App SDK 2.7.0 and the self-contained .NET runtime. Component license and notice texts are retained in [Windows/licenses](../Windows/licenses) and copied into Windows packages. These components retain their original licenses.

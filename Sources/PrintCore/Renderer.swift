@@ -289,7 +289,7 @@ public enum Renderer
 			let b = (text as NSString).boundingRect(
 				with: NSSize(width: maxWidth, height: 100000), options: [.usesLineFragmentOrigin, .usesFontLeading],
 				attributes: attrs)
-			h = Int(ceil(b.height)) + s.marginY * 2 + 4
+			h = max(1, Int(ceil(b.height))) + s.marginY * 2
 		}
 		guard h > 0, h <= 1400 else
 		{

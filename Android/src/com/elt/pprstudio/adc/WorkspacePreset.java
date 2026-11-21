@@ -35,12 +35,12 @@ record WorkspacePreset(PaperRenderer.LayoutOptions layout, PaperRenderer.Tone to
 		    .put("feedBefore", print.before())
 		    .put("feedAfter", print.after())
 		    .put("feedBetweenCopies", print.between())
-		    .put("packetBytes", 1008)
-		    .put("bleChunk", 180)
-		    .put("writePauseMS", 10)
+		    .put("packetBytes", P2Transfer.FRAME_BYTES)
+		    .put("bleChunk", P2Transfer.MAX_CHUNK)
+		    .put("writePauseMS", P2Transfer.WRITE_INTERVAL_MS)
 		    .put("framePauseMS", 0)
-		    .put("timeoutSeconds", 6)
-		    .put("finishWaitSeconds", 2);
+		    .put("timeoutSeconds", P2Transfer.COMMAND_TIMEOUT_MS / 1000)
+		    .put("finishWaitSeconds", P2Transfer.FINISH_WAIT_MS / 1000);
 	}
 
 	static WorkspacePreset read(JSONObject json) throws JSONException

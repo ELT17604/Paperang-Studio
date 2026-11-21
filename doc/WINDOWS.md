@@ -1,98 +1,37 @@
-# Windows tray client · V0.3.3-winlite
+# Windows Client
 
-[简体中文](WINDOWS.zh-CN.md) · [Source and build](../Windows/README.md) · [Documentation](README.md)
+[简体中文](WINDOWS.zh-CN.md) · [Build](../Windows/README.md) · [Documentation](README.md)
 
-Native C#/.NET 10, WinForms, Windows USBPRINT and BLE GATT. Requires Windows 10 2004 or Windows 11; a BLE adapter is needed only for Bluetooth fallback. The lightweight package needs .NET 10 Desktop Runtime; the self-contained package includes it. No Python, Node, WebView or printer driver is needed at runtime.
+Paperang Studio WinClient runs on Windows 10 2004+ and Windows 11. It supports the legacy Paperang P2 over USB or Bluetooth. The installer includes the application runtimes; keep adjacent files together when using a portable build.
 
-## Setup and tray behavior
+## Connect
 
-1. Extract to a stable directory and run `PaperangStudio.exe`. It starts in the tray without a main window.
-2. Double-click the tray icon, enter the relay root URL and select the **paired owner private-key JSON file**. Old M keys cannot open C management.
-3. Connect and power on your USB P2, then save and connect; no BLE address is required for USB. Optionally scan/select a remembered BLE fallback. Avoid simultaneous Mac/phone clients.
-4. Closing settings keeps the app running. The tray label “开启自动打印” stays fixed; a left check mark means enabled. Settings show live relay/printer status, and the Connection tab provides save/connect directly.
-5. Startup settings offer current-user Windows sign-in startup and automatic connection. Move the executable to its permanent location before enabling startup. If disabled by Windows Task Manager, re-enable it there.
+1. Open **Printer**. Choose automatic USB selection or Bluetooth.
+2. For Bluetooth, switch on the P2 and scan. Devices appear immediately; select and connect while scanning continues, or stop the scan first. Signal updates retain your selection.
+3. Check the connection card. Selection alone does not connect. Connected status identifies USB/Bluetooth, the device and battery/media readings; failures retain their reason.
+4. Refresh readings or disconnect on this page. Density/feed actions require a connected printer.
 
-Automatic connection and printing are enabled after configuration. Both can be changed in settings. Pausing prevents new claims; buffered printer data cannot be recalled.
+## Edit and print
 
-## Template editor
+The main column contains the content editor and settings. The side preview updates automatically and can be enlarged. Select text, image, QR, imported raster or layout tools. Add independently prepared content to a layout, adjust objects, then confirm the layout before printing/exporting.
 
-Settings → Print → graphical template editor. Four presets match the macOS block definitions: note, receipt, retro teletype and keepsake.
+**Import file**, **Import JSON** and file drop support PNG/JPEG/BMP/GIF/TIFF, RAW, and Mac/Android schema 1 raster1 or complete parameter-preset JSON. Presets restore layout, image processing, density, copies, feed and transport settings. Portable font names map to installed Windows fonts. Invalid files leave the current content intact; importing never sends to a printer.
 
-- Ten block kinds: title, body, sender, time, job ID, IP, UA, browser information, separator and custom text.
-- Rename/copy/load/delete templates; add/delete/enable blocks; drag to reorder or use up/down buttons.
-- Font, size 8–96, bold, left/center/right alignment, horizontal margin 0–120 dots, upper gap 0–200 rows.
-- Click the paper to select a block; horizontal dragging changes its margin, vertical dragging changes its upper gap. Edit sample text or switch to a drawing sample.
-- Import/export the same single-template **v1 JSON** used by macOS. Up to 30 templates, 24 blocks each, 64 KiB per import. Template text allows 2,000 characters per block.
-- Variables `{{text}} {{sender}} {{id}} {{time}} {{ip}} {{ua}} {{device}}` are expanded once. Tokens inside visitor content are not recursively expanded.
+Defaults are 576 printable dots, zero margins, density 100 and final feed 160 lines. BLE defaults match Android: 1008-byte raster packets, writes up to 180 bytes, 10 ms minimum write interval, no extra frame pause, 6 s response timeout and 2 s finish wait. Device flow control may increase elapsed time. Existing saved preferences remain explicit choices. Continuous terminal batches default to zero extra feed.
 
-The body block places the drawing before its caption. Nearest-neighbor fitting preserves one-bit pixels; zero margin preserves original raster bytes. Disabling body hides both drawing and caption. All blocks flow vertically, with a maximum composite height of 1,400 rows. Preview and printing share the same renderer. Saving applies templates to later jobs and persists them; active jobs keep their layout snapshot. Cancel discards the draft.
+Enable the global paper switch, review copies/feed and choose **Print**. An interrupted send may have reached the printer; check the paper before deciding whether to retry. Uncertain Relay jobs are retained and never replayed automatically.
 
-JSON retains original font names. Windows maps PingFang SC to Microsoft YaHei, Menlo to Consolas, and Helvetica to Arial. Glyphs and line breaks may differ between operating systems; the template structure and image composition remain compatible.
+## Remote printing and tools
 
-## Relay and local persistence
+- **Remote printing:** configure the server and paired owner file or scoped M credential. Choose automatic reception or a queued task. Full unclaimed-content preview requires a C management login.
+- **Templates:** edit ordered blocks, preview a sample, import/export JSON and save/apply.
+- **Management:** independently enter the server and C credential, or use a paired owner file. Sessions expire; signing out clears the credential/detail view. Pairing never uploads private keys.
+- **Local API:** explicitly start the loopback service; Windows defaults to port 8766. Requests require its token, and paper operations also require the global switch and `allowPaper:true`. See [API platform differences](API.md).
+- **Paper terminal:** manual text or a Windows ConPTY shell; preview/export/discard/flush buffered output. Automatic paper output is opt-in.
+- **Settings:** sign-in startup, credential-free configuration export, version and project links.
 
-The current style, selected template and printing options autosave after a short debounce and flush on closing settings. They restore on the next launch/login without save/connect. Connection credentials change only through save/connect.
+Closing the workspace leaves the receiver in the tray, but closes its window-owned API/Shell. Use Quit to exit. Saved configuration uses current-user Windows encryption; library content is saved only when explicitly requested. Compatible historical storage identifiers preserve existing preferences and pending results.
 
-The client polls and reports every two seconds, claims and durably records uncertainty before fetching the active payload, validates raster1 geometry and SHA-256, and processes queued jobs in creation order. Requests include `text,raster1` capability negotiation and explicit Content-Length for the original relay's HTTP parser. Printing progress uses the existing partition-report format.
+## Build and validation
 
-Claim information is atomically persisted **before** any printer bytes. Successful sends persist `sent` before reporting. Interrupted claims recover as `unknown` and are never automatically printed again. Failed final reports retry reporting only. An outstanding result requires the same server and device key until resolved.
-
-Credentials, preferences, templates and pending results are encrypted with current-user Windows DPAPI in `%LOCALAPPDATA%\ELT\PaperangStudioWinLite`. No note body or plaintext credential log is retained. These files cannot be transferred to another Windows account for decryption.
-
-Continuous reconnect defaults on, including migrated settings: after the initial five retries fail, wait 60 seconds, try another five times, and repeat until successful. Disable the option to retain the original stop behavior. Disconnect/quit cancels waiting immediately. The selected printer retries every 30 seconds. Repeated background launches remain silent; explicit repeated launches open settings. Enabled startup registrations repair their executable path after upgrades; user-disabled Windows startup approval is not overridden. This is a user-session app, not a service or sleep-prevention tool.
-
-The first Windows edition includes relay reception, tray settings and template editing. It does not include the macOS workspace, PTY, engineering writes, local HTTP API or macOS workspace task window; C administration and Relay history are available. `sent` is transport completion, not an automatic physical-paper confirmation.
-
-## Build
-
-[Build WinLite](../Windows/README.md) from the repository root.
-
-From the repository root:
-
-```powershell
-dotnet build Windows/src/Paperang.WinLite -c Release
-./Windows/scripts/build.ps1
-./Windows/scripts/build.ps1 -SelfContained
-```
-
-Python 3.10+ with Server/requirements.txt is needed only for the integration test, which runs the included v0.3.0 relay with a simulated printer. It checks long-text detail retrieval, raster1, authentication, claims and final database states without using paper. Build output defaults outside the source tree, under sibling `PaperangStudio-Windows-Development/Release/`.
-
-The 51 checks cover CRC golden vectors, notification fragmentation, invalid CRC rejection, flow control, media/density guards, templates and non-recursive variables, exact image composition, interrupted-result recovery, report retry without reprinting, pause/heartbeats, Chinese rendering and DPAPI.
-
-On 2026-11-06, the actual Windows/P2 combination completed model/CRC handshake, FF01/FF03 subscriptions, density write/readback, Chinese raster printing and 150-row feed. The user confirmed complete paper output. Two subsequent disconnect/reconnect cycles also succeeded. Other adapters/firmware require their own validation.
-
-The observed Windows stack returned `Success` with no results for UUID-filtered FF00 discovery, while full uncached discovery returned FF00 among five services. The client therefore enumerates all services and selects FF00 locally. Detailed connection errors are retained in tray/settings status. This is a local interoperability observation, not a claim about every Windows Bluetooth stack.
-
-To reproduce hardware diagnostics, first quit the tray app:
-
-```powershell
-# Add --print only when paper use is authorized.
-```
-
-The diagnostic uses the saved selected address, validates two reconnections, and does not print server keys. Normal app operation does not enable raw diagnostics.
-
-Research compared [paperang-p2-lib](https://github.com/mdj2812/paperang-p2-lib), [paperang-p1-connect](https://github.com/Orangray-MDJX/paperang-p1-connect), and Microsoft's [GATT write API](https://learn.microsoft.com/en-us/uwp/api/windows.devices.bluetooth.genericattributeprofile.gattcharacteristic.writevaluewithresultasync). The implementation preserves this repository's verified 576-dot legacy BLE protocol, not classic SPP or the P1 A5 protocol. See the [protocol record](PROTOCOL.md).
-
-© 2026 ELT Group. Retains the repository [license](../LICENSE), [NOTICE](../NOTICE), original icon, and independent-project statement. This is the Windows adaptation of macOS revision `b1788b07aacb8c0cff7f86a884e58fb4ad8afb32`.
-
-## C management panel
-
-Settings → Management provides owner-private-file login, credential creation/rename/rotation/revocation, identities and browser sessions, trusted public keys, complete historical JSON records with readable text/image tabs, user-ID filtering, streaming JSONL export and manual paper confirmation. A ten-minute local timeout locks management; the owner-authenticated background loop continues. New owner files get user-only ACLs. The relay must support v0.3.1 owner authentication.
-
-### v0.3.1-winlite-fix1 management center
-
-The redesigned window separates category navigation, contextual actions, the table and record details. Create credentials in a dedicated form: the server generates credential and identity IDs; choose an existing identity from the list when needed. Random tokens and optional empty passphrases are generated by the server. Generating an owner file requires an unlocked owner; registration fills its ID automatically and existing private files cannot be overwritten.
-
-Credential and identity lists hide revoked rows by default. Toggle the checkbox to inspect them. Choose 25, 50 or 100 rows per page and navigate previous/next pages. The client retains at most 12 recent pages, resetting pagination when the category, filter or size changes. It can consume legacy fixed-size pages without dropping overflow records. Updated relays filter before pagination and return content-free job summaries; full text/images load only for the selected task. Legacy relays still send their existing five-job detail pages, which the client reduces to summaries in its page cache. The new relay enhancements require server deployment; the native layout/filter/paging already works with the deployed v0.3.1 relay.
-
-### v0.3.1-winlite-fix2 autosave and configuration export
-
-All settings now autosave after a 350 ms debounce and flush on close: server, owner-file path, HTTP permission, printer, startup/reconnection/printing preferences and templates. Settings/management categories, page size, revoked visibility, identity filter and scan display preference persist too. A successfully verified private-file switch in management updates the remembered path.
-
-DPAPI-encrypted `settings.dat` retains recoverable active settings, `settings-draft.dat` preserves incomplete connection edits, and `ui.dat` holds UI preferences. Invalid drafts or credentials conflicting with a pending report do not replace the recovery connection. Valid edits are used on the next launch; use Save and Connect to switch the currently running connection. Autosaving does not interrupt active printing.
-
-Startup and Status → Export all configuration writes versioned JSON containing settings, templates, UI preferences and the owner-file path. Raw credentials, private-key contents, sessions and pending tasks are excluded. Export cannot overwrite the selected private file. Moving to another computer still requires transferring the private file separately and updating its path. This version adds export, not graphical import.
-
-## USB priority and manual Bluetooth
-
-The native client defaults to **Auto (USB first, Bluetooth fallback)**. USB success releases client BLE and disables scanning/selection. “Disconnect USB, use Bluetooth” applies a persistent Bluetooth-only preference; restore USB priority to return. Switching is blocked while printing; retry after the active job finishes. Windows system Bluetooth is unchanged, and failed prints never replay across transports. [Upgrade/rollback](RELEASE-v0.3.3-winlite.md) · [USB protocol](USB-PROTOCOL.md).
+See [Windows build instructions](../Windows/README.md), [implementation and acceptance scope](WINCLIENT.md) and [legacy WinLite](WINLITE-LEGACY.md). WinClient source on main is not a claim of completed Mac feature parity: HEIC import, exact API response/schema parity, some tray shortcuts and hardware/installer acceptance remain documented limitations.

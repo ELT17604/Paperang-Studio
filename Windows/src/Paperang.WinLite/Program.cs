@@ -6,7 +6,9 @@ namespace Paperang.WinLite;
 internal static class Program
 {
 	[STAThread]
-	private static void Main(string[] args)
+	private static void Main(string[] args) => Run(args);
+	internal static void Run(string[] args, Action<TrayContext>? ready = null, Action? showWorkspace = null,
+	                         string? workspaceVersion = null)
 	{
 		if (args.Contains("--version"))
 		{
@@ -50,7 +52,8 @@ internal static class Program
 				showSettings.Set();
 			return;
 		}
-		using var context = new TrayContext(showSettings, args.Contains("--settings"));
+		using var context = new TrayContext(showSettings, args.Contains("--settings"), showWorkspace, workspaceVersion);
+		ready?.Invoke(context);
 		Application.Run(context);
 		mutex.ReleaseMutex();
 	}
@@ -91,9 +94,11 @@ internal sealed class TrayContext : ApplicationContext
 	private readonly RegisteredWaitHandle shutdownSignal;
 	private readonly System.Windows.Forms.Timer refresh = new() { Interval = 1000 };
 	private bool exiting;
+	private bool localBusy;
 	private string storageError = "";
 	private int updateQueued;
-	public TrayContext(EventWaitHandle showSettings, bool openSettings)
+	public TrayContext(EventWaitHandle showSettings, bool openSettings, Action? showWorkspace = null,
+	                   string? workspaceVersion = null)
 	{
 		dispatcher.CreateControl();
 		engine = new RelayEngine(printer, new NoteRenderer(), store);
@@ -115,9 +120,10 @@ internal sealed class TrayContext : ApplicationContext
 			storageError = "登录启动路径更新失败，请在设置中重新保存自启选项。";
 		}
 		using var iconStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Paperang.AppIcon.ico")!;
-		tray = new NotifyIcon { Icon = new Icon(iconStream), Text = "Paperang Studio " + AppVersion.Current,
+		string version = workspaceVersion ?? AppVersion.Current;
+		tray = new NotifyIcon { Icon = new Icon(iconStream), Text = "Paperang Studio " + version,
 		                        ContextMenuStrip = menu, Visible = true };
-		var title = new ToolStripMenuItem("Paperang Studio · V" + AppVersion.Current) { Enabled = false };
+		var title = new ToolStripMenuItem("Paperang Studio · V" + version) { Enabled = false };
 		foreach (var item in new[] { server, bluetooth, print })
 			item.Enabled = false;
 		permission.Click += (_, _) => engine.SetAllowed(!engine.Allowed);
@@ -131,18 +137,22 @@ internal sealed class TrayContext : ApplicationContext
 		menu.Items.AddRange([
 			title, new ToolStripSeparator(), server, bluetooth, print, new ToolStripSeparator(), permission, connection,
 			new ToolStripMenuItem("设置…", null, (_, _) => ShowSettings()),
-			new ToolStripMenuItem("检查 GitHub 更新…", null, async (_, _) => await ReleaseUpdates.Check()),
 			new ToolStripMenuItem(
 			    "关于…", null,
-			    (_, _) => MessageBox.Show("Paperang Studio V" + AppVersion.Current +
+			    (_, _) => MessageBox.Show("Paperang Studio V" + version +
 				                              ("\n© 2026 ELT Group\n\nWindows 原生托盘客户端 · USB / BLE P2 · " +
 				                               "在线传纸条\nCC BY-NC-SA 4.0 · 独立非官方项目\nvox@calx.cc"),
 				                          "关于 Paperang Studio", MessageBoxButtons.OK, MessageBoxIcon.Information)),
 			new ToolStripSeparator(), new ToolStripMenuItem("退出", null, async (_, _) => await Quit())
 		]);
-		tray.DoubleClick += (_, _) => ShowSettings();
+		Action activate = showWorkspace ?? ShowSettings;
+		if (showWorkspace != null)
+			menu.Items.Insert(8, new ToolStripMenuItem("工作台…", null, (_, _) => activate()));
+		else
+			menu.Items.Insert(9, new ToolStripMenuItem("检查 GitHub 更新…", null, async (_, _) => await ReleaseUpdates.Check()));
+		tray.DoubleClick += (_, _) => activate();
 		tray.BalloonTipClicked += (_, _) => ShowSettings();
-		signal = ThreadPool.RegisterWaitForSingleObject(showSettings, (_, _) => Dispatch(ShowSettings), null,
+		signal = ThreadPool.RegisterWaitForSingleObject(showSettings, (_, _) => Dispatch(activate), null,
 		                                                Timeout.Infinite, false);
 		shutdownSignal = ThreadPool.RegisterWaitForSingleObject(
 		    shutdownEvent, (_, _) => Dispatch(async () => await Quit()), null, Timeout.Infinite, false);
@@ -160,11 +170,14 @@ internal sealed class TrayContext : ApplicationContext
 			                       else if (settings.AutoConnect && settings.Server.Length > 0)
 				                       await Connect();
 			                       else
-				                       Notify("已在托盘运行。双击打印机图标打开设置，连接服务器与 P2。");
+				                       Notify(showWorkspace == null ? "已在托盘运行。双击打印机图标打开设置，连接服务器与 P2。"
+				                                                    : "已在托盘运行。双击打印机图标打开工作台。");
 		                       });
 	}
 	private async Task Connect()
 	{
+		if (localBusy)
+			return;
 		try
 		{
 			await engine.StartAsync(settings);
@@ -218,6 +231,52 @@ internal sealed class TrayContext : ApplicationContext
 			         form?.UpdateStatus();
 		         });
 	}
+	internal void OpenSettings() => Dispatch(ShowSettings);
+	internal Task<string> RelayStatusAsync() => OnTrayAsync(() => Task.FromResult(engine.Message));
+	internal Task<string> SetRelayAsync(bool enabled) => OnTrayAsync(async () =>
+	{
+		if (localBusy)
+			throw new InvalidOperationException("请等待本地操作结束。");
+		if (enabled && !engine.Running)
+			await Connect();
+		else if (!enabled && engine.Running)
+			await Stop();
+		return engine.Message;
+	});
+	internal Task<T> OnTrayAsync<T>(Func<Task<T>> action)
+	{
+		var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+		dispatcher.BeginInvoke(async () =>
+		{
+			try { completion.SetResult(await action()); }
+			catch (Exception error) { completion.SetException(error); }
+		});
+		return completion.Task;
+	}
+	internal Task<string> UseLocalPrinterAsync(Raster? raster, LocalPrintOptions options, CancellationToken token,
+	                                           int manualFeed = 0) =>
+	    OnTrayAsync(async () =>
+	    {
+		    if (exiting || localBusy || engine.Running || engine.Busy)
+			    throw new InvalidOperationException("请先在托盘断开中转，并等待当前任务结束，再使用本地打印。");
+		    localBusy = true;
+		    try
+		    {
+			    var local = store.LoadForEditing();
+			    await printer.ConnectAsync(local, token);
+			    if (raster != null)
+				    await options.SendAsync(printer, raster, local, token);
+			    else if (manualFeed > 0)
+				    await printer.FeedAsync(manualFeed, token);
+			    return printer.Status;
+		    }
+		    finally
+		    {
+			    printer.Disconnect();
+			    localBusy = false;
+			    Update();
+		    }
+	    });
 	private void ShowSettings()
 	{
 		if (form is { IsDisposed : false })
@@ -242,7 +301,7 @@ internal sealed class TrayContext : ApplicationContext
 		    async (value, startup) =>
 		    {
 			    value.Validate();
-			    if (engine.Busy)
+			    if (engine.Busy || localBusy)
 				    throw new InvalidOperationException("请等待当前打印完成后保存");
 			    // Validate journal affinity before replacing credentials on disk.
 			    var pending = store.Load();
@@ -325,6 +384,11 @@ internal sealed class TrayContext : ApplicationContext
 	{
 		if (exiting)
 			return;
+		if (localBusy)
+		{
+			Notify("请先等待本地打印结束或在工作台取消。");
+			return;
+		}
 		exiting = true;
 		tray.Visible = false;
 		refresh.Stop();

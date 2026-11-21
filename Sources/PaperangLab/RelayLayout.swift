@@ -68,7 +68,7 @@ struct RelayBlock: Codable, Identifiable, Equatable
 	var size = 24.0
 	var bold = false
 	var alignment = "居左"
-	var margin = 12
+	var margin = 0
 	var gap = 8
 	static let kinds = ["标题", "正文", "投稿身份", "时间", "任务编号", "IP", "UA", "浏览器信息", "分隔线", "自定义文字"]
 	static func make(_ kind: String, _ text: String = "", size: Double = 24) -> Self

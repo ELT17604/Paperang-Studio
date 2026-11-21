@@ -8,24 +8,25 @@
 
 | 发行版 | 当前版本 | 指南 |
 |---|---|---|
-| MacClient | `0.3.3-macclient-opt1` | [macOS 指南](USER-GUIDE.zh-CN.md) |
-| WinLite | `0.3.3-winlite-opt1` | [Windows 指南](WINDOWS.zh-CN.md) |
-| AndroidClient | `0.3.3-androidclient-opt1` | [Android 指南](../Android/README.md) |
+| MacClient | `0.3.3-macclient-opt2` | [macOS 指南](USER-GUIDE.zh-CN.md) |
+| WinClient（当前） | `0.3.3-winclient-dev5` | [Windows 指南](WINDOWS.zh-CN.md) |
+| WinLite（暂停） | `0.3.3-winlite-opt1` | [历史指南](WINLITE-LEGACY.zh-CN.md) |
+| AndroidClient | `0.3.3-androidclient-opt2` | [Android 指南](../Android/README.md) |
 | LinuxRelayServer | `0.3.2-linuxrelayserver-opt1` | [服务端部署](../Server/README.md) |
 
 ## 当前已实现功能
 
 表中「—」表示该发行版未提供对应功能。
 
-| 功能 | MacClient | WinLite | AndroidClient | LinuxRelayServer |
-|---|---|---|---|---|
-| P2 直连 | BLE | USB 优先，BLE 回退 | BLE | — |
-| 本地图文工作台 | 文字、图片、富文本图层及二维码 | 区块模板渲染 | 文字、图片、富文本图层、二维码及全屏手绘 | — |
-| 位图文件与预览 | RAW/raster1 导入，PNG/RAW 导出 | 接收 Relay raster1，模板预览 | RAW/raster1 导入，PNG/RAW/raster1 导出 | raster1 输入与网页预览 |
-| 打印与送纸 | 浓度、份数、送纸 | 浓度、送纸、模板输出 | 浓度、份数、送纸及自动截断尾部空白 | — |
-| 历史与复用 | 本地任务与 Relay 历史 | Relay 历史及导出 | 本地点阵历史、恢复可编辑任务及素材库 | 持久化任务历史及管理导出 |
-| Relay HTTP API v2 | 接收端与所有者管理 | 接收端与所有者管理 | — | 网页投递、队列、权限与管理 |
-| 本机 HTTP API v2 | 环回地址 API | — | — | — |
-| 后台工作流 | 托盘接收与纸带终端 | 托盘接收与 Windows 登录自启 | — | systemd 服务 |
+| 功能 | MacClient | WinClient | WinLite（暂停） | AndroidClient | LinuxRelayServer |
+|---|---|---|---|---|---|
+| P2 直连 | BLE | USB 优先/BLE 回退或仅 BLE | USB/BLE | BLE | — |
+| 本地工作台 | 图文、富文本图层、二维码 | 图文、可编辑图层、二维码、实时扫描 | 区块模板 | 图文、富文本图层、二维码、触屏绘图 | — |
+| 文件与预设 | RAW/raster1、PNG/RAW、schema 1 预设 | RAW/raster1、PNG/RAW/JSON、Mac/Android 预设 | 接收 Relay raster1 | RAW/raster1、PNG/RAW/JSON、schema 1 预设 | Raster1 与网页预览 |
+| 打印控制 | 浓度、份数、送纸 | 浓度、份数、送纸、取消 | 浓度、送纸 | 浓度、份数、送纸、截断尾部空白 | — |
+| 历史复用 | 本地与中转历史 | 可选本机素材/历史与中转管理 | 中转历史/导出 | 可编辑历史/素材 | 持久历史/导出 |
+| 中转 API v2 | 接收与所有者管理 | 接收与所有者管理 | 接收与所有者管理 | — | 队列/权限/管理 |
+| 本机 API v2 | 环回 API | 主要操作，平台差异单独记录 | — | — | — |
+| 后台/终端 | 托盘接收/纸带终端 | 托盘接收/ConPTY/登录自启 | 托盘接收/自启 | — | systemd |
 
 中转角色、任务归属与回报恢复遵循 [API v2 契约](API-v2-032.md)。[本地位图生成 Skill](../Skills/paperang-local-raster/SKILL.md) 生成供手动导入的文件。当前源码暂停 ChatGPT MCP/GPT Actions、RelaySkill 和 LocalBLESkill。[v0.3.2 发行记录](RELEASE-v0.3.2.md)收录历史 RelaySkill 发行版。

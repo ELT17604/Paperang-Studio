@@ -35,7 +35,7 @@ public final class WorkspaceCheck
 			});
 		}
 		require(count[0] == 1, "decoder count");
-		require(PrintOptions.DEFAULT.after() == 150, "default feed");
+		require(PrintOptions.DEFAULT.after() == 160, "default feed");
 		rejects(() -> new PrintOptions(0, 100, 0, 150, false));
 		rejects(() -> new PrintOptions(20, 101, 0, 150, false));
 		rejects(() -> new PrintOptions(20, 100, 0, 2001, false));

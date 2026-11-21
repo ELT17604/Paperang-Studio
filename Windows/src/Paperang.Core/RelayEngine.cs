@@ -6,7 +6,7 @@ namespace Paperang.Core;
 
 /// One relay loop, one printer operation. A persisted claim is never printed again.
 public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal journal,
-                                Func<AppSettings, RelayClient>? clientFactory = null, RelayTiming? timing = null)
+	                                Func<AppSettings, RelayClient>? clientFactory = null, RelayTiming? timing = null, string? productVersion = null)
 {
 	private CancellationTokenSource? lifetime;
 	private Task? loop;
@@ -15,6 +15,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 	private AppSettings settings = new();
 	private volatile bool allowed;
 	private volatile bool reconnectPrinter;
+	private string? requestedJob;
 	private readonly SemaphoreSlim lifecycle = new(1, 1);
 	public bool Allowed => allowed;
 	public bool Online { get; private set; }
@@ -23,7 +24,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 	public int Retries { get; private set; }
 	public int Queued { get; private set; }
 	public DateTimeOffset? NextRetryAt { get; private set; }
-	public string Message { get; private set; } = "请从托盘打开设置，连接服务器和 P2";
+	public string Message { get; private set; } = "尚未连接中转服务器";
 	public string PrintMessage { get; private set; } = "空闲";
 	public string PrinterStatus => printer.Status;
 	public bool PrinterReady => printer.Ready;
@@ -36,9 +37,27 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 		Changed?.Invoke();
 	}
 	public void InvalidatePrinter() => reconnectPrinter = true;
+	public void CancelForPaperPermission()
+	{
+		allowed = false;
+		Interlocked.Exchange(ref requestedJob, null);
+		try { lifetime?.Cancel(); }
+		catch (ObjectDisposedException) { }
+		Changed?.Invoke();
+	}
 	public void ApplyTemplates(List<RelayTemplate> templates,
 	                           string id) => settings = settings with { Templates = templates, TemplateId = id,
 	                                                                    Style = "自定义" };
+	public void RequestPrint(string id)
+	{
+		new RelayJob { Id = id }.Validate();
+		if (!Running || Busy || pending != null)
+			throw new InvalidOperationException("请先启动监听并等待当前认领或回报完成。");
+		if (Interlocked.CompareExchange(ref requestedJob, id, null) != null)
+			throw new InvalidOperationException("已有等待处理的手动打印请求。");
+		PrintMessage = "等待认领所选任务";
+		Changed?.Invoke();
+	}
 	public void ApplyPrintingPreferences(AppSettings value) => settings = settings.WithPrintingFrom(value);
 	public void ApplySavedPreferences(AppSettings value) => settings = settings.WithPrintingFrom(value) with {
 		KeepReconnecting = value.KeepReconnecting, AutoConnect = value.AutoConnect, StartAtLogin = value.StartAtLogin
@@ -84,6 +103,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 	}
 	private async Task StopCoreAsync()
 	{
+		Interlocked.Exchange(ref requestedJob, null);
 		lifetime?.Cancel();
 		if (loop != null)
 		{
@@ -131,6 +151,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 					await relay.Post("v2/device/status", new { status = Status() }, ct).ConfigureAwait(false);
 					var response = await relay.Get("v2/device/jobs", ct).ConfigureAwait(false);
 					var jobs = response.GetProperty("jobs").Deserialize<RelayJob[]>(RelayClient.Json) ?? [];
+					if (jobs.Length > 100) throw new InvalidDataException("服务器队列超过 100 项。");
 					foreach (var j in jobs)
 						j.Validate();
 					Online = true;
@@ -181,11 +202,24 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 						}
 						nextRefresh = DateTime.UtcNow.AddSeconds(30);
 					}
-					if (allowed && printer.Ready && !Busy && pending == null)
+					if (printer.Ready && !Busy && pending == null)
 					{
-						var job = jobs.Where(x => x.State == "queued").OrderBy(x => x.Created).FirstOrDefault();
-						if (job != null)
-							await ClaimAsync(relay, job, ct).ConfigureAwait(false);
+						string? selected = Volatile.Read(ref requestedJob);
+						if (selected != null)
+						{
+							try
+							{
+								var job = jobs.FirstOrDefault(item => item.Id == selected && item.State == "queued");
+								if (job == null) PrintMessage = "所选任务已不在待处理队列，请刷新列表。";
+								else await ClaimAsync(relay, job, ct, manual: true).ConfigureAwait(false);
+							}
+							finally { Interlocked.CompareExchange(ref requestedJob, null, selected); }
+						}
+						else if (allowed)
+						{
+							var job = jobs.Where(x => x.State == "queued").OrderBy(x => x.Created).FirstOrDefault();
+							if (job != null) await ClaimAsync(relay, job, ct).ConfigureAwait(false);
+						}
 					}
 				}
 				catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -202,7 +236,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 					{
 						if (!settings.KeepReconnecting)
 						{
-							Message = "连续 5 次重连失败，已断开；请从托盘重新连接";
+							Message = "连续 5 次重连失败，已断开；请检查连接配置后重试";
 							break;
 						}
 						NextRetryAt = DateTimeOffset.UtcNow + schedule.RetryCooldown;
@@ -242,12 +276,12 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 			Changed?.Invoke();
 		}
 	}
-	private async Task ClaimAsync(RelayClient relay, RelayJob job, CancellationToken ct)
+	private async Task ClaimAsync(RelayClient relay, RelayJob job, CancellationToken ct, bool manual = false)
 	{
 		var jobSettings = settings;
 		try
 		{
-			if (!allowed || ct.IsCancellationRequested)
+			if ((!allowed && !manual) || ct.IsCancellationRequested)
 				return;
 			JsonElement claim;
 			try
@@ -273,7 +307,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 			var raster = renderer.Render(full, jobSettings).Validate();
 			await relay.Post($"v2/device/jobs/{job.Id}/result", new { claim = token, state = "printing" }, ct)
 			    .ConfigureAwait(false);
-			if (!allowed)
+			if ((!allowed && !manual) || ct.IsCancellationRequested)
 			{
 				PrintMessage = "领取后已暂停，任务按不确定结果回报，不会重打";
 				return;
@@ -324,7 +358,7 @@ public sealed class RelayEngine(IPrinter printer, IRasterizer renderer, IJournal
 		journal.Save(null);
 		pending = null;
 	}
-	public object Status() => new { appVersion = AppVersion.Current,
+	public object Status() => new { appVersion = productVersion ?? AppVersion.Current,
 	                                apiVersion = "v2",
 	                                trayMode = true,
 	                                networkPrintAllowed = allowed,

@@ -6,7 +6,9 @@ import { load } from 'cheerio';
 import { groups } from './catalog.mjs';
 
 const dist = fileURLToPath(new URL('./dist/', import.meta.url));
-const files = new Set(readdirSync(dist, { recursive: true }).filter(file => statSync(path.join(dist, file)).isFile()));
+const files = new Set(readdirSync(dist, { recursive: true })
+	.filter(file => statSync(path.join(dist, file)).isFile())
+	.map(file => file.split(path.sep).join('/')));
 const pages = new Map([...files].filter(file => file.endsWith('.html')).map(file => [file, load(readFileSync(path.join(dist, file), 'utf8'))]));
 const origin = 'https://wiki.local';
 const errors = new Set();

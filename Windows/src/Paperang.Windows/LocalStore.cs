@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace Paperang.WinLite;
+namespace Paperang.Windows;
 
 internal sealed class LocalStore : IJournal
 {
@@ -35,6 +35,8 @@ internal sealed class LocalStore : IJournal
 	public void SaveDraft(AppSettings value) => Write("settings-draft.dat", value);
 	public UiPreferences LoadUi() => Read<UiPreferences>("ui.dat") ?? new();
 	public void SaveUi(UiPreferences value) => Write("ui.dat", value);
+	internal T? LoadWorkspaceLibrary<T>() => Read<T>("workspace-library.dat");
+	internal void SaveWorkspaceLibrary<T>(T value) => Write("workspace-library.dat", value);
 	public PendingResult? Load() => Read<PendingResult>("pending.dat");
 	public void Save(PendingResult? value)
 	{
@@ -63,7 +65,10 @@ internal sealed class LocalStore : IJournal
 		lock (ioLock)
 		{
 			Directory.CreateDirectory(directory);
-			byte[] bytes = Protect(JsonSerializer.SerializeToUtf8Bytes(value, RelayClient.Json), true);
+			byte[] plain = JsonSerializer.SerializeToUtf8Bytes(value, RelayClient.Json);
+			if (plain.Length > 4 * 1024 * 1024 - 4096)
+				throw new InvalidDataException("本地数据超过大小上限，未覆盖原文件。");
+			byte[] bytes = Protect(plain, true);
 			string destination = Path.Combine(directory, name), temp = destination + ".tmp";
 			using (var f = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 4096,
 			                              FileOptions.WriteThrough))

@@ -14,7 +14,9 @@ export const groups = [
 	['clients', 'Client guides', '客户端指南', [
 		doc('USER-GUIDE', 'MacClient', 'MacClient 使用指南'),
 		['android', 'AndroidClient', 'AndroidClient 使用指南', 'Android/README.md', null, 'zh-CN'],
-		doc('WINDOWS', 'WinLite', 'WinLite 使用指南'),
+		doc('WINDOWS', 'WinClient', 'WinClient 使用指南'),
+		doc('WINCLIENT', 'WinClient implementation and validation', 'WinClient 实现与验证'),
+		doc('WINLITE-LEGACY', 'Historical WinLite', '历史 WinLite'),
 		doc('MACCLIENT-WORKSPACE', 'MacClient workspace', 'MacClient 打印工作台'),
 		doc('TERMINAL', 'Paper terminal', '实体纸带终端'),
 		doc('TRAY-MODE', 'Menu bar and tray mode', '菜单栏与托盘模式'),
@@ -31,7 +33,7 @@ export const groups = [
 	['interfaces', 'APIs and data', '接口与数据', [
 		doc('API-v2-032', 'HTTP API v2 contract', 'HTTP API v2 契约'),
 		doc('AUTH-v2', 'Relay authentication', 'Relay 鉴权'),
-		doc('API', 'MacClient Local API', 'MacClient 本机接口'),
+		doc('API', 'Local API and platform differences', '本机接口与平台差异'),
 		['raster1', 'raster1 bitmap format', 'raster1 位图格式', 'Skills/paperang-local-raster/references/raster1.md'],
 		['raster-skill', 'Local raster skill', '本地位图技能', 'Skills/paperang-local-raster/SKILL.md', null, 'zh-CN'],
 	]],
@@ -49,7 +51,9 @@ export const groups = [
 	['develop', 'Development', '开发与维护', [
 		doc('ARCHITECTURE', 'Architecture and packaging', '架构与打包'),
 		doc('SWIFT-API', 'Swift modules', 'Swift 模块'),
-		['windows-build', 'Build WinLite', 'WinLite 源码构建', 'Windows/README.md'],
+		['windows-build', 'Build WinClient', 'WinClient 源码构建', 'Windows/README.md'],
+		['windows-legacy-build', 'Historical WinLite build', '历史 WinLite 构建', 'Windows/LEGACY.md'],
+		['mac-winclient-controls', 'Mac/WinClient control inventory', 'Mac/WinClient 控件对照', 'doc/MAC-WINCLIENT-CONTROLS.zh-CN.md', null, 'zh-CN'],
 		doc('WINDOWS-PORTING', 'Windows porting', 'Windows 移植'),
 		doc('WINDOWS-RELEASE-ARTIFACTS', 'Windows release artifacts', 'Windows 发布物'),
 		['contributing', 'Contributing', '参与开发', 'CONTRIBUTING.md', 'doc/CONTRIBUTING.zh-CN.md'],

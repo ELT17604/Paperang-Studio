@@ -10,7 +10,7 @@ The terminal creates a real macOS controlling PTY (`/dev/ttys…`). The bundled 
 2. Start the terminal. Enter commands or answers and press Return. Ctrl-C, Ctrl-D, Ctrl-Z, Tab, and arrow controls send real terminal bytes.
 3. Connect the P2 and enable the sidebar's global paper switch.
 4. Enable automatic output printing or print the buffer manually. The default idle delay is 3 seconds; text uses Menlo 12, left alignment, density 100. Font size is adjustable from 8–18.
-5. Continuous batches default to zero extra feed. At the end, feed 150 lines from the workspace for tearing off the strip. Per-batch terminal feed is adjustable from 0–300 lines.
+5. Continuous batches default to zero extra feed. At the end, feed 160 lines from the workspace for tearing off the strip. Per-batch terminal feed is adjustable from 0–300 lines.
 
 Neither the shell nor automatic printing starts automatically. Stopping the shell preserves pending output. Before starting another shell, handle the previous buffer and in-flight print job. Turning off global paper use disables automatic printing and stops an active print send; already buffered printer data remains irreversible.
 

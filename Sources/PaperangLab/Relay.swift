@@ -580,9 +580,10 @@ extension Lab
 			s.alignment = "居左"
 			s.lineSpacing = 4
 		}
-		s.marginX = 12
-		s.contentWidth = 552
-		s.marginY = 12
+		let defaults = PrintSettings()
+		s.marginX = defaults.marginX
+		s.contentWidth = defaults.contentWidth
+		s.marginY = defaults.marginY
 		return s
 	}
 	var relayPreviewIsCurrent: Bool

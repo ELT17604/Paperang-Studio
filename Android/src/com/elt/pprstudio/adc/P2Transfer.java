@@ -7,6 +7,8 @@ final class P2Transfer
 	static final int MAX_CHUNK = 180;
 	static final int FRAME_BYTES = 1008;
 	static final int WRITE_INTERVAL_MS = 10;
+	static final int COMMAND_TIMEOUT_MS = 6000;
+	static final int FINISH_WAIT_MS = 2000;
 
 	static int chunkSize(int mtu, int printerLimit)
 	{

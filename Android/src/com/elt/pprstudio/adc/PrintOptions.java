@@ -2,7 +2,7 @@ package com.elt.pprstudio.adc;
 
 record PrintOptions(int copies, int density, int before, int after, boolean between)
 {
-	static final PrintOptions DEFAULT = new PrintOptions(1, 100, 0, 150, false);
+	static final PrintOptions DEFAULT = new PrintOptions(1, 100, 0, 160, false);
 
 	PrintOptions
 	{

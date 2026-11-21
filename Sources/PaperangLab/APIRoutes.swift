@@ -240,7 +240,7 @@ extension Lab
 			case "/v2/protocol":
 				return .json([
 					"model": "Paperang_P2", "widthDots": 576, "bytesPerRow": 72, "nominalDPI": 300,
-					"defaultFeedLines": 150,
+					"defaultFeedLines": PrintSettings.defaultFeedAfter,
 					"commands": Command.all.map
 					{
 						[

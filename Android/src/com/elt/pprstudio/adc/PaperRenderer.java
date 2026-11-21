@@ -24,7 +24,7 @@ final class PaperRenderer
 	record LayoutOptions(int marginX, int marginY, int width, int align, int fontSize, int spacing, String family,
 	                     boolean bold, int rotation, int fit, int cropHeight)
 	{
-		static final LayoutOptions DEFAULT = new LayoutOptions(12, 12, 552, 1, 30, 4, "sans-serif", false, 0, 0, 400);
+		static final LayoutOptions DEFAULT = new LayoutOptions(0, 0, WIDTH, 1, 30, 4, "sans-serif", false, 0, 0, 400);
 
 		int origin()
 		{

@@ -55,7 +55,7 @@ MAC query `08` actually returned data under `0B`, overlapping serial-number quer
 - Composite transparency onto white, lay out/scale on the host, then threshold or dither. Fonts and grayscale processing are host-side; the head prints monochrome raster data.
 - Command `00` sends raw raster. Split into whole rows: `floor(1023/72) × 72 = 1008` bytes, 14 rows/frame. The verified BLE path increments the 8-bit index from zero. Split each protocol frame again into BLE chunks; these are separate layers.
 - Set density with `19`, one byte 0–100; read `1C→1D`. Default/test density is 100; an earlier value was 75. The setting may persist in the device.
-- Feed with `1A` and a u16LE line count. 150 lines is `96 00`, confirmed convenient after a batch on this unit. Do not add final feed after every image packet. Earlier 120/240-line experiments were superseded by 150.
+- Feed with `1A` and a u16LE line count. The current normal-batch default is 160 (`A0 00`). The historical 150-line (`96 00`) measurement remains device evidence, not the current default. Do not add final feed after every image packet.
 - The 576-column outer edges were physically visible. A 640-dot logical input did not produce usable wider output; the exact cropping/stream interpretation remains unknown. Nominal 300 DPI gives a theoretical width of 48.768 mm, not a ruler measurement.
 - Render height 1400, text 10,000 characters, and at most 256 image frames are application guards, not measured firmware limits.
 

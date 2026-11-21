@@ -14,14 +14,14 @@ Paperang Studio is a desktop and mobile printing toolkit for the **Paperang P2**
 |---|---|---|
 | macOS | [MacClient](doc/USER-GUIDE.md) | BLE printing, text and image editing, layered layouts, QR codes, paper terminal and Relay reception |
 | Android | [AndroidClient](Android/README.md) | BLE printing, touch layout, full-screen drawing, rulers, reusable assets and editable print history |
-| Windows | [WinLite](Windows/README.md) | USB-first printing with BLE fallback, tray reception, templates and Relay administration |
+| Windows | [WinClient](doc/WINDOWS.md); [WinLite](doc/WINLITE-LEGACY.md) (paused) | Local print workspace, USB-first printing with BLE fallback, tray reception, templates and Relay administration |
 | Ubuntu | [LinuxRelayServer](Server/README.md) | Web submissions, print queue, access controls and administration |
 
 ## Screenshots
 
-| macOS workspace | Windows template editor | Android drawing |
+| macOS workspace | Windows workspace | Android drawing |
 |---|---|---|
-| ![MacClient workspace](doc/assets/macclient-v0.3.1-fix3-workspace.png) | ![WinLite template editor](assets/screenshots/winlite-v0.3.0-template-editor.jpg) | <img src="assets/screenshots/androidclient-v0.3.3-drawing.png" width="180" alt="AndroidClient drawing"> |
+| ![MacClient workspace](doc/assets/macclient-v0.3.1-fix3-workspace.png) | ![WinClient workspace](assets/screenshots/winclient-v0.3.3-workspace.png) | <img src="assets/screenshots/androidclient-v0.3.3-drawing.png" width="180" alt="AndroidClient drawing"> |
 
 [More screenshots](assets/screenshots/README.md)
 
@@ -31,14 +31,14 @@ Paperang Studio is a desktop and mobile printing toolkit for the **Paperang P2**
 |---|---|---|
 | macOS 14+ (Apple Silicon) | Download MacClient from [Releases](https://github.com/ELT17604/Paperang-Studio/releases), then move the app to Applications | Scan for the P2 on the Printer page |
 | Android 13+ | [Build and install the APK](Android/README.md) | Grant Nearby Devices access on the Printer tab, then scan for the P2 |
-| Windows 10 2004+ / 11 | Download the WinLite installer or [build from source](Windows/README.md) | Open Settings from the tray and connect over USB or Bluetooth |
-| Ubuntu | [Install LinuxRelayServer](Server/README.md) | Configure the Relay URL and receiver credentials in MacClient or WinLite |
+| Windows 10 2004+ / 11 | [WinClient installer and portable build](doc/WINCLIENT.md) | Open the desktop workspace, configure the printer, then connect over USB or Bluetooth |
+| Ubuntu | [Install LinuxRelayServer](Server/README.md) | Configure the Relay URL and receiver credentials in MacClient or WinClient |
 
 After connecting, preview the output, set density and feed, then print.
 
 ## Remote printing
 
-The browser submits notes and drawings to a self-hosted Relay. MacClient or WinLite claims each job, applies the local template and paper settings, and sends it to the P2.
+The browser submits notes and drawings to a self-hosted Relay. MacClient or a Windows client claims each job, applies the local template and paper settings, and sends it to the P2.
 
 [Deployment and receiver setup](doc/REMOTE-PRINTING.md) · [Authentication and permissions](doc/AUTH-v2.md)
 
@@ -48,7 +48,8 @@ The browser submits notes and drawings to a self-hosted Relay. MacClient or WinL
 |---|---|---|
 | MacClient | Swift 6, macOS SDK | `./scripts/build.sh` |
 | AndroidClient | JDK 21, Android SDK 36 | `./Android/build.sh` |
-| WinLite | .NET 10 SDK | `./Windows/scripts/build.ps1` |
+| WinClient | .NET 10 SDK | `./Windows/scripts/build-client.ps1` |
+| WinLite (legacy) | .NET 10 SDK | `./Windows/scripts/build.ps1` |
 | LinuxRelayServer | Python 3.10+ | [Install and run](Server/README.md) |
 
 [Source layout](doc/ARCHITECTURE.md) · [Local tests](tests/README.md)

@@ -1,5 +1,7 @@
 # AndroidClient v0.3.3-androidclient
 
+当前源码修订为 **0.3.3-androidclient-opt2**，`versionCode 12`。默认四边 0px / 满幅 576 点、普通批次送纸 160 行，传输超时集中定义。共享 Java 离线检查可在非 Android 主机运行；完整 APK 与设备验收仍需 Android SDK，不表示已发布新的 GitHub 包。
+
 AndroidClient 是 Paperang Studio 的 Android 本地 P2 打印分发，使用现有 576 点 raster1 schema 1 与 P2 BLE 设备协议。Android 端从 0.3.3 独立编号，项目兼容基线为 0.3.x。
 
 ## 工作台与安装

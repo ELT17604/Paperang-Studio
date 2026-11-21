@@ -10,19 +10,26 @@ public interface IUsbLink : IDisposable
 	Task<byte[]> ReadAsync(TimeSpan timeout, CancellationToken ct);
 }
 
-public sealed class UsbP2Session(IUsbLink link) : IDisposable
+public sealed class UsbP2Session(IUsbLink link, WorkspaceSettings? transferSettings = null) : IDisposable
 {
+	public void ConfigureTransfer(WorkspaceSettings settings) => transfer = settings.Validate();
 	public const uint Seed = 0x35769521;
+	public Action<ProtocolTrace>? Trace { get; set; }
 	private uint sessionSeed = Seed;
 	private FrameDecoder decoder = new(Seed, true);
 	private readonly SemaphoreSlim gate = new(1, 1);
 	private bool disposed;
+	private WorkspaceSettings transfer = (transferSettings ?? new()).Validate();
 	public bool Ready { get; private set; }
 	public double Progress { get; private set; }
 	public string PartitionDetail { get; private set; } = "";
 	public string Status { get; private set; } = "正在连接 P2";
-	private async Task<List<Frame>> Read(TimeSpan timeout, CancellationToken ct) =>
-	    decoder.Push(await link.ReadAsync(timeout, ct).ConfigureAwait(false)).ToList();
+	private async Task<List<Frame>> Read(TimeSpan timeout, CancellationToken ct)
+	{
+		var frames = decoder.Push(await link.ReadAsync(timeout, ct).ConfigureAwait(false)).ToList();
+		foreach (var frame in frames) Trace?.Invoke(ProtocolTrace.Capture("USB", "RX", frame.Command, frame.Index, frame.Payload));
+		return frames;
+	}
 	private async Task Drain(CancellationToken ct)
 	{
 		var deadline = DateTime.UtcNow.AddMilliseconds(500);
@@ -42,11 +49,12 @@ public sealed class UsbP2Session(IUsbLink link) : IDisposable
 	{
 		ObjectDisposedException.ThrowIf(disposed, this);
 		await Drain(ct).ConfigureAwait(false);
+		Trace?.Invoke(ProtocolTrace.Capture("USB", "TX", command, 0, payload));
 		await link.WriteAsync(Wire.Encode(command, payload, sessionSeed), ct).ConfigureAwait(false);
-		var deadline = DateTime.UtcNow.AddSeconds(3);
+		long started = System.Diagnostics.Stopwatch.GetTimestamp();
 		byte[]? value = null;
 		bool ack = false;
-		while (DateTime.UtcNow < deadline)
+		while (System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalSeconds < transfer.TimeoutSeconds)
 		{
 			foreach (var f in await Read(TimeSpan.FromMilliseconds(150), ct).ConfigureAwait(false))
 			{
@@ -69,7 +77,18 @@ public sealed class UsbP2Session(IUsbLink link) : IDisposable
 			throw new TimeoutException($"USB 0x{command:X2} 超时，未取得确认");
 		throw new InvalidOperationException($"USB 0x{command:X2} 仅 ACK，未返回数据");
 	}
-	private Task<byte[]> Query(byte command, CancellationToken ct) => Request(command, [1], (byte)(command + 1), ct);
+	private Task<byte[]> Query(byte command, CancellationToken ct) => Request(command, [1], P2Queries.Expected(command), ct);
+	public async Task<byte[]> QueryAsync(byte command, CancellationToken ct)
+	{
+		P2Queries.Expected(command);
+		await gate.WaitAsync(ct).ConfigureAwait(false);
+		try
+		{
+			if (!Ready) throw new InvalidOperationException("打印机尚未就绪。");
+			return await Query(command, ct).ConfigureAwait(false);
+		}
+		finally { gate.Release(); }
+	}
 	private async Task Media(CancellationToken ct)
 	{
 		var value = await Query(12, ct).ConfigureAwait(false);
@@ -132,6 +151,34 @@ public sealed class UsbP2Session(IUsbLink link) : IDisposable
 			gate.Release();
 		}
 	}
+	public async Task FeedAsync(int lines, CancellationToken ct)
+	{
+		if (!Ready || lines is < 1 or > 2000)
+			throw new InvalidOperationException("打印机未就绪或送纸不在 1–2000 行范围内");
+		await gate.WaitAsync(ct).ConfigureAwait(false);
+		try
+		{
+			await Media(ct).ConfigureAwait(false);
+			await Request(26, [(byte)lines, (byte)(lines >> 8)], null, ct).ConfigureAwait(false);
+		}
+		finally
+		{
+			gate.Release();
+		}
+	}
+	public async Task SendEngineeringAsync(byte command, byte[] payload, CancellationToken token)
+	{
+		P2Engineering.Validate(command, payload);
+		await gate.WaitAsync(token).ConfigureAwait(false);
+		try
+		{
+			if (!Ready) throw new InvalidOperationException("打印机尚未就绪。");
+			if (P2Engineering.UsesPaper(command)) await Media(token).ConfigureAwait(false);
+			if (command == 25) await DensityCore(payload[0], token).ConfigureAwait(false);
+			else await Request(command, payload, null, token).ConfigureAwait(false);
+		}
+		finally { gate.Release(); }
+	}
 	public async Task PrintAsync(Raster raster, AppSettings settings, CancellationToken ct)
 	{
 		raster.Validate();
@@ -142,25 +189,27 @@ public sealed class UsbP2Session(IUsbLink link) : IDisposable
 		{
 			if (!Ready || !link.Connected)
 				throw new InvalidOperationException("USB 打印机会话尚未就绪");
+			transfer = (settings.TransferSettings ?? new()).Validate();
+			int frameBytes = transfer.PacketBytes;
+			int packets = (raster.Bytes.Length + frameBytes - 1) / frameBytes;
+			if (packets > 256) throw new InvalidDataException("USB 图像分包超过 256 帧，请增大载荷或拆分任务。");
 			Progress = 0;
 			PartitionDetail = "";
 			await Media(ct).ConfigureAwait(false);
-			await Request(25, [(byte)settings.Density], null, ct).ConfigureAwait(false);
-			var density = await Query(28, ct).ConfigureAwait(false);
-			if (density.Length != 1 || density[0] != settings.Density)
-				throw new InvalidOperationException("浓度回读未确认");
-			int packets = (raster.Bytes.Length + 1007) / 1008;
+			await DensityCore(settings.Density, ct).ConfigureAwait(false);
 			for (int i = 0; i < packets; i++)
 			{
 				await Media(ct).ConfigureAwait(false);
 				// USB uses a remaining-packet countdown, not the BLE index.
-				var payload = raster.Bytes.AsSpan(i * 1008, Math.Min(1008, raster.Bytes.Length - i * 1008)).ToArray();
+				var payload = raster.Bytes.AsSpan(i * frameBytes, Math.Min(frameBytes, raster.Bytes.Length - i * frameBytes)).ToArray();
+				Trace?.Invoke(ProtocolTrace.Capture("USB", "TX", 0, (byte)(packets - i - 1), payload));
 				await link.WriteAsync(Wire.Encode(0, payload, sessionSeed, (byte)(packets - i - 1)), ct)
 				    .ConfigureAwait(false);
 				Progress = (i + 1.0) / packets;
 				PartitionDetail = $"第1/1份 · 分包{i + 1}/{packets}";
+				if (transfer.FramePauseMS > 0) await Task.Delay(transfer.FramePauseMS, ct).ConfigureAwait(false);
 			}
-			await Task.Delay(2000, ct).ConfigureAwait(false);
+			await Task.Delay(TimeSpan.FromSeconds(transfer.FinishWaitSeconds), ct).ConfigureAwait(false);
 			if (settings.Feed > 0)
 				await Request(26, [(byte)settings.Feed, (byte)(settings.Feed >> 8)], null, ct).ConfigureAwait(false);
 			await Media(ct).ConfigureAwait(false);
@@ -169,6 +218,19 @@ public sealed class UsbP2Session(IUsbLink link) : IDisposable
 		{
 			gate.Release();
 		}
+	}
+	private async Task DensityCore(int density, CancellationToken ct)
+	{
+		if (!Ready || density is < 0 or > 100) throw new InvalidOperationException("打印机未就绪或浓度超出范围。");
+		await Request(25, [(byte)density], null, ct).ConfigureAwait(false);
+		var value = await Query(28, ct).ConfigureAwait(false);
+		if (value.Length != 1 || value[0] != density) throw new InvalidOperationException("浓度回读未确认。");
+	}
+	public async Task ApplyDensityAsync(int density, CancellationToken ct)
+	{
+		await gate.WaitAsync(ct).ConfigureAwait(false);
+		try { await DensityCore(density, ct).ConfigureAwait(false); }
+		finally { gate.Release(); }
 	}
 	public void Dispose()
 	{

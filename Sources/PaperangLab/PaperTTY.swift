@@ -190,9 +190,6 @@ extension Lab
 			s.fontName = "Menlo"
 			s.fontSize = ttyFontSize
 			s.alignment = "居左"
-			s.marginX = 8
-			s.marginY = 4
-			s.contentWidth = 560
 			s.lineSpacing = 0
 			s.density = 100
 			s.feedAfter = ttyFeed

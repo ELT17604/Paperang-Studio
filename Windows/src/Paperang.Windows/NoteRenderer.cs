@@ -3,7 +3,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Runtime.InteropServices;
 
-namespace Paperang.WinLite;
+namespace Paperang.Windows;
 
 internal sealed class NoteRenderer : IRasterizer
 {
@@ -47,16 +47,20 @@ internal sealed class NoteRenderer : IRasterizer
 			details.Add("From: " + job.Sender);
 		if (s.IncludeTime)
 			details.Add(DateTimeOffset.UnixEpoch.AddSeconds(job.Created).ToString("yyyy-MM-ddTHH:mm:ssZ"));
+		if (s.IncludeIp) details.Add(new RelayBlock { Kind = "IP" }.Value(job));
+		if (s.IncludeUa) details.Add(new RelayBlock { Kind = "UA" }.Value(job));
+		if (s.IncludeDevice) details.Add("Browser supplied: " + new RelayBlock { Kind = "浏览器信息" }.Value(job));
 		if (s.IncludeId)
 			details.Add("#" + PrettyId(job.ShortID.Length == 0 ? job.Id.Replace("-", "") [..12].ToUpperInvariant()
 			                                                   : job.ShortID));
 		string footer = string.Join("\n", details);
+		string message = s.IncludeText ? job.Text : "";
 		string text =
-		    s.Style switch { "小票" => "PAPERANG INBOX\n----------------------------\n" + job.Text +
+		    s.Style switch { "小票" => "PAPERANG INBOX\n----------------------------\n" + message +
 			                           "\n----------------------------\n" + footer,
-			                 "复古电传" => "[ INCOMING TRANSMISSION ]\n" + footer + "\n\n" + job.Text + "\n[ END ]",
-			                 "访客纪念" => "A NOTE TO KEEP\n\n" + job.Text + "\n\n" + footer + "\n— Paperang Studio —",
-			                 _ => string.Join("\n\n", new[] { job.Text, footer }.Where(x => x.Length > 0)) };
+			                 "复古电传" => "[ INCOMING TRANSMISSION ]\n" + footer + "\n\n" + message + "\n[ END ]",
+			                 "访客纪念" => "A NOTE TO KEEP\n\n" + message + "\n\n" + footer + "\n— Paperang Studio —",
+			                 _ => string.Join("\n\n", new[] { message, footer }.Where(x => x.Length > 0)) };
 		if (string.IsNullOrWhiteSpace(text))
 			return image ?? throw new InvalidDataException("没有可打印内容");
 		Raster rendered = TextRaster(text, s.Style);
@@ -76,15 +80,15 @@ internal sealed class NoteRenderer : IRasterizer
 		int spacing = style switch { "小票" => 3, "复古电传" => 2, "访客纪念" => 7,
 		                             _ => 4 };
 		return RenderText(text, style is "小票" or "复古电传" ? "Consolas" : "Microsoft YaHei", size, false,
-		                  style == "访客纪念" ? "居中" : "居左", 12, 12, spacing);
+		                  style == "访客纪念" ? "居中" : "居左", 0, 0, spacing);
 	}
-	private static Raster RenderText(string text, string fontName, float size, bool bold, string alignment, int margin,
-	                                 int marginY, int spacing)
+	internal static Raster RenderText(string text, string fontName, float size, bool bold, string alignment, int margin,
+	                                  int marginY, float spacing, WorkspaceSettings? tone = null, int? widthOverride = null, bool localBox = false)
 	{
 		fontName = fontName switch { "PingFang SC" => "Microsoft YaHei", "Menlo" => "Consolas", "Helvetica" => "Arial",
 		                             _ => fontName };
 		using var font = new Font(fontName, size, bold ? FontStyle.Bold : FontStyle.Regular, GraphicsUnit.Pixel);
-		int contentWidth = 576 - 2 * margin;
+		int contentWidth = widthOverride ?? 576 - 2 * margin;
 		using var format = (StringFormat)StringFormat.GenericTypographic.Clone();
 		format.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
 		format.Trimming = StringTrimming.None;
@@ -92,7 +96,8 @@ internal sealed class NoteRenderer : IRasterizer
 		using var g = Graphics.FromImage(canvas);
 		g.Clear(Color.White);
 		g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-		float lineHeight = font.GetHeight(g) + spacing;
+		float fontHeight = font.GetHeight(g), lineHeight = fontHeight + spacing;
+		int HeightFor(int count) => (int)Math.Ceiling((count - 1) * lineHeight + fontHeight) + marginY * 2;
 		var lines = new List<string>();
 		foreach (string paragraph in text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
 		{
@@ -109,21 +114,23 @@ internal sealed class NoteRenderer : IRasterizer
 					current = "";
 				}
 				current += element;
-				if ((lines.Count + 1) * lineHeight + marginY * 2 + 4 > 1400)
+				if (HeightFor(lines.Count + 1) > 1400)
 					throw new InvalidDataException("文字超过 1400 行高限制，请缩短纸条");
 			}
 			lines.Add(current);
-			if (lines.Count * lineHeight + marginY * 2 + 4 > 1400)
+			if (HeightFor(lines.Count) > 1400)
 				throw new InvalidDataException("文字超过 1400 行高限制，请缩短纸条");
 		}
-		int height = (int)Math.Ceiling(lines.Count * lineHeight) + marginY * 2 + 4;
+		int height = HeightFor(lines.Count);
 		for (int i = 0; i < lines.Count; i++)
 		{
 			float width = g.MeasureString(lines[i], font, PointF.Empty, format).Width;
-			float x = alignment == "居中" ? (576 - width) / 2 : alignment == "居右" ? 576 - margin - width : margin;
+			float canvasWidth = localBox ? contentWidth : 576;
+			float x = alignment == "居中" ? (canvasWidth - width) / 2 : alignment == "居右" ? canvasWidth - margin - width : margin;
 			g.DrawString(lines[i], font, Brushes.Black, new PointF(x, marginY + i * lineHeight), format);
 		}
 		var raster = new Raster(height, new byte[72 * height]).Validate();
+		var gray = tone == null ? null : new double[height * 576];
 		var bits =
 		    canvas.LockBits(new Rectangle(0, 0, 576, height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 		try
@@ -133,15 +140,19 @@ internal sealed class NoteRenderer : IRasterizer
 			{
 				Marshal.Copy(bits.Scan0 + y * bits.Stride, row, 0, row.Length);
 				for (int x = 0; x < 576; x++)
-					if (row[x * 3] * 0.0722 + row[x * 3 + 1] * 0.7152 + row[x * 3 + 2] * 0.2126 < 128)
+				{
+					double brightness = row[x * 3] * 0.0722 + row[x * 3 + 1] * 0.7152 + row[x * 3 + 2] * 0.2126;
+					if (gray != null) gray[y * 576 + x] = brightness;
+					if (brightness < 128)
 						raster.Bytes[y * 72 + x / 8] |= (byte)(1 << (7 - x % 8));
+				}
 			}
 		}
 		finally
 		{
 			canvas.UnlockBits(bits);
 		}
-		return raster;
+		return tone == null ? raster : tone.ConvertGray(gray!, height);
 	}
 	public static Bitmap Preview(Raster raster)
 	{

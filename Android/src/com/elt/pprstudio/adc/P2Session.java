@@ -300,7 +300,7 @@ import java.util.function.Consumer;
 	                  Consumer<byte[]> complete)
 	{
 		pending = new Pending(command, response, Wire.frame(command, index, payload, seed), ack, complete);
-		arm(6000);
+		arm(P2Transfer.COMMAND_TIMEOUT_MS);
 		pump();
 	}
 
@@ -506,7 +506,7 @@ import java.util.function.Consumer;
 						                 query(12, ignored -> complete("已发送，请核对纸面"));
 					                 }
 				                 });
-			                 }), 2000);
+				                 }), P2Transfer.FINISH_WAIT_MS);
 			return;
 		}
 		int frameBytes = P2Transfer.FRAME_BYTES;

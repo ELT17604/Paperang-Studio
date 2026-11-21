@@ -1,5 +1,7 @@
 # Local HTTP API v2
 
+This page describes the MacClient contract. WinClient provides the principal v2 operations on `127.0.0.1:8766`, with an explicit start/stop control and token/Origin checks. Its API/Shell lifetime follows the workspace window. Windows does not implement the Mac command-line switches below; exact response-field/status and full OpenAPI request-schema parity remain documented limitations. See the [Windows guide](WINDOWS.md) and [validation scope](WINCLIENT.md).
+
 [Documentation](README.md) · [简体中文](API.zh-CN.md) · [OpenAPI 3.0.3](openapi.json)
 
 The app hosts a Network.framework HTTP service at `http://127.0.0.1:8176`. It is disabled by default and binds only to loopback. GUI, API, and terminal operations share the same printer connection and busy lock.
@@ -37,7 +39,7 @@ The token file is UTF-8, with surrounding whitespace trimmed; use private file p
 | POST `/v2/connect` | `{"id":"discovered UUID"}` | 202 accepted; poll status until `connected:true`. The UUID is local to CoreBluetooth, not a MAC |
 | POST `/v2/disconnect` | `{}` | `{connected:false}`; 409 during a print, cancel first |
 | POST `/v2/query` | `{"command":12}` | `{command,payloadHex,hasData,status}`; allowlisted read-only GET, decimal integer command |
-| GET `/v2/protocol` | None | Model, width 576, 72 bytes/row, nominal DPI 300, default feed 150, command evidence catalog |
+| GET `/v2/protocol` | None | Model, width 576, 72 bytes/row, nominal DPI 300, default feed 160, command evidence catalog |
 | GET `/v2/settings` | None | `{defaults:PrintSettings,note}`; request settings merge over defaults, not current GUI edits |
 | POST `/v2/render` | RenderInput | Offline `{width,height,bytes,previewPngBase64}`; `includeRaw:true` adds `rawBase64` |
 | POST `/v2/jobs` | RenderInput plus `allowPaper`/`title` | 202 `{id,state:"accepted",note}`; poll the job; 409 when busy, no automatic queue/retry |

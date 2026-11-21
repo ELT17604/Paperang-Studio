@@ -1,5 +1,13 @@
 # Windows local tests
 
+## Current WinClient
+
+Run `./Windows/scripts/build-client.ps1` for separate desktop verification followed by fixture-free production publishing and an offline production startup smoke test. `WinClientChecks/*.cs` are linked only when `PaperangDesktopChecks=true`; normal builds contain no fake transport/HTTP fixtures. The shared regression executable below still links the legacy frontend to test compatibility alongside Core/Windows libraries.
+
+`./Windows/scripts/build-client-installer.ps1` builds the current installer. Tests require .NET 10 SDK; packaging requires Inno Setup 6. Set `PAPERANG_WIN_WORK_DIR` to an external directory, especially when another portable build is running.
+
+## Shared and legacy regression
+
 Run from the repository root on Windows 10 2004+ / Windows 11 with .NET 10 SDK, Python 3.10+ and Inno Setup 6. Output, owner files, temporary databases and installer logs stay outside tracked source. These tests link the actual WinLite and Core projects; they do not ship an alternative client implementation.
 
 ```powershell
@@ -10,15 +18,15 @@ dotnet run --project tests/windows/Paperang.Tests -c Release
 ./work/venv/Scripts/python.exe tests/windows/run_integration.py --dotnet dotnet
 python tests/test_contract_inventory.py
 python scripts/check-versions.py
-./Windows/scripts/build.ps1
-./Windows/scripts/build-installer.ps1
+./Windows/scripts/build-client.ps1
+./Windows/scripts/build-client-installer.ps1
 ```
 
 Default native regression and Relay integration use fake printers. They check actual DPAPI in a temporary directory, P2 framing/CRC/media guards, raster/template composition, durable claim results, pause/cancellation/recovery without reprinting, platform-specific update ordering, PKCS8/PKCS1 RSA proof/session renewal, C history/device scope and M denial. Shared HTTP checks exercise A/B/C/M, UUID deduplication, payload isolation, timeout to unknown, late report-only recovery, rejection and manual C confirmation. Synthetic paper confirmation is only in a disposable database.
 
 The harness was promoted from the historical external Windows test directory. Its old v1 mock endpoint, missing claimed-body response and obsolete authentication default were corrected to match actual v2 execution; failures were fixed in the test fixture, not by weakening the product contract.
 
-For **explicitly authorized** local machine installation testing (installs/upgrades/uninstalls/reinstalls the user's app, preserving data):
+The following installer harness targets **legacy WinLite only**. It does not establish WinClient installer acceptance. For explicitly authorized legacy installation testing (installs/upgrades/uninstalls/reinstalls the user's app, preserving data):
 
 ```powershell
 python tests/windows/test_installer.py --setup PATH_TO_SETUP_EXE --log-dir work/installer

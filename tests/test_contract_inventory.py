@@ -22,5 +22,17 @@ assert v["compatibility"]["localApi"] == v["compatibility"]["relayApi"] == "v2"
 print("PASS local implementation/OpenAPI route inventory, product/API/schema domains")
 
 for p in (r / "Windows/src").rglob("*.cs"):
-	assert not re.search(r'["\x27]/?v1/', p.read_text(encoding="utf-8")), p
+	# Self-checks intentionally call v1 to verify HTTP 410; dispatchers must also
+	# recognize retired routes. Reject actual outbound calls in production code.
+	if p.name.endswith("Checks.cs"):
+		continue
+	assert not re.search(r'(?:\b(?:Get|Post|RequestAsync|GetAsync|PostAsync|PutAsync|DeleteAsync)\s*\(|'
+	                     r'\bnew\s+HttpRequestMessage\s*\(\s*HttpMethod\.\w+\s*,)\s*'
+	                     r'(?:HttpMethod\.\w+\s*,\s*)?["\x27]/?v1/', p.read_text(encoding="utf-8")), p
 print("PASS Windows runtime has no HTTP v1 route calls; schema 1 remains supported")
+
+android_layout = (r / "Android/src/com/elt/pprstudio/adc/PaperRenderer.java").read_text(encoding="utf-8")
+assert re.search(r"LayoutOptions DEFAULT = new LayoutOptions\(0, 0, WIDTH,", android_layout)
+android_raster = (r / "Android/src/com/elt/pprstudio/adc/Raster.java").read_text(encoding="utf-8")
+assert re.search(r"\bWIDTH\s*=\s*576\b", android_raster)
+print("PASS Android default layout uses the full 576-dot width with zero margins")
