@@ -23,3 +23,8 @@ Select the connected P2 and send the preview. If it does not appear during a sca
 - [Compare client features](/en/feature-matrix/) to choose a workflow for images, layouts, or templates.
 - [Set up remote printing](/en/remote-printing/) to accept browser submissions through a self-hosted Relay.
 - [Use the API v2 contract](/en/api-v2-032/) to integrate an application with the Local API or Relay.
+
+
+## v0.3.3 downloads
+
+Download the Android APK, Windows x64 installer or macOS arm64 package from the [unified release](https://github.com/ELT17604/Paperang-Studio/releases/tag/v0.3.3). See [paused branches](/en/paused-branches/) before using historical integrations.

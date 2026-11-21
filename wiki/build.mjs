@@ -159,7 +159,7 @@ function page(lang, slug, title, article, toc = '') {
 	</head><body><a class="skip" href="#content">${t.skip}</a>
 	<header class="top"><div class="bar"><a class="brand" href="${route(lang)}"><img src="${icon}" width="36" height="36" alt=""><span>Paperang Studio</span></a>
 	<div class="search" data-empty="${t.no}"><label class="sr-only" for="search">${t.search}</label><input id="search" type="search" placeholder="${t.search}" autocomplete="off" aria-controls="search-results" disabled><kbd aria-hidden="true">/</kbd><ul id="search-results" hidden></ul></div>
-	<nav class="top-links" aria-label="${t.title}"><a href="${route(other, slug)}" lang="${other}" hreflang="${other}">${t.language}</a><a href="${repo}">GitHub ↗</a></nav></div></header>
+	<nav class="top-links" aria-label="${t.title}"><a href="${route(other, slug)}" lang="${other}" hreflang="${other}">${t.language}</a><a href="${repo}">GitHub</a></nav></div></header>
 	<div class="layout"><aside class="sidebar"><details class="nav-shell" open><summary>${t.menu}</summary><nav aria-label="${t.menu}">
 	${link(lang, '', t.home, slug)}${link(lang, 'index', t.all, slug)}${groupsHtml}</nav></details></aside>
 	<main id="content" class="${slug === '' ? 'landing' : ''}">${article}</main>
@@ -173,24 +173,24 @@ function homepage(lang) {
 	const heroText = en ? 'Print on Paperang P2 from macOS, Android or Windows. Send notes and drawings from a browser with a self-hosted Relay.' : '在 macOS、Android 或 Windows 上编辑纸条并打印到 Paperang P2。也可通过自托管 Relay，从浏览器发送文字和手绘。';
 	const sequence = [
 		['first-print', 'Make your first print', '完成第一次打印', 'Install a client, connect the P2, and send a preview.', '选一个客户端，连接 P2，再把预览发送到打印机。'],
-		['remote-printing', 'Set up remote printing', '搭建远程打印', 'Deploy the Relay and connect a desktop receiver.', '部署 Relay，在 MacClient 或 WinLite 上配置接收。'],
+		['remote-printing', 'Set up remote printing', '搭建远程打印', 'Deploy the Relay and connect a desktop receiver.', '部署 Relay，在 MacClient 或 WinClient 上配置接收。'],
 		['api-v2-032', 'Integrate with the API', '接入 API', 'Read the HTTP v2 contract, credentials and job flow.', '查看 HTTP v2 契约、凭据和任务流转。'],
 	];
 	const screenshots = [
 		['MacClient', 'user-guide', 'doc/assets/macclient-v0.3.1-fix3-workspace.png'],
-		['WinLite', 'windows', 'assets/screenshots/winlite-v0.3.0-template-editor.jpg'],
+		['WinClient', 'windows', 'assets/screenshots/winclient-v0.3.3-workspace.png'],
 		['AndroidClient', 'android', 'assets/screenshots/androidclient-v0.3.3-drawing.png'],
 	];
 	return `<section class="hero"><img class="hero-icon" src="${icon}" width="64" height="64" alt="">
 	<p class="eyebrow">${en ? 'Project documentation' : '项目文档'}</p><h1>Paperang Studio</h1><p class="lede">${heroText}</p>
-	<div class="actions"><a class="primary" href="${route(lang, 'first-print')}">${en ? 'Start printing' : '开始打印'} →</a>
+	<div class="actions"><a class="primary" href="${route(lang, 'first-print')}">${en ? 'Start printing' : '开始打印'}</a>
 	<a href="${route(lang, 'index')}">${labels[lang].all}</a></div></section>
 	<section><h2>${en ? 'From setup to integration' : '从安装到接入'}</h2><ol class="steps">
 	${sequence.map(([slug, a, b, c, d], i) => `<li><span class="step">${i + 1}</span><div>${link(lang, slug, en ? a : b)}<p>${en ? c : d}</p></div></li>`).join('')}</ol></section>
 	<section><h2>${en ? 'Choose your client' : '选择客户端'}</h2><div class="gallery">
-	${screenshots.map(([name, slug, file]) => `<a href="${route(lang, slug)}"><img src="${asset(file)}" alt="" loading="lazy"><strong>${name} <span aria-hidden="true">↗</span></strong></a>`).join('')}</div></section>
+	${screenshots.map(([name, slug, file]) => `<a href="${route(lang, slug)}"><img src="${asset(file)}" alt="" loading="lazy"><strong>${name} </strong></a>`).join('')}</div></section>
 	<section class="release-strip"><p>${en ? 'Published project release' : '已发布的项目版本'} <strong>${esc(release)}</strong></p><p>${en ? 'Compatibility baseline' : '兼容基线'} <strong>${esc(registry.baseline)}</strong></p>
-	${link(lang, 'versioning', en ? 'Version policy' : '版本规则')} <span>·</span> ${link(lang, 'feature-matrix', en ? 'Feature matrix' : '功能矩阵')}</section>`;
+	${link(lang, 'release-v0.3.3', en ? 'Downloads and release notes' : '下载与发行说明')} <span>·</span> ${link(lang, 'paused-branches', en ? 'Paused branches' : '暂停维护与历史分支')} <span>·</span> ${link(lang, 'versioning', en ? 'Version policy' : '版本规则')} <span>·</span> ${link(lang, 'feature-matrix', en ? 'Feature matrix' : '功能矩阵')}</section>`;
 }
 
 function indexPage(lang) {
@@ -228,7 +228,7 @@ for (const lang of langs) {
 		const fallback = contentLang !== lang ? `<p class="fallback">${t.fallback}</p>` : '';
 		const article = `<nav class="crumbs" aria-label="${t.menu}"><a href="${route(lang)}">${t.home}</a><span>/</span><a href="${route(lang, 'index')}#${group[0]}">${groupTitle}</a></nav>
 		<article class="prose"><h1>${esc(title)}</h1>${fallback}<div lang="${contentLang}">${html}</div></article>
-		${file ? `<p class="source"><a href="${sourceUrl(file)}">${t.source} ↗</a></p>` : ''}<nav class="page-nav" aria-label="${t.menu}">${steps}</nav>`;
+		${file ? `<p class="source"><a href="${sourceUrl(file)}">${t.source}</a></p>` : ''}<nav class="page-nav" aria-label="${t.menu}">${steps}</nav>`;
 		write(`${lang}/${slug}/index.html`, page(lang, slug, title, article, toc));
 		search.push({ title, group: groupTitle, url: route(lang, slug), text: plain });
 	}

@@ -23,3 +23,8 @@
 - [查看功能矩阵](/zh-CN/feature-matrix/)，按图片、排版或模板需求选择客户端。
 - [部署远程打印](/zh-CN/remote-printing/)，通过自托管 Relay 接收浏览器提交的任务。
 - [查阅 API v2 契约](/zh-CN/api-v2-032/)，将应用接入本机 API 或 Relay。
+
+
+## v0.3.3 下载
+
+从[统一发行页](https://github.com/ELT17604/Paperang-Studio/releases/tag/v0.3.3)下载 Android APK、Windows x64 安装包或 macOS arm64 包，并核对 SHA256SUMS。历史 Skill 和 WinLite 的状态见[暂停维护与历史分支](/zh-CN/paused-branches/)。

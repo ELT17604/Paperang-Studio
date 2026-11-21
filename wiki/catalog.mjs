@@ -6,6 +6,7 @@ export const groups = [
 	['start', 'Start here', '开始使用', [
 		['first-print', 'Your first print', '第一次打印'],
 		doc('FEATURE-MATRIX', 'Feature matrix', '功能矩阵'),
+		doc('PAUSED-BRANCHES', 'Paused and historical branches', '暂停维护与历史分支'),
 		doc('VERSIONING', 'Versions and compatibility', '版本与兼容性'),
 		['project', 'Project README', '项目介绍', 'README.md', 'doc/README.zh-CN.md'],
 		['source-index', 'Repository documentation index', '仓库文档目录', 'doc/README.md', 'doc/INDEX.zh-CN.md'],
@@ -61,6 +62,7 @@ export const groups = [
 		['windows-tests', 'Windows local tests', 'Windows 本地测试', 'tests/windows/README.md'],
 	]],
 	['releases', 'Release history', '发布历史', [
+		['release-v0.3.3', 'Unified v0.3.3 release', 'v0.3.3 统一发布', 'doc/RELEASE-v0.3.3.md', null, 'zh-CN'],
 		['changelog', 'Changelog', '变更记录', 'CHANGELOG.md', 'doc/CHANGELOG.zh-CN.md'],
 		['release-v0.3.3-androidclient', 'AndroidClient 0.3.3', 'AndroidClient 0.3.3', 'doc/RELEASE-v0.3.3-androidclient.md', null, 'zh-CN'],
 		doc('RELEASE-v0.3.3-macclient', 'MacClient 0.3.3', 'MacClient 0.3.3'),
