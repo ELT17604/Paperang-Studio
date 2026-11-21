@@ -1,31 +1,36 @@
-/* Material Design 3 baseline roles, type scale, shapes and state layers.
+/* Material Design 3 color roles, type scale, shapes and state layers.
    References: https://m3.material.io/styles/color/the-color-system
    https://m3.material.io/styles/typography/applying-type */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 :root {
- color-scheme:light dark;
- --md-sys-color-primary:#6750a4; --md-sys-color-on-primary:#ffffff;
- --md-sys-color-primary-container:#eaddff; --md-sys-color-on-primary-container:#21005d;
- --md-sys-color-secondary:#625b71; --md-sys-color-secondary-container:#e8def8; --md-sys-color-on-secondary-container:#1d192b;
- --md-sys-color-tertiary:#7d5260; --md-sys-color-error:#b3261e;
- --md-sys-color-surface:#fef7ff; --md-sys-color-on-surface:#1d1b20; --md-sys-color-on-surface-variant:#49454f;
- --md-sys-color-surface-container-low:#f7f2fa; --md-sys-color-surface-container:#f3edf7;
- --md-sys-color-surface-container-high:#ece6f0; --md-sys-color-surface-container-highest:#e6e0e9;
- --md-sys-color-outline:#79747e; --md-sys-color-outline-variant:#cac4d0;
+ /* Sea-sky blue (#c6e6e8) anchors the light theme. */
+ color-scheme: light;
+ --md-sys-color-primary:#28575d; --md-sys-color-on-primary:#ffffff;
+ --md-sys-color-primary-container:#c6e6e8; --md-sys-color-on-primary-container:#15373b;
+ --md-sys-color-secondary:#506d6f; --md-sys-color-secondary-container:#d4f4f6; --md-sys-color-on-secondary-container:#1c3839;
+ --md-sys-color-tertiary:#1d3f5a; --md-sys-color-error:#b3261e;
+ --md-sys-color-surface:#f6fbfb; --md-sys-color-on-surface:#172d30; --md-sys-color-on-surface-variant:#405a5d;
+ --md-sys-color-surface-container-low:#edf7f7; --md-sys-color-surface-container:#e3f2f3;
+ --md-sys-color-surface-container-high:#daeff0; --md-sys-color-surface-container-highest:#d0e8e9;
+ --md-sys-color-outline:#597477; --md-sys-color-outline-variant:#abc7c9;
  --md-sys-shape-corner-small:8px; --md-sys-shape-corner-medium:12px; --md-sys-shape-corner-large:16px; --md-sys-shape-corner-extra-large:28px; --md-sys-shape-corner-full:999px;
  --md-sys-motion-duration-short:200ms; --md-sys-motion-easing-standard:cubic-bezier(.2,0,0,1);
  --md-sys-elevation-level1:0 1px 2px #0000004d,0 1px 3px 1px #00000026;
  --md-sys-elevation-level2:0 1px 2px #0000004d,0 2px 6px 2px #00000026;
  --body:Roboto,'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif; --display:var(--body); --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+ --state-hover: color-mix(in srgb, currentColor 8%, transparent);
+ --state-pressed: color-mix(in srgb, currentColor 12%, transparent);
  --ink:var(--md-sys-color-on-surface); --muted:var(--md-sys-color-on-surface-variant); --paper:var(--md-sys-color-surface); --surface:var(--md-sys-color-surface-container); --edge:var(--md-sys-color-outline-variant); --accent:var(--md-sys-color-primary); --button:var(--md-sys-color-on-primary);
 }
 @media(prefers-color-scheme:dark){:root{
- --md-sys-color-primary:#d0bcff; --md-sys-color-on-primary:#381e72; --md-sys-color-primary-container:#4f378b; --md-sys-color-on-primary-container:#eaddff;
- --md-sys-color-secondary:#ccc2dc; --md-sys-color-secondary-container:#4a4458; --md-sys-color-on-secondary-container:#e8def8;
- --md-sys-color-tertiary:#efb8c8; --md-sys-color-error:#f2b8b5;
- --md-sys-color-surface:#141218; --md-sys-color-on-surface:#e6e0e9; --md-sys-color-on-surface-variant:#cac4d0;
- --md-sys-color-surface-container-low:#1d1b20; --md-sys-color-surface-container:#211f26; --md-sys-color-surface-container-high:#2b2930; --md-sys-color-surface-container-highest:#36343b;
- --md-sys-color-outline:#938f99; --md-sys-color-outline-variant:#49454f;
+ /* Night blue (#1d3f5a) anchors the dark theme. */
+ color-scheme: dark;
+ --md-sys-color-primary:#aad0f1; --md-sys-color-on-primary:#102e46; --md-sys-color-primary-container:#1d3f5a; --md-sys-color-on-primary-container:#e0f0ff;
+ --md-sys-color-secondary:#c6e6e8; --md-sys-color-secondary-container:#30526e; --md-sys-color-on-secondary-container:#e7f5ff;
+ --md-sys-color-tertiary:#c6e6e8; --md-sys-color-error:#f2b8b5;
+ --md-sys-color-surface:#0a1929; --md-sys-color-on-surface:#e3edf7; --md-sys-color-on-surface-variant:#b6c9dc;
+ --md-sys-color-surface-container-low:#0e2134; --md-sys-color-surface-container:#132a40; --md-sys-color-surface-container-high:#19344d; --md-sys-color-surface-container-highest:#223e59;
+ --md-sys-color-outline:#89a9c3; --md-sys-color-outline-variant:#405d77;
 }}
 * { box-sizing: border-box; }
 html { scroll-padding-top: 6rem; }
@@ -212,10 +217,12 @@ tr:last-child td{border-bottom:0}
 .site-footer{font-size:14px;line-height:20px;padding:24px;background:var(--md-sys-color-surface-container)}
 .site-footer a{min-height:48px;display:inline-flex;align-items:center}
 :focus-visible{outline:3px solid var(--md-sys-color-primary);outline-offset:3px}
-.top-links a:hover,.sidebar a:hover,.sidebar summary:hover,.toc a:hover,.page-nav a:hover,.actions a:hover,#search-results a:hover{background-image:linear-gradient(#6750a414,#6750a414)}
-.top-links a:active,.sidebar a:active,.sidebar summary:active,.actions a:active{background-image:linear-gradient(#6750a41f,#6750a41f)}
+.top-links a:hover,.sidebar a:hover,.sidebar summary:hover,.toc a:hover,.page-nav a:hover,.actions a:hover,#search-results a:hover{background-image:linear-gradient(var(--state-hover),var(--state-hover))}
+.top-links a:active,.sidebar a:active,.sidebar summary:active,.actions a:active{background-image:linear-gradient(var(--state-pressed),var(--state-pressed))}
 a,summary,input{transition:background-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard),box-shadow var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard)}
 @media(max-width:1199px){.layout{grid-template-columns:256px minmax(0,1fr);gap:24px}.toc,.rail{display:none}.bar{grid-template-columns:1fr minmax(200px,1fr) auto}}
 @media(max-width:839px){.layout{display:block;padding:0 24px}.sidebar{position:static;margin-top:16px;max-height:none;border-radius:16px}.nav-shell>summary{display:flex}.nav-shell:not([open])>nav{display:none}.sidebar nav{max-height:60vh;overflow:auto}.bar{grid-template-columns:1fr auto;gap:8px;padding:12px 16px}.search{grid-row:2;grid-column:1/-1}.brand{font-size:22px}.top-links{gap:0}.top-links a{padding:0 12px}.hero{padding:24px}.hero h1{font-size:45px;line-height:52px}.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}html{scroll-padding-top:160px}}
 @media(max-width:599px){.layout{padding:0 16px}.hero h1{font-size:36px;line-height:44px}.index-grid,.gallery{grid-template-columns:1fr}.gallery img{height:200px}.page-nav{grid-template-columns:1fr}.brand{font-size:18px}.top-links a{padding:0 8px}.hero{padding:24px}.table-scroll{margin:16px 0}h1{font-size:32px;line-height:40px}h2{font-size:24px;line-height:32px}.bar{padding:8px 16px}.site-footer{align-items:center}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+
+.sidebar a[aria-current="page"]:hover { background-color: var(--md-sys-color-secondary-container); }
