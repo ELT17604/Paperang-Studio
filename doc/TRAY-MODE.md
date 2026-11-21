@@ -1,4 +1,4 @@
-# Menu bar / tray mode · v0.2.3
+# Menu bar / tray mode
 
 > **Platform scope.** The macOS behavior below is for [MacClient](USER-GUIDE.md). On [WinClient](WINDOWS.md), closing the workspace keeps Relay reception in the tray and closes the window-owned Shell and Local API. Use the Windows guide for current tray controls.
 

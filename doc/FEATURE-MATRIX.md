@@ -31,3 +31,5 @@ A dash indicates that the distribution does not provide the feature.
 Relay roles, task ownership and report recovery follow the [v2 API contract](API-v2-032.md). The [local raster generation Skill](../Skills/paperang-local-raster/SKILL.md) generates files for manual import. ChatGPT MCP/GPT Actions, RelaySkill and LocalBLESkill are paused in the current source tree. The [v0.3.2 release record](RELEASE-v0.3.2.md) covers the historical RelaySkill distribution.
 
 For additional topics and historical status, see the [documentation index](README.md) and [paused branches](PAUSED-BRANCHES.md).
+
+[Maintenance notice and current alternatives](PAUSED-BRANCHES.md)

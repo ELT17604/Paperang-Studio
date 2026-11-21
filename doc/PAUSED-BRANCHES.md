@@ -1,31 +1,25 @@
-# Paused maintenance and historical branches
+# Maintenance notice
 
-As of v0.3.3, the active release lines are MacClient, AndroidClient, WinClient and LinuxRelayServer. Retained code, historical downloads or an installed Skill do not establish current support.
+As of v0.3.3, MacClient, AndroidClient, WinClient and LinuxRelayServer are the active release lines. Maintenance or support for the following components is paused. A resumption date has not been announced.
 
-## Explicitly paused components
+## Paused components
 
-| Component | Status | Historical material and current path |
+| Component | Status | Current option |
 |---|---|---|
-| WinLite | Feature development paused | The WinForms frontend and reproducible build guide are retained. Windows development targets WinClient. Historical `0.3.3-winlite-opt1` is excluded from the unified v0.3.3 assets. |
-| ChatGPT MCP / GPT Actions | Support paused | Retained integration code is not a working hosted printing service. Use native clients or a self-hosted Relay. |
-| RelaySkill | Support paused | The v0.3.2 release record is historical. Current remote printing uses Relay API v2 and native receivers. |
-| LocalBLESkill | Support paused | The historical direct BLE experiment is not a supported current entry point. Use MacClient or AndroidClient for BLE printing. |
+| WinLite | Maintenance paused. WinForms source and build records are archived. | [WinClient](WINDOWS.md) provides Windows USB/BLE printing, Relay reception and a paper terminal. |
+| ChatGPT MCP / GPT Actions | Support paused. The current release contains no hosted printing entry point for these integrations. | Use a [current client](FEATURE-MATRIX.md) or a [self-hosted Relay](REMOTE-PRINTING.md) for browser submissions. |
+| RelaySkill | Support paused. See [v0.3.2](RELEASE-v0.3.2.md) for the historical release. | Use [Relay API v2](API-v2-032.md) with [MacClient](USER-GUIDE.md) or [WinClient](WINDOWS.md). |
+| LocalBLESkill | Support paused. | Connect over BLE using [MacClient](USER-GUIDE.md) or [AndroidClient](../Android/README.md). |
 
-The version registry records the integration/Skill pause since the v0.3.3-macclient stage. Paused components have no current commitment to fixes, upgrades or verification. Permanent removal and a resumption date have not been announced.
+## Retired APIs
 
-## Retired interfaces
+Relay HTTP API v1 and Mac Local HTTP API v1 are retired. Old routes return HTTP 410. See the [Relay v2 contract](API-v2-032.md) and [Local API v2 guide](API.md) for migration.
 
-HTTP API v1 is retired and old routes return HTTP 410. Consumers must migrate to v2. The Local and Relay APIs are independent interfaces with distinct addresses and credentials.
+## Other statuses
 
-## Distinguishing other states
+- The [local raster generation Skill](../Skills/paperang-local-raster/SKILL.md) remains available for preparing raster1 files for manual import.
+- LinuxClient is planned. LinuxRelayServer is the current deployable Linux server.
+- The [temporary macOS Relay](../Server/macOS-Temporary/README.md) is for local development. Use [LinuxRelayServer](../Server/README.md) for persistent deployments.
+- USB research, the ESP32 emulator and third-party implementations remain indexed as reference material. Use WinClient for current Windows USB printing.
 
-- The **local raster generation Skill (paperang-local-raster)** remains a helper for generating RAW/raster1 files for manual import and preview. It does not print directly.
-- **LinuxClient** is planned, rather than a previously maintained release that was paused.
-- The **temporary macOS Relay** is a development entry point, not a Linux production deployment.
-- **USB protocol research, the ESP32 emulator and third-party implementations** remain research/reference material. No blanket pause is established for them. Windows USB support has entered the WinClient mainline.
-
-## References
-
-[Historical WinLite guide](WINLITE-LEGACY.md) · [Version policy](VERSIONING.md) · [Feature matrix](FEATURE-MATRIX.md) · [Unified v0.3.3 release notes](RELEASE-v0.3.3.md) · [Version registry](../VERSIONS.json)
-
-A Git branch's existence, merge status or lack of recent commits alone is not evidence of an intentional maintenance pause.
+[Current release and downloads](RELEASE-v0.3.3.md) · [Historical WinLite guide](WINLITE-LEGACY.md) · [Version registry](../VERSIONS.json)

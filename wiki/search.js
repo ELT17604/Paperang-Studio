@@ -5,8 +5,13 @@ const normalize = value => value.toLocaleLowerCase(lang).normalize('NFKC');
 let request;
 let generation = 0;
 
-if (matchMedia('(max-width: 44rem)').matches)
-	document.querySelector('.nav-shell').open = false;
+const navigation = document.querySelector('.nav-shell');
+const compact = matchMedia('(max-width: 839px)');
+function syncNavigation() {
+	navigation.open = !compact.matches;
+}
+syncNavigation();
+compact.addEventListener('change', syncNavigation);
 
 input.disabled = false;
 function closeSearch() {
@@ -31,6 +36,8 @@ async function updateSearch() {
 		index = await request;
 	} catch {
 		request = undefined;
+		if (current === generation)
+			showSearchMessage(input.parentElement.dataset.error);
 		return;
 	}
 	if (current !== generation)
@@ -64,13 +71,18 @@ async function updateSearch() {
 		item.append(link);
 		results.append(item);
 	}
-	if (!matches.length) {
-		const item = document.createElement('li');
-		const text = document.createElement('span');
-		text.textContent = input.parentElement.dataset.empty;
-		item.append(text);
-		results.append(item);
-	}
+	if (!matches.length)
+		showSearchMessage(input.parentElement.dataset.empty);
+	results.hidden = false;
+}
+
+function showSearchMessage(message) {
+	const item = document.createElement('li');
+	const text = document.createElement('span');
+	text.textContent = message;
+	text.setAttribute('role', 'status');
+	item.append(text);
+	results.replaceChildren(item);
 	results.hidden = false;
 }
 

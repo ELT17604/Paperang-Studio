@@ -31,3 +31,5 @@
 中转角色、任务归属与回报恢复遵循 [API v2 契约](API-v2-032.md)。[本地位图生成 Skill](../Skills/paperang-local-raster/SKILL.md) 生成供手动导入的文件。当前源码暂停 ChatGPT MCP/GPT Actions、RelaySkill 和 LocalBLESkill。[v0.3.2 发行记录](RELEASE-v0.3.2.md)收录历史 RelaySkill 发行版。
 
 其他功能与历史状态见[文档目录](INDEX.zh-CN.md)和[暂停维护与历史分支](PAUSED-BRANCHES.zh-CN.md)。
+
+[暂停维护声明与当前替代方案](PAUSED-BRANCHES.zh-CN.md)

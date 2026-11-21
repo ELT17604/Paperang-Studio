@@ -65,7 +65,7 @@ export const groups = [
 		doc('UPGRADE-v0.3.2', 'Upgrade and rollback (0.3.2)', '升级与回滚（0.3.2）'),
 	]],
 	['archive', 'History and maintenance status', '历史与维护状态', [
-		doc('PAUSED-BRANCHES', 'Paused and historical branches', '暂停维护与历史分支'),
+		doc('PAUSED-BRANCHES', 'Maintenance notice', '暂停维护声明'),
 		doc('WINLITE-LEGACY', 'Historical WinLite', '历史 WinLite'),
 		['windows-legacy-build', 'Historical WinLite build', '历史 WinLite 构建', 'Windows/LEGACY.md'],
 		doc('WINDOWS-PORTING', 'Windows porting', 'Windows 移植'),
@@ -87,3 +87,31 @@ export const references = [
 	['LICENSE', 'License', '许可证'],
 	['NOTICE', 'Notices', '署名与声明'],
 ];
+
+// Status describes the document's scope, independently of its navigation group.
+export const notices = {
+	paused: {
+		label: ['Maintenance paused', '已暂停维护'],
+		topics: ['winlite-legacy', 'windows-legacy-build', 'windows-porting', 'release-v0.3.3-winlite'],
+		message: ['WinLite is archived. Use WinClient for Windows printing and Relay reception.', 'WinLite 已暂停维护。Windows 打印和中转接收请使用 WinClient。'],
+		target: 'windows',
+	},
+	historical: {
+		label: ['Historical record', '历史记录'],
+		topics: ['release-v0.3.2', 'macclient-v0.3.1', 'owner-cutover-v0.3.1', 'upgrade-v0.3.0', 'release-v0.3.3-macclient', 'release-v0.3.3-androidclient'],
+		message: ['This page describes an earlier distribution or procedure. Use the unified release for current downloads and guides.', '本页记录早期发行版或操作流程。当前下载和使用指南见统一发布。'],
+		target: 'release-v0.3.3',
+	},
+	research: {
+		label: ['Research reference', '研究参考'],
+		topics: ['usb-research', 'acquisition', 'research', 'charging-and-led', 'esp32-emulator', 'related-projects'],
+		message: ['This page records experiments or reference implementations. Use the supported clients for printing.', '本页记录实验或参考实现。实际打印请使用当前主线客户端。'],
+		target: 'first-print',
+	},
+	development: {
+		label: ['Development only', '开发用途'],
+		topics: ['temporary-relay'],
+		message: ['Use LinuxRelayServer for persistent Relay installations.', '持续运行的中转服务请部署 LinuxRelayServer。'],
+		target: 'relay-server',
+	},
+};

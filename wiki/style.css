@@ -226,3 +226,39 @@ a,summary,input{transition:background-color var(--md-sys-motion-duration-short) 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 
 .sidebar a[aria-current="page"]:hover { background-color: var(--md-sys-color-secondary-container); }
+
+/* Material 3 navigation drawer and article status surfaces. */
+.sidebar .nav-label {
+	margin: 12px 8px 4px;
+	padding: 12px 8px 0;
+	border-top: 1px solid var(--edge);
+	color: var(--muted);
+	font-size: 14px;
+	font-weight: 500;
+}
+.sidebar nav a, .sidebar nav summary {
+	min-height: 48px;
+	padding: 10px 16px;
+}
+.sidebar nav > div a[aria-current="page"] {
+	background: var(--md-sys-color-secondary-container);
+	color: var(--md-sys-color-on-secondary-container);
+}
+.sidebar nav .topic-group { margin: 0; padding: 0; }
+.sidebar nav .topic-group ul { padding-inline-start: 12px; }
+.sidebar nav .topic-group li a { min-height: 44px; }
+.nav-shell > summary { display: none; }
+.doc-notice {
+	margin-block: 0 24px;
+	padding: 16px 20px;
+	border-radius: var(--md-sys-shape-corner-medium);
+	background: var(--md-sys-color-secondary-container);
+	color: var(--md-sys-color-on-secondary-container);
+}
+.doc-notice p { margin-block: 4px 8px; }
+.doc-notice a { color: inherit; font-weight: 500; }
+@media (max-width: 839px) {
+	.nav-shell > summary { display: flex; }
+	.sidebar nav { padding: 4px; }
+	.sidebar .nav-primary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

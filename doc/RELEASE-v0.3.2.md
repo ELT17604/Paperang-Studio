@@ -6,6 +6,8 @@ Application HTTP APIs are unified on **v2**. MacClient, WinLite, LinuxRelayServe
 
 The clients share the same Relay v2 authentication, permissions and task contract. Local Mac API v2 remains a separate loopback interface. Template/content/configuration schema 1, BLE UUIDs/framing/CRC, 576-dot raster format, density and feed protocol are preserved.
 
+> **RelaySkill support is now paused.** See the [maintenance notice](PAUSED-BRANCHES.md) for the current Relay v2 workflow.
+
 ## Compatibility and upgrade
 
 HTTP API v1 is retired; obsolete requests receive explicit rejection and cannot execute business operations. Update old Local API consumers to v2 and coordinate clients/server upgrades.

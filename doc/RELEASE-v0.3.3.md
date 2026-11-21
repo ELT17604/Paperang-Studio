@@ -27,7 +27,7 @@ Android 下载 APK 后安装，覆盖安装须使用相同签名；请保留已�
 
 Relay 解压后阅读包内 `Server/README.md`。首次安装使用 `sudo bash Server/install.sh`；已有部署先备份并按照 [升级与回滚指南](UPGRADE-v0.3.2.md) 操作。包根目录含 `manifest.json`，供 `Server/deploy.py` 校验。发布不会自动修改任何在线服务器。
 
-兼容基线保持 **0.3.x**：Relay API v2、本机 API v2、内容及模板 schema 1；P2 576 点协议保持兼容。旧 HTTP API v1 已退役。ChatGPT MCP、RelaySkill、LocalBLESkill 的支持仍暂停。
+兼容基线保持 **0.3.x**：Relay API v2、本机 API v2、内容及模板 schema 1；P2 576 点协议保持兼容。旧 HTTP API v1 已退役。ChatGPT MCP / GPT Actions、RelaySkill 和 LocalBLESkill 的支持仍暂停。当前替代路径详见[暂停维护声明](PAUSED-BRANCHES.zh-CN.md)。
 
 ## 验证范围
 

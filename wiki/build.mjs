@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { load } from 'cheerio';
 import GithubSlugger from 'github-slugger';
 import MarkdownIt from 'markdown-it';
-import { groups, references } from './catalog.mjs';
+import { groups, references, notices } from './catalog.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const out = path.join(here, 'dist');
@@ -147,16 +147,29 @@ const mainTopics = [
 	['relay-server', 'LinuxRelayServer', 'LinuxRelayServer', 'Linux · Self-hosted Relay and browser submissions', 'Linux · 自托管中转与网页投稿'],
 ];
 
-const link = (lang, slug, title, active = '') =>
+const link = (lang, slug, title, active = null) =>
 	`<a href="${route(lang, slug)}"${slug === active ? ' aria-current="page"' : ''}>${esc(title)}</a>`;
 
 function page(lang, slug, title, article, toc = '') {
 	const t = labels[lang];
 	const other = lang === 'en' ? 'zh-CN' : 'en';
-	const mainLinks = mainTopics.map(([key, en, zh]) => link(lang, key, localized([en, zh], lang), slug)).join('');
-	const currentTopic = topics.find(({ entry }) => entry[0] === slug);
-	const extraLink = currentTopic && !mainTopics.some(([key]) => key === slug)
-		? link(lang, slug, title, slug) : '';
+	const en = lang === 'en';
+	const findTitle = key => localized(topics.find(({ entry }) => entry[0] === key).entry.slice(1, 3), lang);
+	const destination = key => link(lang, key, findTitle(key), slug);
+	const primaryLinks = [
+		link(lang, '', t.home, slug), destination('first-print'), destination('release-v0.3.3'),
+		destination('paused-branches'),
+	].join('');
+	const groupLinks = groups.map(([id, nameEn, nameZh, entries]) => {
+		const children = entries.filter(([key]) => !['first-print', 'release-v0.3.3', 'paused-branches'].includes(key)
+			&& !mainTopics.some(([mainKey]) => key === mainKey));
+		const selected = children.some(([key]) => key === slug);
+		return `<details class="topic-group" data-group="${id}"${selected ? ' open' : ''}>
+			<summary>${esc(localized([nameEn, nameZh], lang))}</summary>
+			<ul>${children.map(([key]) => `<li>${destination(key)}</li>`).join('')}</ul>
+		</details>`;
+	}).join('');
+	const mainLinks = mainTopics.map(([key, nameEn, nameZh]) => link(lang, key, localized([nameEn, nameZh], lang), slug)).join('');
 	const titleTag = slug ? `${title} · Paperang Studio` : `Paperang Studio · ${t.title}`;
 	const description = lang === 'en' ? 'Paperang Studio client guides, self-hosted Relay, APIs and P2 printer protocols.' : 'Paperang Studio 客户端、远程打印、API 与 Paperang P2 协议文档。';
 	return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -164,10 +177,12 @@ function page(lang, slug, title, article, toc = '') {
 	<link rel="alternate" hreflang="${other}" href="${route(other, slug)}"><link rel="stylesheet" href="/style.css"><script src="/search.js" defer></script>
 	</head><body><a class="skip" href="#content">${t.skip}</a>
 	<header class="top"><div class="bar"><a class="brand" href="${route(lang)}"><img src="${icon}" width="36" height="36" alt=""><span>Paperang Studio</span></a>
-	<div class="search" data-empty="${t.no}"><label class="sr-only" for="search">${t.search}</label><input id="search" type="search" placeholder="${t.search}" autocomplete="off" aria-controls="search-results" disabled><kbd aria-hidden="true">/</kbd><ul id="search-results" hidden></ul></div>
+	<div class="search" data-empty="${t.no}" data-error="${en ? 'Search is temporarily unavailable. Use All documents to browse.' : '暂时无法搜索，请从全部文档浏览。'}"><label class="sr-only" for="search">${t.search}</label><input id="search" type="search" placeholder="${t.search}" autocomplete="off" aria-controls="search-results" disabled><kbd aria-hidden="true">/</kbd><ul id="search-results" hidden></ul></div>
 	<nav class="top-links" aria-label="${t.title}"><a href="${route(other, slug)}" lang="${other}" hreflang="${other}">${t.language}</a><a href="${repo}">GitHub</a></nav></div></header>
 	<div class="layout"><aside class="sidebar"><details class="nav-shell" open><summary>${t.menu}</summary><nav aria-label="${t.menu}">
-	${link(lang, '', t.home, slug)}${link(lang, 'index', t.all, slug)}${mainLinks}${extraLink}</nav></details></aside>
+	<div class="nav-primary">${primaryLinks}</div>
+	<p class="nav-label">${en ? 'Clients and server' : '客户端与服务端'}</p><div class="nav-main">${mainLinks}</div>
+	<p class="nav-label">${en ? 'Documentation' : '文档分类'}</p><div class="nav-topics">${link(lang, 'index', t.all, slug)}${groupLinks}</div></nav></details></aside>
 	<main id="content" class="${slug === '' ? 'landing' : ''}">${article}</main>
 	${toc ? `<aside class="toc" aria-label="${t.toc}"><p>${t.toc}</p>${toc}</aside>` : '<div class="rail"></div>'}</div>
 	<footer class="site-footer">© 2026 ELT Group <a href="${refUrls.get('LICENSE')}">CC BY-NC-SA 4.0</a></footer></body></html>`;
@@ -184,7 +199,7 @@ function homepage(lang) {
 	<section><h2>${en ? 'Current clients and server' : '当前客户端与服务端'}</h2><div class="index-grid main-topics">
 	${mainTopics.map(([slug, nameEn, nameZh, descriptionEn, descriptionZh]) => `<section><h3>${link(lang, slug, localized([nameEn, nameZh], lang))}</h3><p>${esc(localized([descriptionEn, descriptionZh], lang))}</p></section>`).join('')}</div></section>
 	<section class="release-strip"><p>${en ? 'Published project release' : '已发布的项目版本'} <strong>${esc(release)}</strong></p><p>${en ? 'Compatibility baseline' : '兼容基线'} <strong>${esc(registry.baseline)}</strong></p>
-	${link(lang, 'release-v0.3.3', en ? 'Downloads and release notes' : '下载与发行说明')}</section>`;
+	${link(lang, 'release-v0.3.3', en ? 'Downloads and release notes' : '下载与发行说明')} <span>·</span> ${link(lang, 'paused-branches', en ? 'Maintenance notice' : '暂停维护声明')}</section>`;
 }
 
 function indexPage(lang) {
@@ -219,9 +234,13 @@ for (const lang of langs) {
 		const position = entries.indexOf(entry);
 		const steps = [[entries[position - 1], t.prev], [entries[position + 1], t.next]].map(([nearby, label]) =>
 			nearby ? `<a href="${route(lang, nearby[0])}"><small>${label}</small>${esc(localized(nearby.slice(1, 3), lang))}</a>` : '<span></span>').join('');
+		const status = Object.values(notices).find(item => item.topics.includes(slug));
+		const notice = status ? `<aside class="doc-notice" aria-label="${esc(localized(status.label, lang))}"><strong>${esc(localized(status.label, lang))}</strong>
+			<p>${esc(localized(status.message, lang))}</p><div>${link(lang, status.target, localized(topics.find(({ entry }) => entry[0] === status.target).entry.slice(1, 3), lang))}
+			· ${link(lang, 'paused-branches', lang === 'en' ? 'Maintenance notice' : '暂停维护声明')}</div></aside>` : '';
 		const fallback = contentLang !== lang ? `<p class="fallback">${t.fallback}</p>` : '';
 		const article = `<nav class="crumbs" aria-label="${t.menu}"><a href="${route(lang)}">${t.home}</a><span>/</span><a href="${route(lang, 'index')}#${group[0]}">${groupTitle}</a></nav>
-		<article class="prose"><h1>${esc(title)}</h1>${fallback}<div lang="${contentLang}">${html}</div></article>
+		<article class="prose"><h1>${esc(title)}</h1>${notice}${fallback}<div lang="${contentLang}">${html}</div></article>
 		${file ? `<p class="source"><a href="${sourceUrl(file)}">${t.source}</a></p>` : ''}<nav class="page-nav" aria-label="${t.menu}">${steps}</nav>`;
 		write(`${lang}/${slug}/index.html`, page(lang, slug, title, article, toc));
 		search.push({ title, group: groupTitle, url: route(lang, slug), text: plain });
