@@ -140,17 +140,23 @@ const labels = {
 		skip: '跳到正文', language: 'English', locale: 'zh-CN', links: 'GitHub' },
 };
 
+const mainTopics = [
+	['user-guide', 'MacClient', 'MacClient', 'macOS · BLE printing and Relay reception', 'macOS · 蓝牙打印与中转接收'],
+	['android', 'AndroidClient', 'AndroidClient', 'Android · BLE printing and drawing', 'Android · 蓝牙打印与手绘'],
+	['windows', 'WinClient', 'WinClient', 'Windows · USB/BLE printing and Relay reception', 'Windows · USB／蓝牙打印与中转接收'],
+	['relay-server', 'LinuxRelayServer', 'LinuxRelayServer', 'Linux · Self-hosted Relay and browser submissions', 'Linux · 自托管中转与网页投稿'],
+];
+
 const link = (lang, slug, title, active = '') =>
 	`<a href="${route(lang, slug)}"${slug === active ? ' aria-current="page"' : ''}>${esc(title)}</a>`;
 
 function page(lang, slug, title, article, toc = '') {
 	const t = labels[lang];
 	const other = lang === 'en' ? 'zh-CN' : 'en';
-	const groupsHtml = groups.map(([id, en, zh, entries]) => {
-		const open = entries.some(entry => entry[0] === slug);
-		return `<details${open ? ' open' : ''}><summary>${localized([en, zh], lang)}</summary>
-			<ul>${entries.map(([key, en, zh]) => `<li>${link(lang, key, localized([en, zh], lang), slug)}</li>`).join('')}</ul></details>`;
-	}).join('');
+	const mainLinks = mainTopics.map(([key, en, zh]) => link(lang, key, localized([en, zh], lang), slug)).join('');
+	const currentTopic = topics.find(({ entry }) => entry[0] === slug);
+	const extraLink = currentTopic && !mainTopics.some(([key]) => key === slug)
+		? link(lang, slug, title, slug) : '';
 	const titleTag = slug ? `${title} · Paperang Studio` : `Paperang Studio · ${t.title}`;
 	const description = lang === 'en' ? 'Paperang Studio client guides, self-hosted Relay, APIs and P2 printer protocols.' : 'Paperang Studio 客户端、远程打印、API 与 Paperang P2 协议文档。';
 	return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -161,7 +167,7 @@ function page(lang, slug, title, article, toc = '') {
 	<div class="search" data-empty="${t.no}"><label class="sr-only" for="search">${t.search}</label><input id="search" type="search" placeholder="${t.search}" autocomplete="off" aria-controls="search-results" disabled><kbd aria-hidden="true">/</kbd><ul id="search-results" hidden></ul></div>
 	<nav class="top-links" aria-label="${t.title}"><a href="${route(other, slug)}" lang="${other}" hreflang="${other}">${t.language}</a><a href="${repo}">GitHub</a></nav></div></header>
 	<div class="layout"><aside class="sidebar"><details class="nav-shell" open><summary>${t.menu}</summary><nav aria-label="${t.menu}">
-	${link(lang, '', t.home, slug)}${link(lang, 'index', t.all, slug)}${groupsHtml}</nav></details></aside>
+	${link(lang, '', t.home, slug)}${link(lang, 'index', t.all, slug)}${mainLinks}${extraLink}</nav></details></aside>
 	<main id="content" class="${slug === '' ? 'landing' : ''}">${article}</main>
 	${toc ? `<aside class="toc" aria-label="${t.toc}"><p>${t.toc}</p>${toc}</aside>` : '<div class="rail"></div>'}</div>
 	<footer class="site-footer">© 2026 ELT Group <a href="${refUrls.get('LICENSE')}">CC BY-NC-SA 4.0</a></footer></body></html>`;
@@ -171,26 +177,14 @@ function homepage(lang) {
 	const en = lang === 'en';
 	const release = registry.publishedProductRelease;
 	const heroText = en ? 'Print on Paperang P2 from macOS, Android or Windows. Send notes and drawings from a browser with a self-hosted Relay.' : '在 macOS、Android 或 Windows 上编辑纸条并打印到 Paperang P2。也可通过自托管 Relay，从浏览器发送文字和手绘。';
-	const sequence = [
-		['first-print', 'Make your first print', '完成第一次打印', 'Install a client, connect the P2, and send a preview.', '选一个客户端，连接 P2，再把预览发送到打印机。'],
-		['remote-printing', 'Set up remote printing', '搭建远程打印', 'Deploy the Relay and connect a desktop receiver.', '部署 Relay，在 MacClient 或 WinClient 上配置接收。'],
-		['api-v2-032', 'Integrate with the API', '接入 API', 'Read the HTTP v2 contract, credentials and job flow.', '查看 HTTP v2 契约、凭据和任务流转。'],
-	];
-	const screenshots = [
-		['MacClient', 'user-guide', 'doc/assets/macclient-v0.3.1-fix3-workspace.png'],
-		['WinClient', 'windows', 'assets/screenshots/winclient-v0.3.3-workspace.png'],
-		['AndroidClient', 'android', 'assets/screenshots/androidclient-v0.3.3-drawing.png'],
-	];
 	return `<section class="hero"><img class="hero-icon" src="${icon}" width="64" height="64" alt="">
 	<p class="eyebrow">${en ? 'Project documentation' : '项目文档'}</p><h1>Paperang Studio</h1><p class="lede">${heroText}</p>
 	<div class="actions"><a class="primary" href="${route(lang, 'first-print')}">${en ? 'Start printing' : '开始打印'}</a>
 	<a href="${route(lang, 'index')}">${labels[lang].all}</a></div></section>
-	<section><h2>${en ? 'From setup to integration' : '从安装到接入'}</h2><ol class="steps">
-	${sequence.map(([slug, a, b, c, d], i) => `<li><span class="step">${i + 1}</span><div>${link(lang, slug, en ? a : b)}<p>${en ? c : d}</p></div></li>`).join('')}</ol></section>
-	<section><h2>${en ? 'Choose your client' : '选择客户端'}</h2><div class="gallery">
-	${screenshots.map(([name, slug, file]) => `<a href="${route(lang, slug)}"><img src="${asset(file)}" alt="" loading="lazy"><strong>${name} </strong></a>`).join('')}</div></section>
+	<section><h2>${en ? 'Current clients and server' : '当前客户端与服务端'}</h2><div class="index-grid main-topics">
+	${mainTopics.map(([slug, nameEn, nameZh, descriptionEn, descriptionZh]) => `<section><h3>${link(lang, slug, localized([nameEn, nameZh], lang))}</h3><p>${esc(localized([descriptionEn, descriptionZh], lang))}</p></section>`).join('')}</div></section>
 	<section class="release-strip"><p>${en ? 'Published project release' : '已发布的项目版本'} <strong>${esc(release)}</strong></p><p>${en ? 'Compatibility baseline' : '兼容基线'} <strong>${esc(registry.baseline)}</strong></p>
-	${link(lang, 'release-v0.3.3', en ? 'Downloads and release notes' : '下载与发行说明')} <span>·</span> ${link(lang, 'paused-branches', en ? 'Paused branches' : '暂停维护与历史分支')} <span>·</span> ${link(lang, 'versioning', en ? 'Version policy' : '版本规则')} <span>·</span> ${link(lang, 'feature-matrix', en ? 'Feature matrix' : '功能矩阵')}</section>`;
+	${link(lang, 'release-v0.3.3', en ? 'Downloads and release notes' : '下载与发行说明')}</section>`;
 }
 
 function indexPage(lang) {

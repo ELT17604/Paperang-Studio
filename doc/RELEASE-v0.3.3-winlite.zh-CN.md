@@ -1,5 +1,7 @@
 # WinLite v0.3.3 — USB 优先连接
 
+> **历史归档 · WinLite 已停止功能研发。** 当前 Windows 安装与打印请使用 [v0.3.3](RELEASE-v0.3.3.md) 统一发布中的 [WinClient](WINDOWS.zh-CN.md)。
+
 [English](RELEASE-v0.3.3-winlite.md) · [Windows指南](WINDOWS.zh-CN.md) · [版本规则](VERSIONING.zh-CN.md)
 
 WinLite 0.3.3 的运行时为 `0.3.3-winlite`，程序集和文件版本为 `0.3.3.0`。该版本沿用 `0.3.x` 兼容基线、Relay HTTP API v2 和 schema 1。单独升级 WinLite 可继续使用 LinuxRelayServer 0.3.2 及已有所有者凭证。

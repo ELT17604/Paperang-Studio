@@ -1,5 +1,7 @@
 # Remote task list and graphical layout editor
 
+The screen and editor steps below describe [MacClient](USER-GUIDE.md). In [WinClient](WINDOWS.md), use the Relay queue for pending jobs and the Templates page for block editing. Use the [current Relay guide](REMOTE-PRINTING.md) for access and job ownership.
+
 [Documentation](README.md) · [简体中文](LAYOUT-EDITOR.zh-CN.md)
 
 ## Task list and short IDs

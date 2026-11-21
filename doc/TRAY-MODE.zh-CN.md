@@ -1,5 +1,7 @@
 # 菜单栏托盘模式 · v0.2.3
 
+> **平台范围。** 下文为 [MacClient](USER-GUIDE.zh-CN.md) 菜单栏行为。[WinClient](WINDOWS.zh-CN.md) 关闭工作台后可继续在托盘接收 Relay，窗口所属的 Shell 和本机 API 随窗口关闭。Windows 托盘操作见当前指南。
+
 > v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v2 和 BLE/模板记录仍独立有效。
 
 [English](TRAY-MODE.md) · [用户手册](USER-GUIDE.zh-CN.md)

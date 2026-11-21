@@ -1,5 +1,9 @@
 # 变更记录
 
+## v0.3.3 统一发布
+
+MacClient opt2、AndroidClient opt2、WinClient dev5 和当前 Relay 源码统一发布。安装包、内部版本和校验和见[发行说明](RELEASE-v0.3.3.md)。
+
 ## 2026-11-21 · WinClient 与仓库整理
 
 - WinClient 成为 Windows 当前桌面研发目标；WinLite 暂停功能研发，保留历史源码和说明。

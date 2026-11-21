@@ -1,5 +1,7 @@
 # Legacy P2 USB protocol and telemetry
 
+> Protocol and historical device measurements. For current Windows USB printing use [WinClient](WINDOWS.md).
+
 [简体中文](USB-PROTOCOL.zh-CN.md) · [Protocol](PROTOCOL.md) · [Documentation](README.md)
 
 Verified on 2026-11-10, Asia/Shanghai, on the user's legacy `Paperang_P2`, firmware bytes `09 00 01`, Windows x64. Based on `v0.3.2` (`46d55b7d6782d02ba0ff296e0af3c79a7f19b674`), branch `dev/p2-usb-protocol-research`. **0.3.3 follow-up:** native USB is integrated into the WinLite candidate with USB-first/BLE fallback and manual switching; see [release/upgrade](RELEASE-v0.3.3-winlite.md). The diagnostic acquisition below remains dated evidence. BLE protocol and Relay HTTP v2 remain unchanged. Hidden firmware commands cannot be described as exhaustively discovered.

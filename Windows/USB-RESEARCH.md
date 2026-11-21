@@ -1,3 +1,5 @@
+> **历史研究记录。** 当前 USB 打印请参阅 [WinClient 指南](../doc/WINDOWS.zh-CN.md)。相关诊断方法与实测数据保留供参考。
+
 > 原生集成后续：[WinLite0.3.3发行与升级](../doc/RELEASE-v0.3.3-winlite.zh-CN.md)。下文是此前诊断阶段的历史记录。
 
 # P2 USB 协议探索 · 2026-11-10

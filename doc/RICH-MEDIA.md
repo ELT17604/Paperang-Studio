@@ -1,12 +1,14 @@
 # Remote rich media and drawing
 
+[MacClient](USER-GUIDE.md) and [WinClient](WINDOWS.md) receive Relay text and raster1 jobs. The detailed rendering workflow below describes MacClient. For Windows reception use the WinClient guide.
+
 [简体中文](RICH-MEDIA.zh-CN.md) · [Remote printing](REMOTE-PRINTING.md)
 
 ## Implemented
 
 The relay supports legacy text jobs and schema-versioned `raster1` content. The mobile-friendly website offers **Content → Drawing**, finger/stylus/mouse input, adjustable pen width and canvas height, undo (10 strokes), clear, and an optional caption. Sending freezes the captured composer, packs its white-composited image into MSB-first monochrome rows, and uses the existing job lifecycle, receipts and short IDs. A dot counts as drawing. Closing/reloading loses the drawing draft; receipts retain their existing session behavior. This is a raster drawing editor, not a vector document editor or general photo uploader.
 
-The Mac must run this updated build. It advertises `X-Paperang-Content-Types: text,raster1`; old clients see only text jobs and cannot claim raster jobs. Upgrade both server and app before use. The server advertises `capabilities.contentTypes` and `contentSchemaVersion` at `/v2/public/status`; the website disables Drawing when this capability is absent.
+Use a current MacClient or WinClient receiver. It advertises `X-Paperang-Content-Types: text,raster1`; old clients see only text jobs and cannot claim raster jobs. Upgrade both server and app before use. The server advertises `capabilities.contentTypes` and `contentSchemaVersion` at `/v2/public/status`; the website disables Drawing when this capability is absent.
 
 The Mac lists metadata only, downloads full content on selection/print, verifies dimensions, exact byte count and SHA-256, and previews the exact raster that will be submitted. Built-in styles print the drawing at its native 576-dot width with selected text fields/caption appended as a footer. In custom templates, the Body block scales the image proportionally into its configured margins, using one-bit nearest-neighbor sampling; margin 0 preserves the original raster exactly. Local density and feed remain authoritative. Custom templates apply to both text and image jobs. Their Body block renders the fitted image first, then its optional caption; other blocks retain their configured order and typography. Combined image and footer must fit 1400 rows; reduce image height or disable footer fields if necessary. Copying a drawing to the workspace copies its rendered image and footer for normal local image controls.
 

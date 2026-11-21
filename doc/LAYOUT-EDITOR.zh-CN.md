@@ -1,5 +1,7 @@
 # 远程任务列表与图形化样式编辑器
 
+下文界面与编辑流程对应 [MacClient](USER-GUIDE.zh-CN.md)。[WinClient](WINDOWS.zh-CN.md) 的待处理任务位于远程打印队列，区块编辑位于模板页。权限和任务归属见[当前远程打印指南](REMOTE-PRINTING.zh-CN.md)。
+
 > v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v2 和 BLE/模板记录仍独立有效。
 
 [English](LAYOUT-EDITOR.md) · [中文文档目录](INDEX.zh-CN.md)

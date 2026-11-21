@@ -1,5 +1,7 @@
 # v0.3.0 upgrade and release record
 
+> **Historical version record.** For current downloads see [v0.3.3](RELEASE-v0.3.3.md). For deployment and supported clients see [MacClient](USER-GUIDE.md), [WinClient](WINDOWS.md), [AndroidClient](../Android/README.md) and [LinuxRelayServer](../Server/README.md).
+
 [完整中文操作手册](UPGRADE-v0.3.0.zh-CN.md) · [Authentication contract](AUTH-v2.md)
 
 The release replaces relay API v1 with v2 and A/B/C/M authorization, stable identities, Argon2id passphrases, persistent secure browser sessions, registered owner public keys and single-use RSA-PSS challenges. WinLite settings include native C management, full text/image history, identity filtering and streaming JSONL export. SwiftUI management, Keychain pending claims, persistent M credentials and continuous retry are updated in Mac source. RelaySkill requires A/B keys and distinguishes acceptance from status-read authority. Templates/raster1/BLE and the Mac local HTTP API v1 retain their independent formats.

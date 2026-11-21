@@ -1,5 +1,13 @@
 # 实体纸带终端
 
+[MacClient](USER-GUIDE.zh-CN.md) 和 [WinClient](WINDOWS.zh-CN.md) 均提供实体纸带终端。
+
+## Windows · WinClient
+
+从 WinClient 侧栏进入「纸带终端」。选择工作目录和 cmd.exe 或 Windows PowerShell，再点「启动终端」。WinClient 使用持续运行的 ConPTY 会话，也可手动输入文本加入待打印缓冲。连接 P2 并开启「全局允许耗纸」后，可点「立即打印缓冲」，或开启空闲后自动打印。页面支持隐私输入和导出文本。关闭工作台窗口会结束 Shell。当前面向命令行文本，全屏终端应用和实体出纸仍需单独验证。
+
+## macOS · MacClient
+
 [English](TERMINAL.md) · [中文文档目录](INDEX.zh-CN.md)
 
 “纸带终端”建立真实macOS controlling PTY（`/dev/ttys…`），通过随App打包的`PaperangPTYHost`在新会话中启动`/bin/zsh`。这不是每次新建一个进程执行命令；cd、环境变量、前后台任务和交互式输入保留在同一个shell中。默认`zsh -f -i`不加载用户.zshrc；可在启动前选择加载。shell命令按当前用户权限执行。

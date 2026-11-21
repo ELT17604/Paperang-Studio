@@ -1,5 +1,7 @@
 # WinLite v0.3.3 — USB-first printer connection
 
+> **Archived · WinLite development has stopped.** For current Windows installation and printing, use [WinClient](WINDOWS.md) in the unified [v0.3.3](RELEASE-v0.3.3.md) release.
+
 [简体中文](RELEASE-v0.3.3-winlite.zh-CN.md) · [Windows guide](WINDOWS.md) · [Version policy](VERSIONING.md)
 
 WinLite 0.3.3 uses runtime `0.3.3-winlite` and assembly/file version `0.3.3.0`. It implements the `0.3.x` compatibility baseline with Relay HTTP API v2 and schema 1. A WinLite-only upgrade can retain LinuxRelayServer 0.3.2 and existing owner credentials.

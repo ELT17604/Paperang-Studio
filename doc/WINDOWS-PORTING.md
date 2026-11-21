@@ -1,5 +1,7 @@
 # Windows porting notes
 
+> **Archived · WinLite development has stopped.** For current Windows installation and printing, use [WinClient](WINDOWS.md) in the unified [v0.3.3](RELEASE-v0.3.3.md) release.
+
 > Historical WinLite porting record. Paths below describe that implementation before the shared Windows backend was extracted. Current development follows [WinClient](WINCLIENT.md) and [architecture](ARCHITECTURE.md); WinLite development is paused.
 
 [简体中文](WINDOWS-PORTING.zh-CN.md) · [Windows guide](WINDOWS.md)

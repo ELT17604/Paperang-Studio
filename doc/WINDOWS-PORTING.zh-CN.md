@@ -1,5 +1,7 @@
 # Windows 移植记录
 
+> **历史归档 · WinLite 已停止功能研发。** 当前 Windows 安装与打印请使用 [v0.3.3](RELEASE-v0.3.3.md) 统一发布中的 [WinClient](WINDOWS.zh-CN.md)。
+
 > 本文是 WinLite 历史移植记录，表中路径对应共享 Windows 后端拆分前的实现。当前研发以 [WinClient](WINCLIENT.zh-CN.md) 和[架构说明](ARCHITECTURE.zh-CN.md)为准；WinLite 已暂停研发。
 
 > v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API 已在 0.3.2 中迁移 v2，BLE/模板记录独立有效。

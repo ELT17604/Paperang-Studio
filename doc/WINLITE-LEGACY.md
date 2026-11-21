@@ -1,5 +1,7 @@
 # Legacy WinLite · paused
 
+> **Archived · WinLite development has stopped.** For current Windows installation and printing, use [WinClient](WINDOWS.md) in the unified [v0.3.3](RELEASE-v0.3.3.md) release.
+
 [简体中文](WINLITE-LEGACY.zh-CN.md) · [Current WinClient guide](WINDOWS.md) · [Documentation](README.md)
 
 Native C#/.NET 10, WinForms, Windows USBPRINT and BLE GATT. Requires Windows 10 2004 or Windows 11; a BLE adapter is needed only for Bluetooth fallback. The lightweight package needs .NET 10 Desktop Runtime; the self-contained package includes it. No Python, Node, WebView or printer driver is needed at runtime.

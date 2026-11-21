@@ -1,5 +1,13 @@
 # Physical paper terminal
 
+The paper terminal is available in both [MacClient](USER-GUIDE.md) and [WinClient](WINDOWS.md). Choose your platform below.
+
+## Windows · WinClient
+
+Open **Paper tape terminal (纸带终端)** in the WinClient sidebar. Choose a working directory and either cmd.exe or Windows PowerShell, then select **Start terminal**. WinClient runs a persistent ConPTY session. You can also add text directly to the pending buffer. Connect the P2 and enable global paper permission, then print the buffer manually or enable automatic printing after an idle period. The page supports private input and text export. Closing the workspace closes the Shell. ConPTY here is for command-line text. Full-screen terminal applications and physical printing require separate verification.
+
+## macOS · MacClient
+
 [Documentation](README.md) · [简体中文](TERMINAL.zh-CN.md)
 
 The terminal creates a real macOS controlling PTY (`/dev/ttys…`). The bundled `PaperangPTYHost` starts `/bin/zsh` in a new session. Commands, `cd`, environment variables, jobs, and interactive answers share one shell. The default is `zsh -f -i`, without the user's `.zshrc`; loading the profile is optional before startup. Commands run with the current user's permissions.

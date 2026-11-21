@@ -1,5 +1,7 @@
 # Menu bar / tray mode · v0.2.3
 
+> **Platform scope.** The macOS behavior below is for [MacClient](USER-GUIDE.md). On [WinClient](WINDOWS.md), closing the workspace keeps Relay reception in the tray and closes the window-owned Shell and Local API. Use the Windows guide for current tray controls.
+
 [简体中文](TRAY-MODE.zh-CN.md) · [User guide](USER-GUIDE.md)
 
 Choose **进入托盘模式** at the bottom of the sidebar or in File. The main window is hidden and the Dock icon disappears; a printer icon remains in the macOS menu bar. Click it to see Bluetooth, print progress, actual local-listener state, relay online/retry/error state, pause/resume network printing, copy the local API token, restore the main interface, or quit.

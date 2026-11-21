@@ -1,5 +1,7 @@
 # Paperang Studio v0.3.2
 
+> **Historical version record.** For current downloads see [v0.3.3](RELEASE-v0.3.3.md). For deployment and supported clients see [MacClient](USER-GUIDE.md), [WinClient](WINDOWS.md), [AndroidClient](../Android/README.md) and [LinuxRelayServer](../Server/README.md).
+
 Application HTTP APIs are unified on **v2**. MacClient, WinLite, LinuxRelayServer and RelaySkill share product version **0.3.2**, retaining runtime suffixes `-macclient`, `-winlite`, `-linuxrelayserver`, `-relayskill`.
 
 The clients share the same Relay v2 authentication, permissions and task contract. Local Mac API v2 remains a separate loopback interface. Template/content/configuration schema 1, BLE UUIDs/framing/CRC, 576-dot raster format, density and feed protocol are preserved.

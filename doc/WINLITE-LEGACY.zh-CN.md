@@ -1,5 +1,7 @@
 # 历史 WinLite · 已暂停研发
 
+> **历史归档 · WinLite 已停止功能研发。** 当前 Windows 安装与打印请使用 [v0.3.3](RELEASE-v0.3.3.md) 统一发布中的 [WinClient](WINDOWS.zh-CN.md)。
+
 [English](WINLITE-LEGACY.md) · [当前 WinClient 指南](WINDOWS.zh-CN.md) · [Windows 源码](../Windows/LEGACY.md)
 
 Paperang P2 的 Windows 原生轻量托盘客户端。基于 ELT Group 的 [Paperang Studio](https://github.com/ELT17604/Paperang-Studio) macOS 客户端逻辑移植，使用 C# / .NET 10、WinForms 和 Windows USBPRINT / BLE GATT。启动直接驻留托盘，双击托盘打印机图标或右键 → 设置进入配置。

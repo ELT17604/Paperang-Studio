@@ -1,5 +1,7 @@
 # MacClient 0.3.1 fix3 升级说明
 
+> **历史版本记录。** 当前下载见 [v0.3.3](RELEASE-v0.3.3.md)，使用与部署请参阅 [MacClient](USER-GUIDE.zh-CN.md)、[WinClient](WINDOWS.zh-CN.md)、[AndroidClient](../Android/README.md) 和 [LinuxRelayServer](../Server/README.md)。
+
 [English](MACCLIENT-v0.3.1.md) · [使用指南](USER-GUIDE.zh-CN.md)
 
 2026-11-09，从上游 `9471293` 升级。MacClient 为 **0.3.1-macclient-fix3**；服务器仍为 0.3.1-linuxrelayserver-fix1，WinLite 仍为 0.3.1-winlite-fix3。中转 API v2、本地 API v1、模板 v1、raster1 schema1 不变。

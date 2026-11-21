@@ -1,14 +1,16 @@
 # 远程富媒体与绘图
 
+[MacClient](USER-GUIDE.zh-CN.md) 与 [WinClient](WINDOWS.zh-CN.md) 均可接收 Relay 文字和 raster1 点阵任务。下文详细排版流程对应 MacClient，Windows 接收操作见 WinClient 指南。
+
 > v0.3.0：本文原有截图/观测和旧版行为保留为历史；当前中转鉴权、历史权限、依赖、版本及验证状态以 [AUTH v2](AUTH-v2.zh-CN.md)、[升级记录](UPGRADE-v0.3.0.zh-CN.md) 与[矩阵](FEATURE-MATRIX.md)为准。本机 API v2 和 BLE/模板记录仍独立有效。
 
 [English](RICH-MEDIA.md) · [远程打印](REMOTE-PRINTING.zh-CN.md)
 
 ## 已实现的功能
 
-网页 Content → Drawing 可使用手指、触控笔或鼠标绘图，支持笔宽、画布高度、最近 10 笔撤销、清空和可选文字说明。画布为白底，发送时转换成 576 点宽黑白点阵，通过现有任务、鉴权、配额、短 ID、回执和确认流程提交。发送期间冻结编辑控件，避免发送内容与画面变化混淆。页面刷新/关闭不保存绘图草稿；任务回执仍按原有标签页会话保存。这是点阵绘图工具，暂未加入照片上传、矢量编辑或混合文档编辑。
+网页 Content → Drawing 可使用手指、触控笔或鼠标绘图，支持笔宽、画布高度、最近 10 笔撤销、清空和可选文字说明。画布为白底，发送时转换成 576 点宽黑白点阵，通过现有任务、鉴权、配额、短 ID、回执和确认流程提交。发送期间冻结编辑控件，避免发送内容与画面变化混淆。页面刷新/关闭不保存绘图草稿；任务状态依照浏览器身份和 Relay API v2 权限读取。这是点阵绘图工具，暂未加入照片上传、矢量编辑或混合文档编辑。
 
-必须同时更新服务端和 App。新客户端声明请求头 `X-Paperang-Content-Types: text,raster1`，旧客户端只能列出文字任务，也不能认领图片。服务器 `/v2/public/status` 的 capabilities 返回 contentTypes/contentSchemaVersion；旧服务端缺少能力声明时网页禁用绘图。
+请使用当前 LinuxRelayServer 与支持 raster1 的 MacClient 或 WinClient。新客户端声明请求头 `X-Paperang-Content-Types: text,raster1`，旧客户端只能列出文字任务，也不能认领图片。服务器 `/v2/public/status` 的 capabilities 返回 contentTypes/contentSchemaVersion；旧服务端缺少能力声明时网页禁用绘图。
 
 Mac 列表仅下载摘要，选中/打印时读取完整数据，校验宽高、字节数和 SHA-256，预览与实际发送共用点阵。内置样式中图像保持原始 576 点宽，末尾附加本地勾选的正文/身份/时间等字段。自定义模板中图片随正文区块边距等比适配，使用黑白最近邻采样；边距为 0 时原点阵不变。浓度、送纸由本地控制。文字和图片共用自定义模板：正文区块先显示图片，再显示可选说明；标题、身份、时间、编号等仍按模板顺序、字体和留白显示。图像加页脚总高度不得超过 1400 行，超出时应降低画布高度或关闭页脚字段。复制到工作台会复制合成后的图像与页脚，继续使用本地图片调整功能。
 

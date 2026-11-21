@@ -1,6 +1,6 @@
 # Legacy Windows WinLite build
 
-Windows development now targets [WinClient](../doc/WINCLIENT.md), the WinUI 3 desktop workspace. WinLite feature development is paused. The instructions below remain for the legacy app and its reproducible build.
+Windows development now targets [WinClient](../doc/WINCLIENT.md), the WinUI 3 desktop workspace. WinLite feature development has stopped. The instructions below remain for the legacy app and its reproducible build.
 
 ## Historical WinLite build
 

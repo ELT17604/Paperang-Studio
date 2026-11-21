@@ -1,5 +1,7 @@
 # v0.3.1 所有者私钥切换与故障修复
 
+> **历史版本记录。** 当前下载见 [v0.3.3](RELEASE-v0.3.3.md)，使用与部署请参阅 [MacClient](USER-GUIDE.zh-CN.md)、[WinClient](WINDOWS.zh-CN.md)、[AndroidClient](../Android/README.md) 和 [LinuxRelayServer](../Server/README.md)。
+
 本版修正三个问题：匿名浏览器可查看本身份任务的状态和分包进度，但其他身份任务返回 404，所有普通查询仍不含正文、图片和投递 metadata；活动打印 payload 恢复 IP/UA/语言等明确渲染字段；WinLite 默认使用配对的 RSA 所有者文件，后台与 C 管理共用已证明的公钥身份。
 
 M 设备执行密钥返回 403 管理拒绝属于权限隔离本身，不应把 M 升级成无限管理权限或尝试从它反查 C 秘密。诊断可在本机请求 GET /v2/auth/me 确认 role；A/B/M 无权管理，旧秘密也不能从摘要恢复。

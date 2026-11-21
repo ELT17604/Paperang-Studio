@@ -1,5 +1,7 @@
 # P2 USB 协议、遥测与实机验证
 
+> 本页为协议和历史实测记录。当前 Windows USB 打印请参阅 [WinClient](WINDOWS.zh-CN.md)。
+
 [English](USB-PROTOCOL.md) · [传统协议](PROTOCOL.zh-CN.md) · [文档目录](INDEX.zh-CN.md)
 
 验证日期：2026-11-10，Asia/Shanghai。对象为用户的传统 `Paperang_P2`，固件原始字节 `09 00 01`，Windows x64。基线 `v0.3.2` / `46d55b7d6782d02ba0ff296e0af3c79a7f19b674`；分支 `dev/p2-usb-protocol-research`。**0.3.3后续：原生USB现已接入WinLite，默认USB优先与BLE回退，详见[发行与升级](RELEASE-v0.3.3-winlite.zh-CN.md)。** 下文2026-11-10诊断记录保留原始证据；BLE业务协议与Relay HTTP v2保持不变；隐藏固件命令仍不能声称已全部发现。

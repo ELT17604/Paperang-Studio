@@ -1,5 +1,7 @@
 # v0.3.2 installation, upgrade and rollback
 
+> This remains the Relay deployment and rollback procedure for the server shipped with [v0.3.3](RELEASE-v0.3.3.md). Use current [MacClient](USER-GUIDE.md) or [WinClient](WINDOWS.md) for receiving jobs.
+
 Product release: **Paperang Studio v0.3.2**. Runtime labels retain distribution suffixes: `0.3.2-macclient`, `0.3.2-winlite`, `0.3.2-linuxrelayserver`, `0.3.2-relayskill`.
 
 ## Compatibility

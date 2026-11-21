@@ -1,5 +1,7 @@
 # Windows 客户端
 
+从 [v0.3.3](RELEASE-v0.3.3.md) 下载 **PaperangStudio-0.3.3-winclient-windows-x64-setup.exe**。WinClient 通过 Windows ConPTY 提供实体纸带终端。[纸带终端指南](TERMINAL.zh-CN.md)
+
 [English](WINDOWS.md) · [构建](../Windows/README.md) · [文档目录](INDEX.zh-CN.md)
 
 Paperang Studio WinClient 支持 Windows 10 2004+ / Windows 11，通过 USB 或蓝牙连接传统 Paperang P2。安装包包含运行时；使用便携目录时，应保留 exe 旁的文件。

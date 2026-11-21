@@ -1,5 +1,7 @@
 # Windows Client
 
+Download **PaperangStudio-0.3.3-winclient-windows-x64-setup.exe** from [v0.3.3](RELEASE-v0.3.3.md). The **Paper tape terminal** works through Windows ConPTY. [Paper terminal guide](TERMINAL.md)
+
 [简体中文](WINDOWS.zh-CN.md) · [Build](../Windows/README.md) · [Documentation](README.md)
 
 Paperang Studio WinClient runs on Windows 10 2004+ and Windows 11. It supports the legacy Paperang P2 over USB or Bluetooth. The installer includes the application runtimes; keep adjacent files together when using a portable build.

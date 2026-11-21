@@ -1,5 +1,7 @@
 # MacClient 0.3.1 fix3 upgrade
 
+> **Historical version record.** For current downloads see [v0.3.3](RELEASE-v0.3.3.md). For deployment and supported clients see [MacClient](USER-GUIDE.md), [WinClient](WINDOWS.md), [AndroidClient](../Android/README.md) and [LinuxRelayServer](../Server/README.md).
+
 [简体中文](MACCLIENT-v0.3.1.zh-CN.md) · [User guide](USER-GUIDE.md)
 
 Updated 2026-11-09 from upstream `9471293`. MacClient is **0.3.1-macclient-fix3**. RelayServer remains 0.3.1-linuxrelayserver-fix1 and WinLite remains 0.3.1-winlite-fix3. Relay API v2, local API v1, template v1 and raster1 schema1 remain unchanged.

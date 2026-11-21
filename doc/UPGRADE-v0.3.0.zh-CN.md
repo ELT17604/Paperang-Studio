@@ -1,5 +1,7 @@
 # v0.3.0 升级与发布记录
 
+> **历史版本记录。** 当前下载见 [v0.3.3](RELEASE-v0.3.3.md)，使用与部署请参阅 [MacClient](USER-GUIDE.zh-CN.md)、[WinClient](WINDOWS.zh-CN.md)、[AndroidClient](../Android/README.md) 和 [LinuxRelayServer](../Server/README.md)。
+
 仓库：**ELT17604/Paperang-Studio** — https://github.com/ELT17604/Paperang-Studio
 
 ## 本次改变
