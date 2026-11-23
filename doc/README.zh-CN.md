@@ -15,6 +15,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机**的桌面与移动打印工�
 | macOS | [MacClient](USER-GUIDE.zh-CN.md) | 蓝牙打印、图文编辑、图层排版、二维码、纸带终端和中转接收 |
 | Android | [AndroidClient](../Android/README.md) | 蓝牙打印、触屏排版、全屏手绘、毫米尺标、素材库和可编辑的打印历史 |
 | Windows | [WinClient](WINDOWS.zh-CN.md) | 图文编辑、实时蓝牙发现、USB/BLE 打印、模板、中转、管理、API 和纸带终端 |
+| 浏览器 | [Web](WEB.zh-CN.md) | 本地编辑文字、图片、图层与手绘，预览黑白点阵，蓝牙直连打印 |
 | Ubuntu | [LinuxRelayServer](../Server/README.md) | 网页投递、打印队列、权限和管理 |
 
 ## 界面预览
@@ -29,6 +30,7 @@ Paperang Studio 是面向 **Paperang P2 喵喵机**的桌面与移动打印工�
 
 | 平台 | 安装 | 连接 |
 |---|---|---|
+| 支持 Web Bluetooth 的浏览器 | [本地运行或部署到 Pages](WEB.zh-CN.md) | 在浏览器设备选择器中选取附近的 P2 |
 | macOS 14+（Apple Silicon） | 从 [Releases](https://github.com/ELT17604/Paperang-Studio/releases) 下载 MacClient，解压并移入「应用程序」 | 在「打印机」页扫描并连接 P2 |
 | Android 13+ | [构建并安装 APK](../Android/README.md) | 在「打印机」页授予附近设备权限，扫描并连接 P2 |
 | Windows 10 2004+ / 11 | [WinClient 安装与构建](../Windows/README.md) | 在桌面「打印机」页连接 USB 或实时扫描、选择蓝牙设备 |

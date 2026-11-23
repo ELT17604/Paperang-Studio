@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.3-web
+
+Add the [static browser workspace](doc/WEB.md) for local composition, monochrome preview and direct P2 printing through Web Bluetooth. The Web distribution can be hosted from `Web/` on Cloudflare Pages.
+
 ## v0.3.3 · Unified product release
 
 - Publish MacClient opt2, AndroidClient opt2, the supplied WinClient dev5 x64 installer and the current Relay source snapshot under one product tag.

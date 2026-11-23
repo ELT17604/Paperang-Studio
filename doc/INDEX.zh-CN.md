@@ -9,6 +9,7 @@
 | WinClient | [使用指南](WINDOWS.zh-CN.md)、[实现与验证](WINCLIENT.zh-CN.md)、[构建](../Windows/README.md) |
 | WinLite（暂停） | [历史指南](WINLITE-LEGACY.zh-CN.md)、[USB 接入记录](RELEASE-v0.3.3-winlite.zh-CN.md) |
 | AndroidClient | [构建与使用](../Android/README.md)、[发行说明](RELEASE-v0.3.3-androidclient.md) |
+| Web | [浏览器直连打印与 Cloudflare Pages 部署](WEB.zh-CN.md) |
 | 中转服务 | [部署](../Server/README.md)、[终端管理](../Server/ADMIN-CONSOLE.md)、[升级与回滚](UPGRADE-v0.3.2.md) |
 | 接口与数据 | [HTTP API v2](API-v2-032.md)、[中转鉴权](AUTH-v2.zh-CN.md)、[本机 HTTP API](API.zh-CN.md)、[raster1 格式](../Skills/paperang-local-raster/references/raster1.md) |
 | 设备协议 | [蓝牙](PROTOCOL.zh-CN.md)、[USB](USB-PROTOCOL.zh-CN.md)、[设备研究](RESEARCH.zh-CN.md) |

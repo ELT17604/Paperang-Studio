@@ -23,3 +23,7 @@
 ## Windows USB 来源与实测
 
 [USB来源章节](USB-PROTOCOL.zh-CN.md#10-证据文档审阅与来源)补充固定Java/P2/P1源码、Microsoft USBPRINT/SetupAPI/IOCTL资料与脱敏实机测量；未打包第三方源码或驱动。
+
+## 网页二维码编码器
+
+静态版包含 Kazuhiko Arase 的 qrcode-generator 2.0.4 原始 `dist/qrcode.mjs` 模块，按 MIT 许可证提供，用于本地二维码编码。[上游包](https://www.npmjs.com/package/qrcode-generator/v/2.0.4) · [随附许可证](../Web/vendor/LICENSE-qrcode.txt)

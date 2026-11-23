@@ -13,6 +13,10 @@ node --check Clients/paperang-client.js
 node --check Server/web/app.js
 ```
 
+## Browser workspace
+
+Run `node --test tests/web/*.mjs` with Node 22.13 or newer. The Bluetooth tests use an in-memory P2 peer to exercise the protocol without consuming paper. For an end-to-end hardware check, connect a P2 in a supported browser, print a short sheet and inspect its orientation, margins and final feed. [Web guide](../doc/WEB.md)
+
 ## Relay
 
 ```sh

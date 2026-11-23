@@ -17,6 +17,7 @@ Latest unified release: [v0.3.3](doc/RELEASE-v0.3.3.md) — MacClient, AndroidCl
 | macOS | [MacClient](doc/USER-GUIDE.md) | BLE printing, text and image editing, layered layouts, QR codes, paper terminal and Relay reception |
 | Android | [AndroidClient](Android/README.md) | BLE printing, touch layout, full-screen drawing, rulers, reusable assets and editable print history |
 | Windows | [WinClient](doc/WINDOWS.md); [WinLite](doc/WINLITE-LEGACY.md) (paused) | Local print workspace, USB-first printing with BLE fallback, tray reception, templates and Relay administration |
+| Browser | [Web](doc/WEB.md) | Edit text, images, layouts and drawings locally, preview the monochrome output and print directly over Bluetooth |
 | Ubuntu | [LinuxRelayServer](Server/README.md) | Web submissions, print queue, access controls and administration |
 
 ## Screenshots
@@ -31,6 +32,7 @@ Latest unified release: [v0.3.3](doc/RELEASE-v0.3.3.md) — MacClient, AndroidCl
 
 | Platform | Install | Connect |
 |---|---|---|
+| Browser with Web Bluetooth | [Open a local copy or deploy the Web directory to Pages](doc/WEB.md) | Choose the nearby P2 in the browser device picker |
 | macOS 14+ (Apple Silicon) | Download MacClient from [Releases](https://github.com/ELT17604/Paperang-Studio/releases), then move the app to Applications | Scan for the P2 on the Printer page |
 | Android 13+ | [Build and install the APK](Android/README.md) | Grant Nearby Devices access on the Printer tab, then scan for the P2 |
 | Windows 10 2004+ / 11 | [WinClient installer and portable build](doc/WINCLIENT.md) | Open the desktop workspace, configure the printer, then connect over USB or Bluetooth |

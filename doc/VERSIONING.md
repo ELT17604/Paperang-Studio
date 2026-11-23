@@ -29,6 +29,8 @@ Distributions preserve shared contracts within a release series. A later generat
 
 Use `vMAJOR.MINOR.PATCH-distribution[-note]`, for example `v0.3.3-androidclient`. Runtime identifiers may omit the leading `v`. Patch numbers and build metadata are distribution-specific. MacClient uses bundle build `3303`, AndroidClient uses `versionCode 12`, and Windows applications use assembly version `0.3.3.0`. Installers and update checks use their platform metadata. Interoperability uses explicit API versions, schemas and capabilities.
 
+The browser distribution uses `v0.3.3-web`. Its runtime version is stored in [Web/VERSION](../Web/VERSION) and its display version appears in the workspace header.
+
 Optional suffixes include `devN` (development builds), `fixN`, `optN`, `alphaN`, `betaN` and `rcN`. Preserve published tags and artifact names. For a distribution update, revise its version source, registry, changelog and feature matrix, then run `python3 scripts/check-versions.py` and the relevant local platform checks.
 
 [v0.3.2 release record](RELEASE-v0.3.2.md) · [API v2 contract](API-v2-032.md)

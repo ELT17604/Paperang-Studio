@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#eff2ed" />
+    <title>Paperang Studio · Web</title>
+    <link rel="icon" href="./logo.svg" />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./editor.css" />
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <a href="./" class="brand"
+          ><img src="./logo.svg" width="36" height="36" alt="" />Paperang <strong>Studio</strong></a
+        ><button id="preferences" class="subtle">
+          <i data-icon="tune"></i><span data-en="Preferences" data-zh="偏好设置"></span>
+        </button>
+      </div>
+    </header>
+    <main>
+      <div class="title">
+        <h1 data-en="Print workspace" data-zh="打印工作台"></h1>
+        <span class="version">v0.3.3-web</span>
+      </div>
+      <section class="device" aria-labelledby="printer-title">
+        <div class="printer-art" aria-hidden="true">
+          <div class="device-shell">
+            <div class="device-slot"></div>
+            <div class="paper-slip"><b></b><b></b><b></b></div>
+            <div class="led"></div>
+          </div>
+        </div>
+        <div class="device-info">
+          <h2 id="printer-title">Paperang P2</h2>
+          <div class="connection"><span id="dot"></span><span id="device-state" role="status"></span></div>
+        </div>
+        <button id="connect" class="connect"><i data-icon="bluetooth"></i><span></span></button>
+      </section>
+      <div class="workspace">
+        <section class="panel editor-panel">
+          <div class="panel-heading">
+            <span class="section-icon"><i data-icon="edit"></i></span>
+            <h2 data-en="Editor" data-zh="内容编辑"></h2>
+          </div>
+          <div id="editor"></div>
+        </section>
+        <section class="panel preview-panel">
+          <div class="panel-heading">
+            <span class="section-icon"><i data-icon="receipt"></i></span>
+            <h2 data-en="Print preview" data-zh="打印预览"></h2>
+            <span class="metadata" id="dimensions"></span>
+          </div>
+          <div class="preview-stage">
+            <div id="empty">
+              <i data-icon="receipt"></i><span data-en="Empty sheet" data-zh="空白纸张"></span>
+            </div>
+            <canvas id="preview" hidden></canvas>
+          </div>
+          <div class="print-box">
+            <button id="print-settings" class="settings-link">
+              <i data-icon="tune"></i><span data-en="Print settings" data-zh="打印设置"></span
+              ><span id="summary"></span><span aria-hidden="true">›</span>
+            </button>
+            <label class="arm"
+              ><input type="checkbox" id="armed" role="switch" /><span
+                data-en="Enable printing"
+                data-zh="允许打印"
+              ></span
+            ></label>
+            <button class="primary" id="print" disabled><i data-icon="printer"></i><span></span></button
+            ><progress id="progress" max="1" value="0" hidden></progress>
+          </div>
+        </section>
+      </div>
+      <p id="notice" role="status" hidden></p>
+    </main>
+    <footer><span>© 2026 ELT Group</span><span>Paperang Studio · Web</span></footer>
+    <dialog id="dialog">
+      <form method="dialog">
+        <div class="dialog-title">
+          <h2 id="dialog-title"></h2>
+          <button class="icon-btn" id="close" type="submit" autofocus>×</button>
+        </div>
+        <div id="dialog-body"></div>
+      </form>
+    </dialog>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

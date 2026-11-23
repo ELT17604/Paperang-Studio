@@ -27,3 +27,7 @@ See [USB provenance](USB-PROTOCOL.md#10-evidence-and-source-provenance) for pinn
 ## Distributed Windows dependencies
 
 WinClient uses QRCoder 1.9.0 (MIT), Microsoft Windows App SDK 2.7.0 and the self-contained .NET runtime. Component license and notice texts are retained in [Windows/licenses](../Windows/licenses) and copied into Windows packages. These components retain their original licenses.
+
+## Web QR encoder
+
+The static distribution includes the unmodified `dist/qrcode.mjs` module from qrcode-generator 2.0.4 by Kazuhiko Arase. It encodes QR content locally under the MIT license. [Upstream package](https://www.npmjs.com/package/qrcode-generator/v/2.0.4) · [Bundled license](../Web/vendor/LICENSE-qrcode.txt)

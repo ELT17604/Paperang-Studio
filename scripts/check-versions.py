@@ -12,7 +12,7 @@ series = re.fullmatch(r"(\d+)\.(\d+)\.x", baseline)
 assert series, baseline
 prefix = ".".join(series.groups()) + "."
 assert re.fullmatch(r"v" + re.escape(prefix) + r"\d+", registry["publishedProductRelease"])
-expected = {"macclient", "linuxrelayserver", "winlite", "winclient", "linuxclient", "androidclient"}
+expected = {"macclient", "linuxrelayserver", "winlite", "winclient", "linuxclient", "androidclient", "web"}
 assert set(registry["distributions"]) == expected
 for name, item in registry["distributions"].items():
 	if item["status"] == "planned":
@@ -34,6 +34,8 @@ for name, item in registry["distributions"].items():
 		assert f'Version = "{runtime}"' in (root / "Windows/src/Paperang.WinClient/Program.cs").read_text(encoding="utf-8")
 	else:
 		assert source == runtime
+web = registry["distributions"]["web"]
+assert web["version"] in (root / "Web/index.html").read_text(encoding="utf-8")
 win = registry["distributions"]["winlite"]["runtimeVersion"]
 win_number = win.split("-", 1)[0]
 assert f'Current = "{win}"' in (root / "Windows/src/Paperang.Core/AppVersion.cs").read_text(encoding="utf-8")

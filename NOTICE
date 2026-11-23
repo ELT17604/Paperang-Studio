@@ -28,3 +28,6 @@ WinClient uses QRCoder 1.9.0 (MIT), Microsoft Windows App SDK 2.7.0,
 and the Microsoft .NET runtime. Their licenses remain separate from this
 project's license. See Windows/licenses and the licenses directory in the
 Windows distribution for the bundled component notices.
+
+Web uses qrcode-generator 2.0.4, Copyright (c) 2009 Kazuhiko Arase.
+The distributed JavaScript module retains its MIT license in Web/vendor/LICENSE-qrcode.txt.

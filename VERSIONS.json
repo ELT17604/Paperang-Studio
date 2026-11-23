@@ -72,6 +72,16 @@
       "publicationStatus": "Included in unified v0.3.3 release; see doc/RELEASE-v0.3.3.md for validation and runtime version",
       "documentation": "doc/RELEASE-v0.3.3-androidclient.md",
       "buildNumber": 12
+    },
+    "web": {
+      "name": "Web",
+      "status": "implemented",
+      "version": "v0.3.3-web",
+      "runtimeVersion": "0.3.3-web",
+      "versionSource": "Web/VERSION",
+      "compatibleBaseline": "0.3.x",
+      "documentation": "doc/WEB.md",
+      "publicationStatus": "Static source distribution on main"
     }
   },
   "preStablePolicy": "Within a release series, implementations preserve the shared contract. Compatible updates can ship independently. A new series can retain the same contract; an incompatible change requires explicit protocol or schema versioning and a migration plan.",

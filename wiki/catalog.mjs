@@ -14,6 +14,7 @@ export const groups = [
 	['clients', 'Client guides', '客户端指南', [
 		doc('USER-GUIDE', 'MacClient', 'MacClient 使用指南'),
 		['android', 'AndroidClient', 'AndroidClient 使用指南', 'Android/README.md', null, 'zh-CN'],
+		doc('WEB', 'Web Bluetooth workspace', '网页蓝牙工作台'),
 		doc('WINDOWS', 'WinClient', 'WinClient 使用指南'),
 		doc('WINCLIENT', 'WinClient implementation and validation', 'WinClient 实现与验证'),
 		doc('MACCLIENT-WORKSPACE', 'MacClient workspace', 'MacClient 打印工作台'),

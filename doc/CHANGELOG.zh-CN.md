@@ -2,6 +2,10 @@
 
 当前发布见 [v0.3.3](RELEASE-v0.3.3.md)。历次版本涉及的暂停组件见[暂停维护声明](PAUSED-BRANCHES.zh-CN.md)。
 
+## v0.3.3-web
+
+新增[静态网页工作台](WEB.zh-CN.md)，支持本地排版、黑白预览和 Web Bluetooth 直连 P2 打印。Cloudflare Pages 可直接托管 `Web/` 目录。
+
 ## v0.3.3 统一发布
 
 MacClient opt2、AndroidClient opt2、WinClient dev5 和当前 Relay 源码统一发布。安装包、内部版本和校验和见[发行说明](RELEASE-v0.3.3.md)。

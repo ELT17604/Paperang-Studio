@@ -1,0 +1,136 @@
+.ed-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+  padding: 4px;
+  background: var(--inset);
+  border-radius: 14px;
+}
+.ed-tabs .ed-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  min-width: 0;
+  padding: 8px 2px;
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+.ed-tabs .ed-btn.selected {
+  color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 1px 5px #26382c1a;
+}
+.ed-panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  min-width: 0;
+}
+.ed-panel textarea {
+  width: 100%;
+  min-height: 4rem;
+  resize: vertical;
+  padding: 14px 16px;
+  line-height: 1.6;
+}
+.ed-panel textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.ed-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 105px), 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.ed-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.ed-field input,
+.ed-field select {
+  width: 100%;
+  color: var(--fg);
+  min-width: 0;
+}
+.ed-field:has([type='checkbox']) {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-self: end;
+  min-height: 44px;
+}
+.ed-field input[type='checkbox'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--accent);
+}
+.ed-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ed-tools .ed-btn,
+.ed-panel > .ed-btn {
+  font-size: 0.9rem;
+  border-radius: 24px;
+  background: var(--tint);
+  border-color: transparent;
+  color: var(--accent);
+  padding-inline: 16px;
+}
+.ed-panel > .ed-btn {
+  justify-self: start;
+}
+.ed-panel > .ed-export {
+  background: transparent;
+  border: 0;
+  justify-self: end;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.ed-file {
+  font-size: 0.875rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.ed-stage {
+  display: block;
+  width: 100%;
+  max-width: 576px;
+  height: auto;
+  margin-inline: auto;
+  touch-action: none;
+  border: 1px solid var(--line);
+  cursor: crosshair;
+  background: #fff;
+}
+.ed-fold {
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+}
+.ed-fold summary {
+  cursor: pointer;
+  padding: 10px 2px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.ed-notice {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+@media (max-width: 430px) {
+  .ed-tabs .ed-btn {
+    font-size: 0.84rem;
+  }
+  .ed-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
