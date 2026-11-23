@@ -41,7 +41,7 @@ From the repository root run `python -m http.server 8080 --bind 127.0.0.1 --dire
 
 In Cloudflare Pages, import this GitHub repository, select the `main` production branch and leave the root directory at the repository root. Use no framework preset, `exit 0` as the build command and `Web` as the output directory. The application is served as static files. The connected browser handles editing and Bluetooth printing. [Cloudflare Pages static HTML guide](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/)
 
-The workspace follows the browser language and system appearance. Language and the Morandi or Frutiger Aero style can be selected in the interface.
+The workspace follows the browser language and system appearance. Select Preferences → Theme → Frutiger Aero for a glass workspace over a blue-sky lake landscape. The light and dark appearances use separate glass tints. Select Morandi for the muted theme.
 
 ## Native implementation references
 

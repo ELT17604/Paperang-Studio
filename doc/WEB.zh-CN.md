@@ -41,7 +41,7 @@ Android 每次写入消耗一个打印机流控额度，并等待前一次写入
 
 在 Cloudflare Pages 导入本 GitHub 仓库，生产分支选 `main`，根目录保留为仓库根。框架预设选无，构建命令填 `exit 0`，输出目录填 `Web`。站点以静态文件部署，编辑和打印均由正在访问页面的浏览器执行。[Cloudflare Pages 静态 HTML 部署指南](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/)
 
-工作台自动采用浏览器语言与系统深浅色。可在界面中手动选择语言以及莫兰迪或 Frutiger Aero 风格。
+工作台自动采用浏览器语言与系统深浅色。在偏好设置中可手动选择语言和主题。选择 Frutiger Aero 后，透明玻璃面板会透出蓝天、草坡与湖面的背景，浅色和深色模式分别使用冰蓝和深海蓝玻璃。也可切换至莫兰迪主题。
 
 ## 原生源码对照
 

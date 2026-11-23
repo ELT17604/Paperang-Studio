@@ -34,31 +34,6 @@
   --stage: #303934;
   --shadow: none;
 }
-:root[data-style='aero'] {
-  --bg: #d9f1f4;
-  --surface: #f6fcff;
-  --fg: #123e52;
-  --muted: #3d6273;
-  --line: #b4d4de;
-  --accent: #08668a;
-  --tint: #d6f3fc;
-  --stage: #d4e9ef;
-  --hero: #17758e;
-  --inset: #e6f6fa;
-}
-:root[data-style='aero'][data-mode='dark'] {
-  --bg: #102c3b;
-  --surface: #163847;
-  --fg: #e4f7fe;
-  --muted: #b2d5e1;
-  --line: #40616f;
-  --accent: #9cdef4;
-  --on-accent: #093246;
-  --tint: #22516a;
-  --stage: #1d414e;
-  --hero: #12516a;
-  --inset: #1b4556;
-}
 * {
   box-sizing: border-box;
 }
@@ -540,31 +515,6 @@ dialog::backdrop {
   width: 20px;
   height: 20px;
   accent-color: var(--accent);
-}
-[data-style='aero'] body {
-  background:
-    radial-gradient(ellipse 80% 50% at 0 0, #67cbd33d, transparent),
-    linear-gradient(145deg, var(--bg) 50%, var(--tint));
-}
-[data-style='aero'] .device {
-  background:
-    radial-gradient(ellipse at 85% 140%, #a9ee64 0%, transparent 45%),
-    linear-gradient(165deg, #64ced9, var(--hero) 55%, #13748c);
-}
-[data-style='aero'] .panel,
-[data-style='aero'] header {
-  background: linear-gradient(165deg, color-mix(in srgb, var(--surface) 87%, white), var(--surface) 35%);
-  box-shadow:
-    inset 0 1px 2px #ffffffad,
-    0 4px 15px #11456324;
-}
-[data-style='aero'] .primary:enabled,
-[data-style='aero'] .connect {
-  background: linear-gradient(#eaffff, #bde9f4 48%, #94cfe5 50%, #c7f7fa);
-  color: #143f52;
-  box-shadow:
-    inset 0 1px 2px white,
-    0 2px 5px #23425733;
 }
 @media (max-width: 810px) {
   .workspace {
